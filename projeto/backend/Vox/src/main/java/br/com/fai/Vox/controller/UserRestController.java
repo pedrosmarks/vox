@@ -31,12 +31,6 @@ public class UserRestController {
     @GetMapping("/{id}")
     public ResponseEntity<UserModel> getEntityById(@PathVariable final int id) {
         UserModel entity = userService.findByid(id);
-//
-//        if (entity == null){
-//            return ResponseEntity.notFound().build();
-//        }
-//
-//        return ResponseEntity.ok(entity);
 
         return entity == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(entity);
     }
