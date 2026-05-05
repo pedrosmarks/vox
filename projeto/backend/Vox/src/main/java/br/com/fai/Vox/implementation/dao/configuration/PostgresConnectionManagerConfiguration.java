@@ -94,18 +94,23 @@ public class PostgresConnectionManagerConfiguration {
         final String basePath = "db-scripts";
 
         final String createTableSql = resourceFileService.read(basePath + "/create-tables-postgres.sql");
-
-        PreparedStatement createStatement = connection.prepareStatement(createTableSql);
-        createStatement.executeUpdate();
-        createStatement.close();
+        executeScript(connection, createTableSql);
 
         final String insertDataSql = resourceFileService.read(basePath + getInsertScript());
-
-        final PreparedStatement insertStatement = connection.prepareStatement(insertDataSql);
-        insertStatement.execute();
-        insertStatement.close();
+        executeScript(connection, insertDataSql);
 
         return true;
+    }
+
+    private void executeScript(Connection connection, String sql) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            for (String stmt : sql.split(";")) {
+                String trimmed = stmt.trim();
+                if (!trimmed.isEmpty()) {
+                    statement.execute(trimmed);
+                }
+            }
+        }
     }
 
     public String getInsertScript() {

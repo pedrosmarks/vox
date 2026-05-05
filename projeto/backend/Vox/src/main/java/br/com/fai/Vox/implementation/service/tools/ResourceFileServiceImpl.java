@@ -20,12 +20,12 @@ public class ResourceFileServiceImpl implements ResourceFileService {
         }
 
         final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-        String content = "";
+        StringBuilder content = new StringBuilder();
         String line;
         while ((line = bufferedReader.readLine()) != null) {
-            content += line;
+            content.append(line).append("\n");
         }
 
-        return content;
+        return content.toString();
     }
 }

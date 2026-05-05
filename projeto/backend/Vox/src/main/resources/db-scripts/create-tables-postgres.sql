@@ -5,12 +5,6 @@ DROP TYPE IF EXISTS project_type CASCADE;
 DROP TYPE IF EXISTS project_status CASCADE;
 DROP TYPE IF EXISTS moderation_action CASCADE;
 
-DROP INDEX IF EXISTS idx_projects_status_municipality;
-DROP INDEX IF EXISTS idx_projects_type;
-DROP INDEX IF EXISTS idx_votes_project;
-DROP INDEX IF EXISTS idx_votes_user;
-DROP INDEX IF EXISTS idx_status_history_project;
-
 DROP TABLE IF EXISTS project_status_history;
 DROP TABLE IF EXISTS project_moderation;
 DROP TABLE IF EXISTS project_vote;
@@ -59,7 +53,7 @@ CREATE TABLE municipality (
 );
 
 CREATE TABLE user_model (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
 
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -77,7 +71,7 @@ CREATE TABLE user_model (
 );
 
 CREATE TABLE project_model (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
 
     municipality_id INTEGER NOT NULL
         REFERENCES municipality(id) ON DELETE CASCADE,
@@ -89,7 +83,7 @@ CREATE TABLE project_model (
 
     status project_status DEFAULT 'pending_approval',
 
-    author_id UUID NOT NULL
+    author_id INTEGER NOT NULL
         REFERENCES user_model(id) ON DELETE CASCADE,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -115,9 +109,9 @@ CREATE TABLE project_model (
 );
 
 CREATE TABLE project_image (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
 
-    project_id UUID NOT NULL
+    project_id INTEGER NOT NULL
         REFERENCES project_model(id) ON DELETE CASCADE,
 
     url TEXT NOT NULL,
@@ -127,12 +121,12 @@ CREATE TABLE project_image (
 );
 
 CREATE TABLE project_vote (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
 
-    project_id UUID NOT NULL
+    project_id INTEGER NOT NULL
         REFERENCES project_model(id) ON DELETE CASCADE,
 
-    user_id UUID NOT NULL
+    user_id INTEGER NOT NULL
         REFERENCES user_model(id) ON DELETE CASCADE,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -142,12 +136,12 @@ CREATE TABLE project_vote (
 );
 
 CREATE TABLE project_moderation (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
 
-    project_id UUID NOT NULL
+    project_id INTEGER NOT NULL
         REFERENCES project_model(id) ON DELETE CASCADE,
 
-    moderator_id UUID
+    moderator_id INTEGER
         REFERENCES user_model(id) ON DELETE SET NULL,
 
     action moderation_action NOT NULL,
@@ -159,15 +153,15 @@ CREATE TABLE project_moderation (
 );
 
 CREATE TABLE project_status_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
 
-    project_id UUID NOT NULL
+    project_id INTEGER NOT NULL
         REFERENCES project_model(id) ON DELETE CASCADE,
 
     previous_status project_status,
     new_status project_status NOT NULL,
 
-    changed_by UUID
+    changed_by INTEGER
         REFERENCES user_model(id) ON DELETE SET NULL,
 
     note TEXT,
@@ -177,12 +171,12 @@ CREATE TABLE project_status_history (
 );
 
 CREATE TABLE reward (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
 
-    user_id UUID NOT NULL
+    user_id INTEGER NOT NULL
         REFERENCES user_model(id) ON DELETE CASCADE,
 
-    project_id UUID NOT NULL
+    project_id INTEGER NOT NULL
         REFERENCES project_model(id) ON DELETE CASCADE,
 
     type VARCHAR(50),
