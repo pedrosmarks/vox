@@ -2,11 +2,13 @@ package br.com.fai.Vox.configuration;
 
 import br.com.fai.Vox.implementation.dao.municipality.MunicipalityPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.project.ProjectPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.projectimage.ProjectImagePostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.user.UserPostgresDaoImpl;
 import br.com.fai.Vox.implementation.service.authentication.BasicAuthenticationServiceImpl;
 import br.com.fai.Vox.implementation.service.authentication.JwtAuthenticationServiceImpl;
 import br.com.fai.Vox.port.dao.municipality.MunicipalityDao;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
+import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
 import br.com.fai.Vox.port.dao.user.UserDao;
 import br.com.fai.Vox.port.service.authentication.AuthenticationService;
 import br.com.fai.Vox.port.service.user.UserService;
@@ -68,6 +70,12 @@ public class AppConfiguration {
     public ProjectDao getProjectFakeDao(final Connection connection) {
         // return new UserFakeDaoImpl();
         return new ProjectPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public ProjectImageDao getProjectImageFakeDao(final Connection connection) {
+        // return new UserFakeDaoImpl();
+        return new ProjectImagePostgresDaoImpl(connection);
     }
 
     @Bean
