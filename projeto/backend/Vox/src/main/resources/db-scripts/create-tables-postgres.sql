@@ -130,7 +130,6 @@ CREATE TABLE project_vote (
         REFERENCES user_model(id) ON DELETE CASCADE,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     UNIQUE (project_id, user_id)
 );
@@ -183,8 +182,7 @@ CREATE TABLE reward (
 
     description TEXT,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_projects_status_municipality
