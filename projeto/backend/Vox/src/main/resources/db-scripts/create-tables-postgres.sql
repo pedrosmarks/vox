@@ -15,9 +15,9 @@ DROP TABLE IF EXISTS user_model;
 DROP TABLE IF EXISTS municipality;
 
 CREATE TYPE user_role AS ENUM (
-    'citizen',
-    'moderator',
-    'admin'
+    'CITIZEN',
+    'MODERATOR',
+    'ADMINISTRATOR'
 );
 
 CREATE TYPE project_type AS ENUM (
@@ -61,7 +61,7 @@ CREATE TABLE user_model (
     phone varchar(20) NOT NULL,
     password TEXT NOT NULL,
 
-    role user_role DEFAULT 'citizen',
+    role user_role DEFAULT 'CITIZEN',
 
     municipality_id INTEGER NOT NULL
         REFERENCES municipality(id) ON DELETE CASCADE,
