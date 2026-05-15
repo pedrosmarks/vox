@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS project_image;
 DROP TABLE IF EXISTS reward;
 DROP TABLE IF EXISTS project_model;
 DROP TABLE IF EXISTS category;
+DROP TABLE IF EXISTS password_reset_token;
 DROP TABLE IF EXISTS user_model;
 DROP TABLE IF EXISTS municipality;
 
@@ -69,6 +70,15 @@ CREATE TABLE user_model (
     municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE password_reset_token (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE category (
