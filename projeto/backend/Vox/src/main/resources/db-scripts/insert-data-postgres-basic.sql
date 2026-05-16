@@ -7,7 +7,7 @@ INSERT INTO municipality (name, state) VALUES
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-('João Ribeiro', 'joao@example.com', '00000000000', '(11) 99999-0000', 'aa', 'citizen', '1990-05-15', 1);
+('João Ribeiro', 'joao@example.com', '00000000000', '(11) 99999-0000', 'aa', 'CITIZEN', '1990-05-15', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
