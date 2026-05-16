@@ -17,9 +17,9 @@ DROP TYPE IF EXISTS project_status CASCADE;
 DROP TYPE IF EXISTS moderation_action CASCADE;
 
 CREATE TYPE user_role AS ENUM (
-    'citizen',
-    'moderator',
-    'admin'
+    'CITIZEN',
+    'MODERATOR',
+    'ADMINISTRATOR'
 );
 
 CREATE TYPE project_type AS ENUM (

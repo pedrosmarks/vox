@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<sim-project version="15.21" multi-file="no" uid="simpaceaff63bf4545c5aa5a013b42835d54" creation-date="05/07/2026 16:53:47">
+  <meta>
+    <name>(Project)</name>
+    <authors>Pedro S. Marques</authors>
+    <description />
+  </meta>
+  <counters models="1">
+    <entity-names>
+      <counter>
+        <item-type type-id="package" type="Package" />
+        <value>2</value>
+      </counter>
+      <counter>
+        <item-type type-id="class" type="Class" />
+        <value>1</value>
+      </counter>
+      <counter>
+        <item-type type="Unknown" />
+        <value>2</value>
+      </counter>
+    </entity-names>
+    <entity-ids>
+      <counter>
+        <item-type type-id="package" type="Package" />
+        <value>3</value>
+      </counter>
+      <counter>
+        <item-type type-id="class" type="Class" />
+        <value>2</value>
+      </counter>
+      <counter>
+        <item-type type-id="text" type="Text" />
+        <value>3</value>
+      </counter>
+      <counter>
+        <item-type type-id="diagram-description" type="Diagram Description" />
+        <value>3</value>
+      </counter>
+    </entity-ids>
+    <diagrams>
+      <counter>
+        <type>SoftwareIdeasModeler.Core.Diagrams.UmlDiagrams.UmlPackageDiagram</type>
+        <value>1</value>
+      </counter>
+    </diagrams>
+    <fields />
+  </counters>
+  <alias-groups />
+  <management uid="md-06620c7052254df48829f853890fc715" name="" task-id-sequence="0">
+    <persons>
+      <person id="">
+        <first-name>Pedro S.</first-name>
+        <last-name>Marques</last-name>
+        <role />
+        <e-mail />
+        <phone-number />
+        <description />
+        <color>#00000000</color>
+      </person>
+    </persons>
+    <teams />
+    <sprints />
+    <projects />
+    <modules />
+    <tasks />
+    <to-dos />
+  </management>
+  <glossary id="glsr-ce646d5071ca42b3a76dd38969ecd19b" name="" order-index="-1" />
+  <types default="UML">
+    <type-sets>
+      <type-set file="UmlTypes.xml" />
+    </type-sets>
+    <custom-types>
+      <parameters />
+      <types />
+    </custom-types>
+  </types>
+  <items>
+    <item id="0a825259221644828a47d98b47c77b8e" cid="PKG001" type="package" name="Gestão de usuários" owner="5e87db7ac61d47599a09bfe30af3b695" creation-date="05/07/2026 16:53:53" visibility="undefined">
+      <owned-items />
+    </item>
+    <item id="aa48f6bfc4424df9ad94d083589507b1" cid="ELEM001" type="text" name="Element1" owner="64ae32d1c44d4144abc55c63ef380859" creation-date="05/07/2026 17:21:34">
+      <drawing-text>
+        <text>- Enviar sugestões
+ 
+- Enviar propostas de projetos</text>
+      </drawing-text>
+    </item>
+    <item id="7bb2d302955c41d19ca0dc34d9d903e7" cid="PKG001" type="package" name="Participação democrática" owner="5e87db7ac61d47599a09bfe30af3b695" creation-date="05/07/2026 16:53:53" visibility="undefined">
+      <owned-items />
+    </item>
+    <item id="84b44df3b0124a1c902c848c10ed938c" cid="PKG001" type="package" name="Classificação e Organização" owner="5e87db7ac61d47599a09bfe30af3b695" creation-date="05/07/2026 16:53:53" visibility="undefined">
+      <owned-items />
+    </item>
+    <item id="e493f6c7cad84fa981a0380d82f6b7de" cid="ELEM001" type="text" name="Element1" owner="7bb2d302955c41d19ca0dc34d9d903e7" creation-date="05/07/2026 17:21:34">
+      <drawing-text>
+        <text>- Votação em projetos
+- Apuração de votos
+- Consulta de resultados</text>
+      </drawing-text>
+    </item>
+    <item id="16759e5813db45f1a375b5f5726f6977" cid="PKG001" type="package" name="Transparência e consulta pública" owner="5e87db7ac61d47599a09bfe30af3b695" creation-date="05/07/2026 16:53:53" visibility="undefined">
+      <owned-items />
+    </item>
+    <item id="4f4eceb3cdef464db8d74f38cfb386f6" cid="PKG001" type="package" name="Gestão Administrativa&#xD;&#xA;" owner="5e87db7ac61d47599a09bfe30af3b695" creation-date="05/07/2026 16:53:53" visibility="undefined">
+      <owned-items />
+    </item>
+    <item id="c51cf4725abb4aa8b2d1c71abd9932bd" cid="ELEM001" type="text" name="Element1" owner="4f4eceb3cdef464db8d74f38cfb386f6" creation-date="05/07/2026 17:21:34">
+      <drawing-text>
+        <text>- Análise técnica
+- Avaliação financeira
+- Aprovação/Rejeição de sugestões
+- Relatórios e dashboards
+- Histórico e logs</text>
+      </drawing-text>
+    </item>
+    <item id="7f878e3b876647fbba1d3740669c0b57" cid="ELEM001" type="text" name="Element1" owner="16759e5813db45f1a375b5f5726f6977" creation-date="05/07/2026 17:21:34">
+      <drawing-text>
+        <text>- Seleção de município
+- Consulta de projetos
+- Exportação de dados abertos</text>
+      </drawing-text>
+    </item>
+    <item id="d5819a3333ce46b189494560ef664865" cid="ELEM001" type="text" name="Element1" owner="84b44df3b0124a1c902c848c10ed938c" creation-date="05/07/2026 17:21:34">
+      <drawing-text>
+        <text>-Categorizar projetos
+-Categorizar sugestões
+-Gerenciar categorias/áreas</text>
+      </drawing-text>
+    </item>
+  </items>
+  <models>
+    <model id="pfca8222f08e14b05b12ae5400eaaa77f_966799283" name="Model1" namespace="" order-index="1">
+      <meta>
+        <authors>
+          <author> </author>
+        </authors>
+        <description />
+        <creation-date>05/07/2026 16:53:49</creation-date>
+        <change-date>01/01/0001 00:00:00</change-date>
+        <revision-count>0</revision-count>
+        <version />
+      </meta>
+      <abstract-items />
+      <sub-models />
+      <diagram type="uml-package" id="p417af74026834257860efd62d1e9299b_879662151" name="PackageDiagram1" order-index="1" uid="" name-style="" auto-routed-paths="false" default-line-style="default" view-location="-281,-30" zoom="0.8">
+        <style>
+          <background-color index="1" color="#FFFFFFFF" />
+          <background-color index="2" color="#FFFFFFFF" />
+          <background-type type="solid" />
+        </style>
+        <meta>
+          <authors>
+            <author> </author>
+          </authors>
+          <description />
+          <creation-date>05/07/2026 16:53:50</creation-date>
+          <change-date>05/07/2026 17:27:53</change-date>
+          <revision-count>0</revision-count>
+          <version />
+        </meta>
+        <abstract-items>
+          <item id="64ae32d1c44d4144abc55c63ef380859" cid="PKG001" type="package" name="Participação Cidadã" owner="5e87db7ac61d47599a09bfe30af3b695" creator="" creation-date="05/07/2026 16:53:53">
+            <owned-items />
+          </item>
+          <item id="5e87db7ac61d47599a09bfe30af3b695" cid="PKG002" type="package" name="Sistema participação civica" creator="" creation-date="05/07/2026 17:27:53">
+            <owned-items />
+          </item>
+          <item id="1377cb7043eb409f8dc6536fc206992e" cid="ELEM001" type="text" name="Element1" owner="0a825259221644828a47d98b47c77b8e" creator="" creation-date="05/07/2026 17:21:34">
+            <drawing-text>
+              <text>- Cadastro de cidadãos e administradores
+- Autenticação e controle de acesso
+- Recuperação de senha
+- Gerenciamento de perfis</text>
+            </drawing-text>
+          </item>
+        </abstract-items>
+        <layer id="a37c5032503e439f8b2dc8bf780df155" name="Default" visible="true" enabled="true" locked="false">
+          <item id="5e87db7ac61d47599a09bfe30af3b695" iid="2660f46c10834c8d92624fb79373edac" creation-date="05/07/2026 17:27:53" order-index="2" type="entity">
+            <layout ax="-153" ay="54" awidth="1237" aheight="769" x="-153" y="54" width="1237" height="769" expanded="-153,54,1237,769" collapsed="0,0,0,0" />
+            <package name-in-body="false" />
+          </item>
+          <item id="64ae32d1c44d4144abc55c63ef380859" iid="4698be5174254961a76ac163a6736947" container="5e87db7ac61d47599a09bfe30af3b695" container-iid="2660f46c10834c8d92624fb79373edac" creation-date="05/07/2026 16:53:53" order-index="0" type="entity">
+            <layout ax="315.5" ay="149" awidth="300" aheight="275" x="297.5" y="126" width="300" height="275" expanded="282,103,300,275" collapsed="0,0,0,0" />
+            <package name-in-body="false" />
+          </item>
+          <item id="84b44df3b0124a1c902c848c10ed938c" iid="bb18cdb9152f476ebfd7c14fffb103be" container="5e87db7ac61d47599a09bfe30af3b695" container-iid="2660f46c10834c8d92624fb79373edac" creation-date="05/07/2026 16:53:53" order-index="0" type="entity">
+            <layout ax="672.5" ay="496" awidth="300" aheight="275" x="654.5" y="473" width="300" height="275" expanded="639,450,300,275" collapsed="0,0,0,0" />
+            <package name-in-body="false" />
+          </item>
+          <item id="4f4eceb3cdef464db8d74f38cfb386f6" iid="1f460df41aa5449e827ca0251b913669" container="5e87db7ac61d47599a09bfe30af3b695" container-iid="2660f46c10834c8d92624fb79373edac" creation-date="05/07/2026 16:53:53" order-index="0" type="entity">
+            <layout ax="-41.5" ay="496" awidth="300" aheight="275" x="-59.5" y="473" width="300" height="275" expanded="-75,450,300,275" collapsed="0,0,0,0" />
+            <package name-in-body="false" />
+          </item>
+          <item id="0a825259221644828a47d98b47c77b8e" iid="0a51474debab4c81a85e2af18b141d23" container="5e87db7ac61d47599a09bfe30af3b695" container-iid="2660f46c10834c8d92624fb79373edac" creation-date="05/07/2026 16:53:53" order-index="0" type="entity">
+            <layout ax="-41.5" ay="149" awidth="300" aheight="275" x="-59.5" y="126" width="300" height="275" expanded="-75,103,300,275" collapsed="0,0,0,0" />
+            <package name-in-body="false" />
+          </item>
+          <item id="7bb2d302955c41d19ca0dc34d9d903e7" iid="1b2a4c4dc21e4360b0437fe6c2ff8066" container="5e87db7ac61d47599a09bfe30af3b695" container-iid="2660f46c10834c8d92624fb79373edac" creation-date="05/07/2026 16:53:53" order-index="0" type="entity">
+            <layout ax="672.5" ay="149" awidth="300" aheight="275" x="654.5" y="126" width="300" height="275" expanded="639,103,300,275" collapsed="0,0,0,0" />
+            <package name-in-body="false" />
+          </item>
+          <item id="16759e5813db45f1a375b5f5726f6977" iid="0d0e2787e7e04840bd70220a51b3419d" container="5e87db7ac61d47599a09bfe30af3b695" container-iid="2660f46c10834c8d92624fb79373edac" creation-date="05/07/2026 16:53:53" order-index="0" type="entity">
+            <layout ax="315.5" ay="496" awidth="300" aheight="275" x="297.5" y="473" width="300" height="275" expanded="282,450,300,275" collapsed="0,0,0,0" />
+            <package name-in-body="false" />
+          </item>
+          <item id="7f878e3b876647fbba1d3740669c0b57" iid="d20953d8ffb0430ea2920854b671b4e4" container="16759e5813db45f1a375b5f5726f6977" container-iid="0d0e2787e7e04840bd70220a51b3419d" creation-date="05/07/2026 17:21:34" order-index="0" type="drawing-text">
+            <layout ax="340.5" ay="595" awidth="250" aheight="100" x="322.5" y="572" width="250" height="100" />
+          </item>
+          <item id="e493f6c7cad84fa981a0380d82f6b7de" iid="2a9f3dd4f32048d8825c32fc2f72e308" container="7bb2d302955c41d19ca0dc34d9d903e7" container-iid="1b2a4c4dc21e4360b0437fe6c2ff8066" creation-date="05/07/2026 17:21:34" order-index="0" type="drawing-text">
+            <layout ax="688.5" ay="236" awidth="250" aheight="100" x="670.5" y="236" width="250" height="100" />
+          </item>
+          <item id="c51cf4725abb4aa8b2d1c71abd9932bd" iid="5b28e1a61f964182be62c1de43188197" container="4f4eceb3cdef464db8d74f38cfb386f6" container-iid="1f460df41aa5449e827ca0251b913669" creation-date="05/07/2026 17:21:34" order-index="0" type="drawing-text">
+            <layout ax="-22.5" ay="595" awidth="250" aheight="100" x="-28.5" y="572" width="250" height="100" />
+          </item>
+          <item id="1377cb7043eb409f8dc6536fc206992e" iid="a28e98f536ab40aeb5cdeac028d9e721" container="0a825259221644828a47d98b47c77b8e" container-iid="0a51474debab4c81a85e2af18b141d23" creation-date="05/07/2026 17:21:34" order-index="1" type="drawing-text">
+            <layout ax="-16.5" ay="254.41309" awidth="250" aheight="100" x="-22.5" y="231.41309" width="250" height="100" />
+          </item>
+          <item id="d5819a3333ce46b189494560ef664865" iid="815e42e38b5f48eba7c69f19c3bf5ac5" container="84b44df3b0124a1c902c848c10ed938c" container-iid="bb18cdb9152f476ebfd7c14fffb103be" creation-date="05/07/2026 17:21:34" order-index="0" type="drawing-text">
+            <layout ax="697.5" ay="595" awidth="250" aheight="100" x="679.5" y="572" width="250" height="100" />
+          </item>
+          <item id="aa48f6bfc4424df9ad94d083589507b1" iid="2b8ad90bddd742aca9e10bc9a591db05" container="64ae32d1c44d4144abc55c63ef380859" container-iid="4698be5174254961a76ac163a6736947" creation-date="05/07/2026 17:21:34" order-index="0" type="drawing-text">
+            <layout ax="340.5" ay="254.41309" awidth="250" aheight="100" x="322.5" y="231.41309" width="250" height="100" />
+          </item>
+        </layer>
+      </diagram>
+    </model>
+  </models>
+</sim-project>

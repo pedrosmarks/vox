@@ -1,9 +1,7 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 INSERT INTO municipality (name, state) VALUES
-('São Paulo', 'SP'),
-('Campinas', 'SP'),
-('Rio de Janeiro', 'RJ');
+                                           ('São Paulo', 'SP'),
+                                           ('Campinas', 'SP'),
+                                           ('Rio de Janeiro', 'RJ');
 
 INSERT INTO user_model (name, email, cpf, phone, password, municipality_id)
 VALUES
@@ -16,3 +14,4 @@ VALUES
 INSERT INTO user_model (name, email, cpf, phone, password, role, municipality_id)
 VALUES
 ('Carlos Costa', 'carlos@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'admin', '1978-03-08', 3);
+

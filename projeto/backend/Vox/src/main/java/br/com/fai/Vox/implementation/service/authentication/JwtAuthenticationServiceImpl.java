@@ -3,8 +3,6 @@ package br.com.fai.Vox.implementation.service.authentication;
 import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.port.service.authentication.AuthenticationService;
 import br.com.fai.Vox.port.service.user.UserService;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class JwtAuthenticationServiceImpl implements AuthenticationService {
@@ -19,15 +17,19 @@ public class JwtAuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public UserModel authenticate(String email, String password) {
-        final UserModel userModel = userService.findByEmail(email);
-        if (userModel == null) {
-            throw new UsernameNotFoundException("usuario nao encontrado!");
-        }
+        try {
+            final UserModel userModel = userService.findByEmail(email);
+            if (userModel == null) {
+                return null;
+            }
 
-        if (!passwordEncoder.matches(password, userModel.getPassword())) {
-            throw new BadCredentialsException("credenciais invalidas!");
-        }
+            if (!passwordEncoder.matches(password, userModel.getPassword())) {
+                return null;
+            }
 
-        return userModel;
+            return userModel;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
