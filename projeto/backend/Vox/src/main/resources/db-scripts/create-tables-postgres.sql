@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS project_moderation;
 DROP TABLE IF EXISTS project_vote;
 DROP TABLE IF EXISTS project_image;
 DROP TABLE IF EXISTS reward;
-DROP TABLE IF EXISTS project_model;
+DROP TABLE IF EXISTS project;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS password_reset_token;
 DROP TABLE IF EXISTS user_model;
@@ -88,7 +88,7 @@ CREATE TABLE category (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE project_model (
+CREATE TABLE project (
     id SERIAL PRIMARY KEY,
     municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
     category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
@@ -120,7 +120,7 @@ CREATE TABLE project_model (
 
 CREATE TABLE project_image (
     id SERIAL PRIMARY KEY,
-    project_id INTEGER NOT NULL REFERENCES project_model(id) ON DELETE CASCADE,
+    project_id INTEGER NOT NULL REFERENCES project(id) ON DELETE CASCADE,
     url TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -130,7 +130,7 @@ CREATE TABLE project_vote (
     id SERIAL PRIMARY KEY,
     voting_start_at TIMESTAMP,
     voting_end_at TIMESTAMP,
-    project_id INTEGER NOT NULL REFERENCES project_model(id) ON DELETE CASCADE,
+    project_id INTEGER NOT NULL REFERENCES project(id) ON DELETE CASCADE,
     user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -139,7 +139,7 @@ CREATE TABLE project_vote (
 
 CREATE TABLE project_moderation (
     id SERIAL PRIMARY KEY,
-    project_id INTEGER NOT NULL REFERENCES project_model(id) ON DELETE CASCADE,
+    project_id INTEGER NOT NULL REFERENCES project(id) ON DELETE CASCADE,
     moderator_id INTEGER REFERENCES user_model(id) ON DELETE SET NULL,
     action moderation_action NOT NULL,
     feedback TEXT,
@@ -149,7 +149,7 @@ CREATE TABLE project_moderation (
 
 CREATE TABLE project_status_history (
     id SERIAL PRIMARY KEY,
-    project_id INTEGER NOT NULL REFERENCES project_model(id) ON DELETE CASCADE,
+    project_id INTEGER NOT NULL REFERENCES project(id) ON DELETE CASCADE,
     previous_status project_status,
     new_status project_status NOT NULL,
     changed_by INTEGER REFERENCES user_model(id) ON DELETE SET NULL,
@@ -161,16 +161,16 @@ CREATE TABLE project_status_history (
 CREATE TABLE reward (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
-    project_id INTEGER NOT NULL REFERENCES project_model(id) ON DELETE CASCADE,
+    project_id INTEGER NOT NULL REFERENCES project(id) ON DELETE CASCADE,
     type VARCHAR(50),
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_projects_status_municipality ON project_model(status, municipality_id);
-CREATE INDEX idx_projects_type ON project_model(type);
+CREATE INDEX idx_projects_status_municipality ON project(status, municipality_id);
+CREATE INDEX idx_projects_type ON project(type);
 CREATE INDEX idx_votes_project ON project_vote(project_id);
 CREATE INDEX idx_votes_user ON project_vote(user_id);
 CREATE INDEX idx_status_history_project ON project_status_history(project_id);
-CREATE INDEX idx_project_status ON project_model(status);
-CREATE INDEX idx_project_author ON project_model(author_id);
+CREATE INDEX idx_project_status ON project(status);
+CREATE INDEX idx_project_author ON project(author_id);

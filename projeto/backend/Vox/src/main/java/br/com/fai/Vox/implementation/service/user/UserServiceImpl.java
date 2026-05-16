@@ -124,4 +124,16 @@ public class UserServiceImpl implements UserService {
 
         return users;
     }
+
+    // Criar o fluxo para poder resetar a senha do usuário
+
+    @Override
+    public Boolean forgotPassword(String email) {
+        return null;
+    }
+
+    @Override
+    public Boolean resetPassword(String token, String newPassword) {
+        return null;
+    }
 }
