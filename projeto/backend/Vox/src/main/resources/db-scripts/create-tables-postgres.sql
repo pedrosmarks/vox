@@ -1,5 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+DROP TABLE IF EXISTS project_model;
 DROP TABLE IF EXISTS project_status_history;
 DROP TABLE IF EXISTS project_moderation;
 DROP TABLE IF EXISTS project_vote;
