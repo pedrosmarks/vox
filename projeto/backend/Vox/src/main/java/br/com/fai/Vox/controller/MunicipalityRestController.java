@@ -1,13 +1,13 @@
 package br.com.fai.Vox.controller;
 
-import br.com.fai.Vox.domain.MunicipalityModel;
+import br.com.fai.Vox.domain.Municipality;
+import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.port.service.municipality.MunicipalityService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -20,16 +20,28 @@ public class MunicipalityRestController {
         this.municipalityService = municipalityService;
     }
 
+    @PostMapping
+    public ResponseEntity<Municipality> create(@RequestBody final Municipality data) {
+        final int id = municipalityService.create(data);
+
+        final URI uri = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(id)
+                .toUri();
+        return ResponseEntity.created(uri).build();
+    }
+
     @GetMapping()
-    public ResponseEntity<List<MunicipalityModel>> getEntities() {
-        List<MunicipalityModel> entities = municipalityService.findAll();
+    public ResponseEntity<List<Municipality>> getEntities() {
+        List<Municipality> entities = municipalityService.findAll();
 
         return ResponseEntity.ok(entities);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MunicipalityModel> getEntityById(@PathVariable final int id) {
-        MunicipalityModel entity = municipalityService.findByid(id);
+    public ResponseEntity<Municipality> getEntityById(@PathVariable final int id) {
+        Municipality entity = municipalityService.findByid(id);
 
         return entity == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(entity);
     }

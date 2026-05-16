@@ -1,14 +1,14 @@
 package br.com.fai.Vox.domain;
 
-public class MunicipalityModel {
+public class Municipality {
     private int id;
     private String name;
     private String state;
 
-    public MunicipalityModel() {
+    public Municipality() {
     }
 
-    public MunicipalityModel(int id, String name, String state) {
+    public Municipality(int id, String name, String state) {
         this.id = id;
         this.name = name;
         this.state = state;
