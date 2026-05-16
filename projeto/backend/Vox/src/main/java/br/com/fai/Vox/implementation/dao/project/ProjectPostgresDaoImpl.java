@@ -21,31 +21,36 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
 
     @Override
     public int create(Project entity) {
-        final String sql = "INSERT INTO project_model " +
-                "(municipality_id, type, title, description, status, author_id, highlighted, is_official, " +
-                "location_name, address, latitude, longitude, start_date, expected_end_date, end_date, budget) " +
-                "VALUES (?, CAST(? AS project_type), ?, ?, CAST(? AS project_status), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        final String sql = "INSERT INTO project " +
+                "(municipality_id, category_id, type, title, description, status, author_id, highlighted, is_official, " +
+                "neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date, " +
+                "financial_analysis, estimated_cost, approved_budget) " +
+                "VALUES (?, ?, CAST(? AS project_type), ?, ?, CAST(? AS project_status), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try {
             connection.setAutoCommit(false);
 
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setInt(1, entity.getMunicipalityId());
-            ps.setString(2, entity.getType().name().toLowerCase());
-            ps.setString(3, entity.getTitle());
-            ps.setString(4, entity.getDescription());
-            ps.setString(5, entity.getStatus() != null ? entity.getStatus().name().toLowerCase() : "pending_approval");
-            ps.setInt(6, entity.getAuthorId());
-            ps.setBoolean(7, entity.getHighlighted() != null && entity.getHighlighted());
-            ps.setBoolean(8, entity.getIsOfficial() != null && entity.getIsOfficial());
-            ps.setString(9, entity.getLocationName());
-            ps.setString(10, entity.getAddress());
-            ps.setBigDecimal(11, entity.getLatitude());
-            ps.setBigDecimal(12, entity.getLongitude());
-            ps.setObject(13, entity.getStartDate());
-            ps.setObject(14, entity.getExpectedEndDate());
-            ps.setObject(15, entity.getEndDate());
-            ps.setBigDecimal(16, entity.getBudget());
+            ps.setInt(2, entity.getCategoryId());
+            ps.setString(3, entity.getType().name().toLowerCase());
+            ps.setString(4, entity.getTitle());
+            ps.setString(5, entity.getDescription());
+            ps.setString(6, entity.getStatus() != null ? entity.getStatus().name().toLowerCase() : "pending_approval");
+            ps.setInt(7, entity.getAuthorId());
+            ps.setBoolean(8, entity.getHighlighted() != null && entity.getHighlighted());
+            ps.setBoolean(9, entity.getIsOfficial() != null && entity.getIsOfficial());
+            ps.setString(10, entity.getNeighborhood());
+            ps.setString(11, entity.getStreet());
+            ps.setString(12, entity.getNumber());
+            ps.setBigDecimal(13, entity.getLatitude());
+            ps.setBigDecimal(14, entity.getLongitude());
+            ps.setObject(15, entity.getStartDate());
+            ps.setObject(16, entity.getExpectedEndDate());
+            ps.setObject(17, entity.getEndDate());
+            ps.setString(18, entity.getFinancialAnalysis());
+            ps.setBigDecimal(19, entity.getEstimatedCost());
+            ps.setBigDecimal(20, entity.getApprovedBudget());
 
             ps.executeUpdate();
 
@@ -74,7 +79,7 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
 
     @Override
     public void delete(int id) {
-        final String sql = "DELETE FROM project_model WHERE id = ?";
+        final String sql = "DELETE FROM project WHERE id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
@@ -88,7 +93,7 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
 
     @Override
     public Project findByid(int id) {
-        final String sql = "SELECT * FROM project_model WHERE id = ?";
+        final String sql = "SELECT * FROM project WHERE id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
@@ -108,7 +113,7 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
     @Override
     public List<Project> findAll() {
         final List<Project> projects = new ArrayList<>();
-        final String sql = "SELECT * FROM project_model ORDER BY created_at DESC";
+        final String sql = "SELECT * FROM project ORDER BY created_at DESC";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -125,33 +130,37 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
 
     @Override
     public void update(int id, Project entity) {
-        final String sql = "UPDATE project_model SET " +
-                "municipality_id = ?, type = CAST(? AS project_type), title = ?, description = ?, " +
+        final String sql = "UPDATE project SET " +
+                "municipality_id = ?, category_id = ?, type = CAST(? AS project_type), title = ?, description = ?, " +
                 "status = CAST(? AS project_status), highlighted = ?, is_official = ?, " +
-                "location_name = ?, address = ?, latitude = ?, longitude = ?, " +
-                "start_date = ?, expected_end_date = ?, end_date = ?, budget = ?, " +
-                "updated_at = CURRENT_TIMESTAMP " +
-                "WHERE id = ?";
+                "neighborhood = ?, street = ?, number = ?, latitude = ?, longitude = ?, " +
+                "start_date = ?, expected_end_date = ?, end_date = ?, " +
+                "financial_analysis = ?, estimated_cost = ?, approved_budget = ?, " +
+                "updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {
             connection.setAutoCommit(false);
 
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, entity.getMunicipalityId());
-            ps.setString(2, entity.getType().name().toLowerCase());
-            ps.setString(3, entity.getTitle());
-            ps.setString(4, entity.getDescription());
-            ps.setString(5, entity.getStatus().name().toLowerCase());
-            ps.setBoolean(6, entity.getHighlighted() != null && entity.getHighlighted());
-            ps.setBoolean(7, entity.getIsOfficial() != null && entity.getIsOfficial());
-            ps.setString(8, entity.getLocationName());
-            ps.setString(9, entity.getAddress());
-            ps.setBigDecimal(10, entity.getLatitude());
-            ps.setBigDecimal(11, entity.getLongitude());
-            ps.setObject(12, entity.getStartDate());
-            ps.setObject(13, entity.getExpectedEndDate());
-            ps.setObject(14, entity.getEndDate());
-            ps.setBigDecimal(15, entity.getBudget());
-            ps.setInt(16, id);
+            ps.setInt(2, entity.getCategoryId());
+            ps.setString(3, entity.getType().name().toLowerCase());
+            ps.setString(4, entity.getTitle());
+            ps.setString(5, entity.getDescription());
+            ps.setString(6, entity.getStatus().name().toLowerCase());
+            ps.setBoolean(7, entity.getHighlighted() != null && entity.getHighlighted());
+            ps.setBoolean(8, entity.getIsOfficial() != null && entity.getIsOfficial());
+            ps.setString(9, entity.getNeighborhood());
+            ps.setString(10, entity.getStreet());
+            ps.setString(11, entity.getNumber());
+            ps.setBigDecimal(12, entity.getLatitude());
+            ps.setBigDecimal(13, entity.getLongitude());
+            ps.setObject(14, entity.getStartDate());
+            ps.setObject(15, entity.getExpectedEndDate());
+            ps.setObject(16, entity.getEndDate());
+            ps.setString(17, entity.getFinancialAnalysis());
+            ps.setBigDecimal(18, entity.getEstimatedCost());
+            ps.setBigDecimal(19, entity.getApprovedBudget());
+            ps.setInt(20, id);
 
             ps.executeUpdate();
             ps.close();
@@ -170,6 +179,7 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
         Project project = new Project();
         project.setId(rs.getInt("id"));
         project.setMunicipalityId(rs.getInt("municipality_id"));
+        project.setCategoryId(rs.getInt("category_id"));
         project.setType(Project.ProjectType.valueOf(rs.getString("type").toUpperCase()));
         project.setTitle(rs.getString("title"));
         project.setDescription(rs.getString("description"));
@@ -177,11 +187,14 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
         project.setAuthorId(rs.getInt("author_id"));
         project.setHighlighted(rs.getBoolean("highlighted"));
         project.setIsOfficial(rs.getBoolean("is_official"));
-        project.setLocationName(rs.getString("location_name"));
-        project.setAddress(rs.getString("address"));
+        project.setNeighborhood(rs.getString("neighborhood"));
+        project.setStreet(rs.getString("street"));
+        project.setNumber(rs.getString("number"));
         project.setLatitude(rs.getBigDecimal("latitude"));
         project.setLongitude(rs.getBigDecimal("longitude"));
-        project.setBudget(rs.getBigDecimal("budget"));
+        project.setFinancialAnalysis(rs.getString("financial_analysis"));
+        project.setEstimatedCost(rs.getBigDecimal("estimated_cost"));
+        project.setApprovedBudget(rs.getBigDecimal("approved_budget"));
 
         Date startDate = rs.getDate("start_date");
         if (startDate != null) project.setStartDate(startDate.toLocalDate());

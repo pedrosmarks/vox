@@ -8,23 +8,27 @@ public class Project {
 
     private int id;
     private int municipalityId;
-    private ProjectType type;
+    private int categoryId;
+    private ProjectType type; // Enum customizado
     private String title;
     private String description;
-    private ProjectStatus status;
+    private ProjectStatus status; // Enum customizado
     private int authorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean highlighted;
     private Boolean isOfficial;
-    private String locationName;
-    private String address;
+    private String neighborhood;
+    private String street;
+    private String number;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private LocalDate startDate;
     private LocalDate expectedEndDate;
     private LocalDate endDate;
-    private BigDecimal budget;
+    private String financialAnalysis;
+    private BigDecimal estimatedCost;
+    private BigDecimal approvedBudget;
 
     public enum ProjectType {
         CITIZEN,
@@ -44,13 +48,20 @@ public class Project {
         CANCELLED
     }
 
-    // Construtor padrão
+    // Construtor Padrão (Vazio)
     public Project() {
     }
 
-    public Project(Integer id, Integer municipalityId, ProjectType type, String title, String description, ProjectStatus status, Integer authorId, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean highlighted, String locationName, Boolean isOfficial, String address, BigDecimal latitude, BigDecimal longitude, LocalDate startDate, LocalDate expectedEndDate, LocalDate endDate, BigDecimal budget) {
+    // Construtor Completo
+    public Project(int id, int municipalityId, int categoryId, ProjectType type, String title,
+                   String description, ProjectStatus status, int authorId, LocalDateTime createdAt,
+                   LocalDateTime updatedAt, Boolean highlighted, Boolean isOfficial, String neighborhood,
+                   String street, String number, BigDecimal latitude, BigDecimal longitude, LocalDate startDate,
+                   LocalDate expectedEndDate, LocalDate endDate, String financialAnalysis,
+                   BigDecimal estimatedCost, BigDecimal approvedBudget) {
         this.id = id;
         this.municipalityId = municipalityId;
+        this.categoryId = categoryId;
         this.type = type;
         this.title = title;
         this.description = description;
@@ -59,23 +70,29 @@ public class Project {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.highlighted = highlighted;
-        this.locationName = locationName;
         this.isOfficial = isOfficial;
-        this.address = address;
+        this.neighborhood = neighborhood;
+        this.street = street;
+        this.number = number;
         this.latitude = latitude;
         this.longitude = longitude;
         this.startDate = startDate;
         this.expectedEndDate = expectedEndDate;
         this.endDate = endDate;
-        this.budget = budget;
+        this.financialAnalysis = financialAnalysis;
+        this.estimatedCost = estimatedCost;
+        this.approvedBudget = approvedBudget;
     }
 
     // Getters e Setters
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
 
-    public Integer getMunicipalityId() { return municipalityId; }
-    public void setMunicipalityId(Integer municipalityId) { this.municipalityId = municipalityId; }
+    public int getMunicipalityId() { return municipalityId; }
+    public void setMunicipalityId(int municipalityId) { this.municipalityId = municipalityId; }
+
+    public int getCategoryId() { return categoryId; }
+    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
 
     public ProjectType getType() { return type; }
     public void setType(ProjectType type) { this.type = type; }
@@ -89,8 +106,8 @@ public class Project {
     public ProjectStatus getStatus() { return status; }
     public void setStatus(ProjectStatus status) { this.status = status; }
 
-    public Integer getAuthorId() { return authorId; }
-    public void setAuthorId(Integer authorId) { this.authorId = authorId; }
+    public int getAuthorId() { return authorId; }
+    public void setAuthorId(int authorId) { this.authorId = authorId; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
@@ -104,11 +121,14 @@ public class Project {
     public Boolean getIsOfficial() { return isOfficial; }
     public void setIsOfficial(Boolean isOfficial) { this.isOfficial = isOfficial; }
 
-    public String getLocationName() { return locationName; }
-    public void setLocationName(String locationName) { this.locationName = locationName; }
+    public String getNeighborhood() { return neighborhood; }
+    public void setNeighborhood(String neighborhood) { this.neighborhood = neighborhood; }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public String getStreet() { return street; }
+    public void setStreet(String street) { this.street = street; }
+
+    public String getNumber() { return number; }
+    public void setNumber(String number) { this.number = number; }
 
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
@@ -125,6 +145,12 @@ public class Project {
     public LocalDate getEndDate() { return endDate; }
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
-    public BigDecimal getBudget() { return budget; }
-    public void setBudget(BigDecimal budget) { this.budget = budget; }
+    public String getFinancialAnalysis() { return financialAnalysis; }
+    public void setFinancialAnalysis(String financialAnalysis) { this.financialAnalysis = financialAnalysis; }
+
+    public BigDecimal getEstimatedCost() { return estimatedCost; }
+    public void setEstimatedCost(BigDecimal estimatedCost) { this.estimatedCost = estimatedCost; }
+
+    public BigDecimal getApprovedBudget() { return approvedBudget; }
+    public void setApprovedBudget(BigDecimal approvedBudget) { this.approvedBudget = approvedBudget; }
 }
