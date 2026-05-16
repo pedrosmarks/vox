@@ -1,5 +1,10 @@
 package br.com.fai.Vox.domain.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class UpdatePasswordDto {
 
     private int id;
@@ -9,27 +14,27 @@ public class UpdatePasswordDto {
     public UpdatePasswordDto() {
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getOldPassword() {
-        return oldPassword;
-    }
-
-    public void setOldPassword(String oldPassword) {
-        this.oldPassword = oldPassword;
-    }
-
-    public String getNewPassword() {
-        return newPassword;
-    }
-
-    public void setNewPassword(String newPassword) {
-        this.newPassword = newPassword;
-    }
+//    public int getId() {
+//        return id;
+//    }
+//
+//    public void setId(int id) {
+//        this.id = id;
+//    }
+//
+//    public String getOldPassword() {
+//        return oldPassword;
+//    }
+//
+//    public void setOldPassword(String oldPassword) {
+//        this.oldPassword = oldPassword;
+//    }
+//
+//    public String getNewPassword() {
+//        return newPassword;
+//    }
+//
+//    public void setNewPassword(String newPassword) {
+//        this.newPassword = newPassword;
+//    }
 }

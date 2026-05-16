@@ -1,6 +1,5 @@
 package br.com.fai.Vox.configuration.security;
 
-import br.com.fai.Vox.domain.UserModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -39,33 +38,15 @@ public class BasicSecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(
-                        cors -> cors.configurationSource(corsConfigurationSource())
-                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers(
-                                                "/swagger-ui/**",
-                                                "/swagger-ui.html",
-                                                "/v3/api-docs/**",
-                                                "/authenticate",
-                                                "/api/user/**"
-                                        ).permitAll()
-                                        .requestMatchers(
-                                                "/api/product/**"
-                                        ).hasAuthority(UserModel.UserRole.CITIZEN.name())
-                                        .anyRequest().authenticated()
-                )
-                .sessionManagement(
-                        session ->
-                                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .headers(
-                        headers ->
-                                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-                );
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers ->
+                        headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 
         return http.build();
     }
