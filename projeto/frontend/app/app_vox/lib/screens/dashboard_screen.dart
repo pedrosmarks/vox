@@ -10,9 +10,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  static const _primary = Color(0xFF1e3a8a);
-  static const _accent = Color(0xFF7c3aed);
-  static const _secondary = Color(0xFFf59e0b);
+  // Novas cores do tema Vox
+  static const _primary = Color(0xFF1B3A6B);
+  static const _accent = Color(0xFF2B5BA8);
+  static const _secondary = Color(0xFFF5A800);
 
   final _authService = AuthService();
   String? _role;
@@ -144,9 +145,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.asset(
-                              'assets/images/logo.png',
+                              'assets/images/logo2.jpeg',
                               fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Icon(
+                              errorBuilder: (_, _, _) => const Icon(
                                 Icons.record_voice_over,
                                 color: _primary,
                                 size: 36,
