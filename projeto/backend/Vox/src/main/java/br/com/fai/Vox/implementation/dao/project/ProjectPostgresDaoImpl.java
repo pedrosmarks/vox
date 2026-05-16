@@ -33,10 +33,10 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setInt(1, entity.getMunicipalityId());
             ps.setInt(2, entity.getCategoryId());
-            ps.setString(3, entity.getType().name().toLowerCase());
+            ps.setString(3, entity.getType().name());
             ps.setString(4, entity.getTitle());
             ps.setString(5, entity.getDescription());
-            ps.setString(6, entity.getStatus() != null ? entity.getStatus().name().toLowerCase() : "pending_approval");
+            ps.setString(6, entity.getStatus() != null ? entity.getStatus().name() : "PENDING_APPROVAL");
             ps.setInt(7, entity.getAuthorId());
             ps.setBoolean(8, entity.getHighlighted() != null && entity.getHighlighted());
             ps.setBoolean(9, entity.getIsOfficial() != null && entity.getIsOfficial());
@@ -143,10 +143,10 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, entity.getMunicipalityId());
             ps.setInt(2, entity.getCategoryId());
-            ps.setString(3, entity.getType().name().toLowerCase());
+            ps.setString(3, entity.getType().name());
             ps.setString(4, entity.getTitle());
             ps.setString(5, entity.getDescription());
-            ps.setString(6, entity.getStatus().name().toLowerCase());
+            ps.setString(6, entity.getStatus().name());
             ps.setBoolean(7, entity.getHighlighted() != null && entity.getHighlighted());
             ps.setBoolean(8, entity.getIsOfficial() != null && entity.getIsOfficial());
             ps.setString(9, entity.getNeighborhood());

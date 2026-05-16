@@ -6,14 +6,14 @@ import java.time.LocalDateTime;
 
 public class Project {
 
-    private int id;
-    private int municipalityId;
-    private int categoryId;
+    private Integer id;
+    private Integer municipalityId;
+    private Integer categoryId;
     private ProjectType type; // Enum customizado
     private String title;
     private String description;
     private ProjectStatus status; // Enum customizado
-    private int authorId;
+    private Integer authorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean highlighted;
@@ -53,8 +53,8 @@ public class Project {
     }
 
     // Construtor Completo
-    public Project(int id, int municipalityId, int categoryId, ProjectType type, String title,
-                   String description, ProjectStatus status, int authorId, LocalDateTime createdAt,
+    public Project(Integer id, Integer municipalityId, Integer categoryId, ProjectType type, String title,
+                   String description, ProjectStatus status, Integer authorId, LocalDateTime createdAt,
                    LocalDateTime updatedAt, Boolean highlighted, Boolean isOfficial, String neighborhood,
                    String street, String number, BigDecimal latitude, BigDecimal longitude, LocalDate startDate,
                    LocalDate expectedEndDate, LocalDate endDate, String financialAnalysis,
@@ -85,14 +85,14 @@ public class Project {
     }
 
     // Getters e Setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public int getMunicipalityId() { return municipalityId; }
-    public void setMunicipalityId(int municipalityId) { this.municipalityId = municipalityId; }
+    public Integer getMunicipalityId() { return municipalityId; }
+    public void setMunicipalityId(Integer municipalityId) { this.municipalityId = municipalityId; }
 
-    public int getCategoryId() { return categoryId; }
-    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
+    public Integer getCategoryId() { return categoryId; }
+    public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
 
     public ProjectType getType() { return type; }
     public void setType(ProjectType type) { this.type = type; }
@@ -106,8 +106,8 @@ public class Project {
     public ProjectStatus getStatus() { return status; }
     public void setStatus(ProjectStatus status) { this.status = status; }
 
-    public int getAuthorId() { return authorId; }
-    public void setAuthorId(int authorId) { this.authorId = authorId; }
+    public Integer getAuthorId() { return authorId; }
+    public void setAuthorId(Integer authorId) { this.authorId = authorId; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

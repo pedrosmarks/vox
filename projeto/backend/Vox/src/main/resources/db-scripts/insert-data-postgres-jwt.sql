@@ -3,7 +3,7 @@ INSERT INTO municipality (name, state) VALUES
                                            ('Campinas', 'SP'),
                                            ('Rio de Janeiro', 'RJ');
 
-
+INSERT INTO category (name) VALUES ('Infraestrutura'), ('Saúde'), ('Educação');
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
     ('João Ribeiro', 'joao@example.com', '00000000000', '(11) 99999-0000', crypt('aa', gen_salt('bf')), 'CITIZEN', '1990-05-15', 1);
