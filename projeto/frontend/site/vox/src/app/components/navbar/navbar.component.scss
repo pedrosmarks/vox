@@ -1,0 +1,94 @@
+$primary:   #1b3f8b;
+$accent:    #2d6fcc;
+$secondary: #f5a800;
+$white:     #ffffff;
+
+.navbar {
+  background: linear-gradient(to right, $primary 0%, $accent 60%, $secondary 100%);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(27, 63, 139, 0.25);
+}
+
+.navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.brand-vox {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: $white;
+  letter-spacing: 0.05em;
+}
+
+.brand-cidadao {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: $secondary;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-link {
+  padding: 0.45rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    color: $white;
+    background: rgba(255,255,255,0.12);
+  }
+
+  &.active {
+    background: $white;
+    color: $primary;
+    font-weight: 600;
+  }
+}
