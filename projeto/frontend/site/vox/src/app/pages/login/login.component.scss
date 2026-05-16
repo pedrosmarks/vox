@@ -1,13 +1,14 @@
-@use 'sass:color';
+// Cores do logo VOX (logo2.jpeg)
+$primary:   #1b3f8b; // Azul marinho
+$secondary: #f5a800; // Amarelo dourado
+$accent:    #2d6fcc; // Azul claro
+$bg-light:  #f0f4ff;
+$white:     #ffffff;
 
-// Cores do tema Vox (espelhadas do exemplo_figma)
-$primary: #1e3a8a;
-$accent: #7c3aed;
-$secondary: #f59e0b;
-
+// ── Page ─────────────────────────────────────────────────
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, $primary 0%, $accent 60%, $secondary 100%);
+  background: linear-gradient(to right, $primary 0%, $accent 60%, $secondary 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,6 +16,7 @@ $secondary: #f59e0b;
   font-family: 'Inter', sans-serif;
 }
 
+// ── Container ─────────────────────────────────────────────
 .login-container {
   width: 100%;
   max-width: 440px;
@@ -37,7 +39,7 @@ $secondary: #f59e0b;
   width: 96px;
   height: 96px;
   border-radius: 24px;
-  background: #fff;
+  background: $white;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   margin-bottom: 1rem;
 }
@@ -51,13 +53,13 @@ $secondary: #f59e0b;
 .brand-title {
   font-size: 2rem;
   font-weight: 800;
-  color: #fff;
+  color: $white;
   letter-spacing: 0.05em;
   margin: 0 0 0.25rem;
 }
 
 .brand-subtitle {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 1rem;
   margin: 0;
 }
@@ -65,9 +67,9 @@ $secondary: #f59e0b;
 // ── Login card ────────────────────────────────────────────
 .login-card {
   width: 100%;
-  background: #fff;
+  background: $white;
   border-radius: 1.25rem;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 25px 50px rgba(27, 63, 139, 0.3);
   padding: 2.5rem;
 }
 
@@ -87,39 +89,35 @@ $secondary: #f59e0b;
 .form-label {
   display: block;
   font-size: 0.875rem;
-  font-weight: 500;
-  color: #1a1a2e;
+  font-weight: 600;
+  color: $primary;
   margin-bottom: 0.5rem;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: #f3f3f5;
-  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  background: $bg-light;
+  border: 1.5px solid rgba(27, 63, 139, 0.15);
   border-radius: 0.625rem;
   font-size: 1rem;
-  color: #1a1a2e;
-  outline: none;
+  color: $primary;
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
 
-  &::placeholder {
-    color: #a0a0b0;
-  }
-
   &:focus {
-    border-color: $primary;
-    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
-    background: #fff;
+    outline: none;
+    border-color: $accent;
+    box-shadow: 0 0 0 3px rgba(45, 111, 204, 0.2);
+    background: $white;
   }
 }
 
 // ── Error message ─────────────────────────────────────────
 .error-message {
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-  color: #be123c;
+  background: #fff4e0;
+  border: 1px solid $secondary;
+  color: $primary;
   font-size: 0.875rem;
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
@@ -130,20 +128,20 @@ $secondary: #f59e0b;
 .btn-login {
   width: 100%;
   padding: 0.875rem;
-  background: linear-gradient(90deg, $primary, color.adjust($primary, $lightness: -8%));
-  color: #fff;
+  background: $primary;
+  color: $white;
   font-size: 1rem;
   font-weight: 700;
   border: none;
   border-radius: 0.625rem;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(30, 58, 138, 0.4);
+  box-shadow: 0 4px 15px rgba(27, 63, 139, 0.4);
   transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
 
   &:hover:not(:disabled) {
+    background: darken($primary, 8%);
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(30, 58, 138, 0.45);
-    background: linear-gradient(90deg, color.adjust($primary, $lightness: -5%), color.adjust($primary, $lightness: -12%));
+    box-shadow: 0 8px 20px rgba(27, 63, 139, 0.45);
   }
 
   &:active:not(:disabled) {
@@ -164,12 +162,12 @@ $secondary: #f59e0b;
 
 .footer-text {
   font-size: 0.875rem;
-  color: #717182;
+  color: #666;
   margin: 0;
 }
 
 .footer-link {
-  color: $primary;
+  color: $accent;
   font-weight: 600;
   text-decoration: none;
 
@@ -182,7 +180,7 @@ $secondary: #f59e0b;
 .page-footer {
   margin-top: 1.5rem;
   text-align: center;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.8rem;
 
   p { margin: 0; }
