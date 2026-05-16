@@ -35,7 +35,7 @@ public class UserPostgresDaoImpl implements UserDao {
             ps.setString(3, entity.getCpf());
             ps.setString(4, entity.getPhone());
             ps.setString(5, entity.getPassword());
-            ps.setString(6, entity.getRole().name().toLowerCase());
+            ps.setString(6, entity.getRole().name());
             ps.setInt(7, entity.getMunicipalityId());
             ps.setBoolean(8, entity.getAcceptedTerms() != null && entity.getAcceptedTerms());
             ps.setBoolean(9, entity.getAcceptedPrivacyPolicy() != null && entity.getAcceptedPrivacyPolicy());
@@ -188,7 +188,7 @@ public class UserPostgresDaoImpl implements UserDao {
         final String sql = "SELECT * FROM user_model WHERE role = CAST(? AS user_role)";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, role.toLowerCase());
+            ps.setString(1, role);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 users.add(mapResultSetToUserModel(rs));

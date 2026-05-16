@@ -60,8 +60,8 @@ public class ProjectImageRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/role/{role}")
-    public ResponseEntity<List<ProjectImage>> getEntityByRole(@PathVariable final int projectId) {
+    @GetMapping("/project-id/{projectId}")
+    public ResponseEntity<List<ProjectImage>> getEntityByProjectId(@PathVariable final int projectId) {
         final List<ProjectImage> entity = projectImageService.findByProjectId(projectId);
         if(entity == null) {
             return ResponseEntity.notFound().build();

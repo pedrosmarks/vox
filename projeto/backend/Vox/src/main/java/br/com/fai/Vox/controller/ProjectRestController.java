@@ -2,7 +2,8 @@ package br.com.fai.Vox.controller;
 
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.UserModel;
-import br.com.fai.Vox.port.service.projetc.ProjectService;
+import br.com.fai.Vox.domain.dto.CreateProjectDto;
+import br.com.fai.Vox.port.service.project.ProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -41,8 +42,8 @@ public class ProjectRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping
-    public ResponseEntity<Project> create(@RequestBody final Project data) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<CreateProjectDto> create(@ModelAttribute final CreateProjectDto data) {
         final int id = projectService.create(data);
 
         final URI uri = ServletUriComponentsBuilder
@@ -54,7 +55,7 @@ public class ProjectRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserModel> update(@PathVariable final int id, @RequestBody final Project data) {
+    public ResponseEntity<Project> update(@PathVariable final int id, @RequestBody final Project data) {
 
         projectService.update(id, data);
 
