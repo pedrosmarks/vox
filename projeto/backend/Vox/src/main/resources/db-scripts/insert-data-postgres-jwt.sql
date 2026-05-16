@@ -1,9 +1,7 @@
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 INSERT INTO municipality (name, state) VALUES
-('São Paulo', 'SP'),
-('Campinas', 'SP'),
-('Rio de Janeiro', 'RJ');
+                                           ('São Paulo', 'SP'),
+                                           ('Campinas', 'SP'),
+                                           ('Rio de Janeiro', 'RJ');
 
 INSERT INTO user_model (name, email, cpf, phone, password, municipality_id)
 VALUES

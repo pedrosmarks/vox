@@ -1,0 +1,23 @@
+<div class="dashboard-page">
+  <div class="dashboard-card">
+
+    <div class="logo-row">
+      <img src="logo.png" alt="Vox Cidadão" class="logo" />
+      <span class="brand">VOX CIDADÃO</span>
+    </div>
+
+    <div class="role-badge" [ngClass]="role?.toLowerCase()">
+      <span class="role-icon">{{ role === 'ADMINISTRATOR' ? '🛡️' : role === 'MODERATOR' ? '⚖️' : '👤' }}</span>
+      <p class="role-text">{{ roleLabel }}</p>
+    </div>
+
+    <div class="role-detail" *ngIf="role">
+      <span class="label">Role recebido do JWT:</span>
+      <code class="code">{{ role }}</code>
+    </div>
+
+    <button class="btn-logout" (click)="logout()">
+      Sair da conta
+    </button>
+  </div>
+</div>
