@@ -1,12 +1,10 @@
 package br.com.fai.Vox.implementation.dao.municipality;
 
-import br.com.fai.Vox.domain.MunicipalityModel;
+import br.com.fai.Vox.domain.Municipality;
 import br.com.fai.Vox.port.dao.municipality.MunicipalityDao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.logging.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -22,7 +20,7 @@ public class MunicipalityPostgresDaoImpl implements MunicipalityDao {
     }
 
     @Override
-    public MunicipalityModel findByid(int id) {
+    public Municipality findByid(int id) {
         final String sql = "SELECT * FROM municipality WHERE id = ?";
 
         try {
@@ -31,7 +29,7 @@ public class MunicipalityPostgresDaoImpl implements MunicipalityDao {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                MunicipalityModel municipality = mapResultSetToMunicipalityModel(resultSet);
+                Municipality municipality = mapResultSetToMunicipalityModel(resultSet);
 
                 resultSet.close();
                 preparedStatement.close();
@@ -44,8 +42,8 @@ public class MunicipalityPostgresDaoImpl implements MunicipalityDao {
     }
 
     @Override
-    public List<MunicipalityModel> findAll() {
-        final List<MunicipalityModel> municipalities = new ArrayList<>();
+    public List<Municipality> findAll() {
+        final List<Municipality> municipalities = new ArrayList<>();
         final String sql = "SELECT * FROM municipality";
 
         try {
@@ -53,7 +51,7 @@ public class MunicipalityPostgresDaoImpl implements MunicipalityDao {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                MunicipalityModel municipality = mapResultSetToMunicipalityModel(resultSet);
+                Municipality municipality = mapResultSetToMunicipalityModel(resultSet);
                 municipalities.add(municipality);
             }
 
@@ -65,13 +63,38 @@ public class MunicipalityPostgresDaoImpl implements MunicipalityDao {
         }
     }
 
-    private MunicipalityModel mapResultSetToMunicipalityModel(ResultSet rs) throws SQLException {
-        MunicipalityModel municipality = new MunicipalityModel();
+    private Municipality mapResultSetToMunicipalityModel(ResultSet rs) throws SQLException {
+        Municipality municipality = new Municipality();
         
         municipality.setId(rs.getInt("id"));
         municipality.setName(rs.getString("name"));
         municipality.setState(rs.getString("state"));
         
         return municipality;
+    }
+
+    @Override
+    public int create(Municipality entity) {
+        final String sql = "INSERT INTO municipality (name, state) VALUES (?, ?)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
+            ps.setString(1, entity.getName());
+            ps.setString(2, entity.getState());
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            int id = 0;
+            if (rs.next()) {
+                id = rs.getInt(1);
+            }
+
+            rs.close();
+            ps.close();
+
+            logger.log(Level.INFO, "Município criado com sucesso. ID: " + id);
+            return id;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

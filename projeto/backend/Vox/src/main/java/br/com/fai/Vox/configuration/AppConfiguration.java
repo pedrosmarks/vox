@@ -1,11 +1,13 @@
 package br.com.fai.Vox.configuration;
 
+import br.com.fai.Vox.implementation.dao.category.CategoryPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.municipality.MunicipalityPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.project.ProjectPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.projectimage.ProjectImagePostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.user.UserPostgresDaoImpl;
 import br.com.fai.Vox.implementation.service.authentication.BasicAuthenticationServiceImpl;
 import br.com.fai.Vox.implementation.service.authentication.JwtAuthenticationServiceImpl;
+import br.com.fai.Vox.port.dao.category.CategoryDao;
 import br.com.fai.Vox.port.dao.municipality.MunicipalityDao;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
 import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
@@ -56,25 +58,26 @@ public class AppConfiguration {
 
     @Bean
     public UserDao getUserFakeDao(final Connection connection) {
-        // return new UserFakeDaoImpl();
         return new UserPostgresDaoImpl(connection);
     }
 
     @Bean
     public MunicipalityDao getMunicipalityFakeDao(final Connection connection) {
-        // return new UserFakeDaoImpl();
         return new MunicipalityPostgresDaoImpl(connection);
     }
 
     @Bean
     public ProjectDao getProjectFakeDao(final Connection connection) {
-        // return new UserFakeDaoImpl();
         return new ProjectPostgresDaoImpl(connection);
     }
 
     @Bean
+    public CategoryDao getCategoryFakeDao(final Connection connection) {
+        return new CategoryPostgresDaoImpl(connection);
+    }
+
+    @Bean
     public ProjectImageDao getProjectImageFakeDao(final Connection connection) {
-        // return new UserFakeDaoImpl();
         return new ProjectImagePostgresDaoImpl(connection);
     }
 

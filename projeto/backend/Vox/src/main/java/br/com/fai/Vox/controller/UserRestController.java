@@ -91,4 +91,22 @@ public class UserRestController {
         return ResponseEntity.ok().body(entity);
     }
 
+    @PutMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody final String email) {
+
+        final boolean response = userService.forgotPassword(email);
+
+        return response ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
+    }
+
+    @PutMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody final String token, @RequestBody final String newPassword) {
+
+        final boolean response = userService.resetPassword(token, newPassword);
+
+        return response ? ResponseEntity.ok().build()
+                : ResponseEntity.badRequest().build();
+    }
+
 }
