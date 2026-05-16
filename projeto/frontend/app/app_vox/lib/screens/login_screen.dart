@@ -21,9 +21,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
 
   // Cores do tema Vox
-  static const _primary = Color(0xFF1e3a8a);
-  static const _accent = Color(0xFF7c3aed);
-  static const _secondary = Color(0xFFf59e0b);
+  // Novas cores do tema Vox
+  static const _primary = Color(0xFF1B3A6B);
+  static const _accent = Color(0xFF2B5BA8);
+  static const _secondary = Color(0xFFF5A800);
 
   @override
   void dispose() {
@@ -115,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: Image.asset(
-              'assets/images/logo.png',
+              'assets/images/logo2.jpeg',
               width: 80,
               height: 80,
               fit: BoxFit.contain,

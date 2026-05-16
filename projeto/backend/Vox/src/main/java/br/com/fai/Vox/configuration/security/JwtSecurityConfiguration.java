@@ -2,6 +2,7 @@ package br.com.fai.Vox.configuration.security;
 
 import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.implementation.service.authentication.jwt.JwtRequestFilter;
+import br.com.fai.Vox.implementation.service.authentication.jwt.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -9,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -16,14 +18,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
 
-    private final JwtRequestFilter jwtRequestFilter;
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
-    public JwtSecurityConfiguration(JwtRequestFilter jwtRequestFilter) {
-        this.jwtRequestFilter = jwtRequestFilter;
+    public JwtSecurityConfiguration(JwtService jwtService, UserDetailsService userDetailsService) {
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+        JwtRequestFilter jwtRequestFilter = new JwtRequestFilter(jwtService, userDetailsService);
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
