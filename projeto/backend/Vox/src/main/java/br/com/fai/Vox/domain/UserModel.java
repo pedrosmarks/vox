@@ -1,6 +1,7 @@
 package br.com.fai.Vox.domain;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class UserModel {
 
@@ -15,6 +16,8 @@ public class UserModel {
     private int municipalityId;
     private Boolean acceptedTerms;
     private Boolean acceptedPrivacyPolicy;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public enum UserRole {
         ADMINISTRATOR,
@@ -23,6 +26,22 @@ public class UserModel {
     }
 
     public UserModel() {}
+
+    public UserModel(String name, UserRole role, int id, String email, String cpf, String phone, String password, LocalDate birthDate, int municipalityId, Boolean acceptedTerms, Boolean acceptedPrivacyPolicy, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.name = name;
+        this.role = role;
+        this.id = id;
+        this.email = email;
+        this.cpf = cpf;
+        this.phone = phone;
+        this.password = password;
+        this.birthDate = birthDate;
+        this.municipalityId = municipalityId;
+        this.acceptedTerms = acceptedTerms;
+        this.acceptedPrivacyPolicy = acceptedPrivacyPolicy;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 
     public UserModel(int id, String name, String email, String cpf, UserRole role, String phone, String password, LocalDate birthDate, int municipalityId, Boolean acceptedTerms, Boolean acceptedPrivacyPolicy) {
         this.id = id;
@@ -36,6 +55,22 @@ public class UserModel {
         this.municipalityId = municipalityId;
         this.acceptedTerms = acceptedTerms;
         this.acceptedPrivacyPolicy = acceptedPrivacyPolicy;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Boolean getAcceptedTerms() {
