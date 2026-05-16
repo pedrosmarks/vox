@@ -18,18 +18,18 @@ DROP TYPE IF EXISTS project_status CASCADE;
 DROP TYPE IF EXISTS moderation_action CASCADE;
 
 CREATE TYPE user_role AS ENUM (
-    'citizen',
+    'CITIZEN',
     'MODERATOR',
     'ADMINISTRATOR'
 );
 
 CREATE TYPE project_type AS ENUM (
-    'citizen',
+    'CITIZEN',
     'CHAMBER'
 );
 
 CREATE TYPE project_status AS ENUM (
-    'pending_approval',
+    'PENDING_APPROVAL',
     'REJECTED',
     'PUBLISHED',
     'IN_VOTING',
@@ -63,7 +63,7 @@ CREATE TABLE user_model (
     cpf varchar(14) UNIQUE NOT NULL,
     phone varchar(20) NOT NULL,
     password TEXT NOT NULL,
-    role user_role DEFAULT 'citizen',
+    role user_role DEFAULT 'CITIZEN',
     birth_date DATE NOT NULL,
     accepted_terms BOOLEAN DEFAULT FALSE,
     accepted_privacy_policy BOOLEAN DEFAULT FALSE,
@@ -97,7 +97,7 @@ CREATE TABLE project (
     type project_type NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    status project_status DEFAULT 'pending_approval',
+    status project_status DEFAULT 'PENDING_APPROVAL',
     author_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
