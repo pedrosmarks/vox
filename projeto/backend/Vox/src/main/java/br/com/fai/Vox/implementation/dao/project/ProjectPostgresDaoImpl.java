@@ -1,6 +1,7 @@
 package br.com.fai.Vox.implementation.dao.project;
 
 import br.com.fai.Vox.domain.Project;
+import br.com.fai.Vox.domain.dto.CreateProjectDto;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
 
 import java.sql.*;
@@ -20,7 +21,7 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
     }
 
     @Override
-    public int create(Project entity) {
+    public int create(CreateProjectDto dto) {
         final String sql = "INSERT INTO project " +
                 "(municipality_id, category_id, type, title, description, status, author_id, highlighted, is_official, " +
                 "neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date, " +
@@ -31,26 +32,26 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
             connection.setAutoCommit(false);
 
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
-            ps.setInt(1, entity.getMunicipalityId());
-            ps.setInt(2, entity.getCategoryId());
-            ps.setString(3, entity.getType().name().toLowerCase());
-            ps.setString(4, entity.getTitle());
-            ps.setString(5, entity.getDescription());
-            ps.setString(6, entity.getStatus() != null ? entity.getStatus().name().toLowerCase() : "pending_approval");
-            ps.setInt(7, entity.getAuthorId());
-            ps.setBoolean(8, entity.getHighlighted() != null && entity.getHighlighted());
-            ps.setBoolean(9, entity.getIsOfficial() != null && entity.getIsOfficial());
-            ps.setString(10, entity.getNeighborhood());
-            ps.setString(11, entity.getStreet());
-            ps.setString(12, entity.getNumber());
-            ps.setBigDecimal(13, entity.getLatitude());
-            ps.setBigDecimal(14, entity.getLongitude());
-            ps.setObject(15, entity.getStartDate());
-            ps.setObject(16, entity.getExpectedEndDate());
-            ps.setObject(17, entity.getEndDate());
-            ps.setString(18, entity.getFinancialAnalysis());
-            ps.setBigDecimal(19, entity.getEstimatedCost());
-            ps.setBigDecimal(20, entity.getApprovedBudget());
+            ps.setInt(1, dto.getMunicipalityId());
+            ps.setInt(2, dto.getCategoryId());
+            ps.setString(3, dto.getType().name());
+            ps.setString(4, dto.getTitle());
+            ps.setString(5, dto.getDescription());
+            ps.setString(6, dto.getStatus() != null ? dto.getStatus().name() : "PENDING_APPROVAL");
+            ps.setInt(7, dto.getAuthorId());
+            ps.setBoolean(8, dto.getHighlighted() != null && dto.getHighlighted());
+            ps.setBoolean(9, dto.getIsOfficial() != null && dto.getIsOfficial());
+            ps.setString(10, dto.getNeighborhood());
+            ps.setString(11, dto.getStreet());
+            ps.setString(12, dto.getNumber());
+            ps.setBigDecimal(13, dto.getLatitude());
+            ps.setBigDecimal(14, dto.getLongitude());
+            ps.setObject(15, dto.getStartDate());
+            ps.setObject(16, dto.getExpectedEndDate());
+            ps.setObject(17, dto.getEndDate());
+            ps.setString(18, dto.getFinancialAnalysis());
+            ps.setBigDecimal(19, dto.getEstimatedCost());
+            ps.setBigDecimal(20, dto.getApprovedBudget());
 
             ps.executeUpdate();
 
@@ -143,10 +144,10 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, entity.getMunicipalityId());
             ps.setInt(2, entity.getCategoryId());
-            ps.setString(3, entity.getType().name().toLowerCase());
+            ps.setString(3, entity.getType().name());
             ps.setString(4, entity.getTitle());
             ps.setString(5, entity.getDescription());
-            ps.setString(6, entity.getStatus().name().toLowerCase());
+            ps.setString(6, entity.getStatus().name());
             ps.setBoolean(7, entity.getHighlighted() != null && entity.getHighlighted());
             ps.setBoolean(8, entity.getIsOfficial() != null && entity.getIsOfficial());
             ps.setString(9, entity.getNeighborhood());

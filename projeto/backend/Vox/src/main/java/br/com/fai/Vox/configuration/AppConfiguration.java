@@ -1,5 +1,7 @@
 package br.com.fai.Vox.configuration;
 
+import br.com.fai.Vox.implementation.service.drive.GoogleDriveServiceImpl;
+import br.com.fai.Vox.port.service.drive.GoogleDriveService;
 import br.com.fai.Vox.implementation.dao.category.CategoryPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.municipality.MunicipalityPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.project.ProjectPostgresDaoImpl;
@@ -54,6 +56,11 @@ public class AppConfiguration {
     @Bean
     public OpenAPI customOpenApi() {
         return new OpenAPI().info(new Info().title("LIFE BANK").version("0.0.1").description("API - LIFE BANK"));
+    }
+
+    @Bean
+    public GoogleDriveService getGoogleDriveService() {
+        return new GoogleDriveServiceImpl();
     }
 
     @Bean

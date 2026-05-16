@@ -16,3 +16,18 @@ VALUES
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
 ('Carlos Costa', 'carlos@example.com', '33333333333', '(21) 97777-2222', 'aa', 'ADMINISTRATOR', '1978-03-08', 3);
+
+INSERT INTO category (name, description)
+VALUES
+(
+    'Infraestrutura Urbana',
+    'Projetos voltados para melhorias de ruas, praças, iluminação pública e mobilidade urbana.'
+),
+(
+    'Saúde',
+    'Projetos relacionados à melhoria dos serviços de saúde, hospitais, postos e campanhas.'
+),
+(
+    'Educação',
+    'Projetos destinados ao desenvolvimento da educação, escolas, bibliotecas e capacitação.'
+);
