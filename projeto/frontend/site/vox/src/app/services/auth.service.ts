@@ -105,5 +105,4 @@ export class AuthService {
     const stored = localStorage.getItem(this.MUNICIPALITY_ID_KEY);
     return stored ? Number(stored) : 1;
   }
-  }
 }

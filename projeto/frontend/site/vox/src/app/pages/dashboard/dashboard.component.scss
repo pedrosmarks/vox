@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Cores do logo VOX (logo2.jpeg)
 $primary:   #1b3f8b; // Azul marinho
 $secondary: #f5a800; // Amarelo dourado
@@ -121,7 +123,7 @@ $white:     #ffffff;
   transition: background 0.15s, transform 0.15s;
 
   &:hover {
-    background: darken($primary, 8%);
+    background: color.adjust($primary, $lightness: -8%);
     transform: translateY(-1px);
   }
 
