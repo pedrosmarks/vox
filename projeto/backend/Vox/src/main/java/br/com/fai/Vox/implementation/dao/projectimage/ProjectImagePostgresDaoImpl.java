@@ -23,6 +23,8 @@ public class ProjectImagePostgresDaoImpl implements ProjectImageDao {
     public int create(ProjectImage entity) {
         final String sql = "INSERT INTO project_image (project_id, url) VALUES (?, ?)";
         try {
+            connection.setAutoCommit(false);
+
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setInt(1, entity.getProjectId());
             ps.setString(2, entity.getUrl());
@@ -34,12 +36,18 @@ public class ProjectImagePostgresDaoImpl implements ProjectImageDao {
                 id = rs.getInt(1);
             }
 
+            connection.commit();
             rs.close();
             ps.close();
 
             logger.log(Level.INFO, "Imagem criada com sucesso. ID: " + id);
             return id;
         } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
             throw new RuntimeException(e);
         }
     }

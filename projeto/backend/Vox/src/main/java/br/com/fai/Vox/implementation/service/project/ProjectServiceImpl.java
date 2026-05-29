@@ -5,11 +5,10 @@ import br.com.fai.Vox.domain.ProjectImage;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
 import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
-import br.com.fai.Vox.port.service.drive.GoogleDriveService;
+import br.com.fai.Vox.port.service.drive.CloudinaryService;
 import br.com.fai.Vox.port.service.project.ProjectService;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,9 +20,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectDao projectDao;
     private final ProjectImageDao projectImageDao;
-    private final GoogleDriveService googleDriveService;
+    private final CloudinaryService googleDriveService;
 
-    public ProjectServiceImpl(ProjectDao projectDao, ProjectImageDao projectImageDao, GoogleDriveService googleDriveService) {
+    public ProjectServiceImpl(ProjectDao projectDao, ProjectImageDao projectImageDao, CloudinaryService googleDriveService) {
         this.projectDao = projectDao;
         this.projectImageDao = projectImageDao;
         this.googleDriveService = googleDriveService;
@@ -36,19 +35,25 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         final int projectId = projectDao.create(dto);
+        logger.log(Level.INFO, "Projeto criado. ID: " + projectId + " | File: " + (dto.getFile() != null ? dto.getFile().getOriginalFilename() + " size=" + dto.getFile().getSize() : "NULL"));
 
         if (dto.getFile() != null && !dto.getFile().isEmpty()) {
             try {
                 String fileName = "project_" + projectId + "_" + dto.getFile().getOriginalFilename();
+                logger.log(Level.INFO, "Iniciando upload para o Google Drive. Arquivo: " + fileName);
                 String url = googleDriveService.uploadFile(dto.getFile(), fileName);
+                logger.log(Level.INFO, "Upload concluído. URL: " + url);
 
                 ProjectImage image = new ProjectImage();
                 image.setProjectId(projectId);
                 image.setUrl(url);
                 projectImageDao.create(image);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Erro ao fazer upload da imagem para o Google Drive. ID do projeto: " + projectId, e);
+                logger.log(Level.INFO, "Imagem salva no banco para o projeto ID: " + projectId);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Erro ao processar imagem para o projeto ID: " + projectId, e);
             }
+        } else {
+            logger.log(Level.WARNING, "Nenhum arquivo recebido no DTO para o projeto ID: " + projectId);
         }
 
         return projectId;
@@ -69,6 +74,12 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<Project> findAll() {
         return projectDao.findAll();
+    }
+
+    @Override
+    public List<Project> findByMunicipalityId(int municipalityId) {
+        if (municipalityId <= 0) return List.of();
+        return projectDao.findByMunicipalityId(municipalityId);
     }
 
     @Override
