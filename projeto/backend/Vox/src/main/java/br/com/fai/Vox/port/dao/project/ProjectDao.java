@@ -7,5 +7,7 @@ import br.com.fai.Vox.port.dao.crud.DeleteDao;
 import br.com.fai.Vox.port.dao.crud.ReadDao;
 import br.com.fai.Vox.port.dao.crud.UpdateDao;
 
-public interface ProjectDao extends CreateDao<CreateProjectDto>, ReadDao<Project>, UpdateDao<Project>, DeleteDao {
+import java.util.List;
+
+public interface ProjectDao extends CreateDao<CreateProjectDto>, ReadDao<Project>, UpdateDao<Project>, DeleteDao, ReadByMunicipalityIdDao {
 }
