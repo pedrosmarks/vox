@@ -1,7 +1,7 @@
 package br.com.fai.Vox.configuration;
 
-import br.com.fai.Vox.implementation.service.drive.GoogleDriveServiceImpl;
-import br.com.fai.Vox.port.service.drive.GoogleDriveService;
+import br.com.fai.Vox.implementation.service.drive.CloudinaryServiceImpl;
+import br.com.fai.Vox.port.service.drive.CloudinaryService;
 import br.com.fai.Vox.implementation.dao.category.CategoryPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.municipality.MunicipalityPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.project.ProjectPostgresDaoImpl;
@@ -18,6 +18,7 @@ import br.com.fai.Vox.port.service.authentication.AuthenticationService;
 import br.com.fai.Vox.port.service.user.UserService;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -58,9 +59,18 @@ public class AppConfiguration {
         return new OpenAPI().info(new Info().title("LIFE BANK").version("0.0.1").description("API - LIFE BANK"));
     }
 
+    @Value("${cloudinary.cloud-name}")
+    private String cloudinaryCloudName;
+
+    @Value("${cloudinary.api-key}")
+    private String cloudinaryApiKey;
+
+    @Value("${cloudinary.api-secret}")
+    private String cloudinaryApiSecret;
+
     @Bean
-    public GoogleDriveService getGoogleDriveService() {
-        return new GoogleDriveServiceImpl();
+    public CloudinaryService getGoogleDriveService() {
+        return new CloudinaryServiceImpl(cloudinaryCloudName, cloudinaryApiKey, cloudinaryApiSecret);
     }
 
     @Bean

@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
 import java.net.URI;
 import java.util.List;
 
@@ -43,7 +46,12 @@ public class ProjectRestController {
     }
 
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<CreateProjectDto> create(@ModelAttribute final CreateProjectDto data) {
+    public ResponseEntity<CreateProjectDto> create(
+            @ModelAttribute final CreateProjectDto data,
+            MultipartHttpServletRequest request) {
+        MultipartFile file = request.getFile("file");
+        System.out.println("FILE NO CONTROLLER: " + (file != null ? file.getOriginalFilename() + " size=" + file.getSize() : "NULL"));
+        data.setFile(file);
         final int id = projectService.create(data);
 
         final URI uri = ServletUriComponentsBuilder
