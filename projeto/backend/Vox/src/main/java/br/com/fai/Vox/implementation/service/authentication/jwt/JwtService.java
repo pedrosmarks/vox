@@ -48,12 +48,22 @@ public class JwtService {
         );
     }
 
-    public String generateToken(UserDetails userDetails, String fullname, UserModel.UserRole role, String email){
+    public String generateToken(UserDetails userDetails, String fullname, UserModel.UserRole role, String email, int userId, int municipalityId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
         claims.put("fullname", fullname);
         claims.put("role", role);
+        claims.put("userId", userId);
+        claims.put("municipalityId", municipalityId);
         return createToken(claims, userDetails.getUsername());
+    }
+
+    public int getUserIdFromToken(String token) {
+        return (int) getAllClaimsFromToken(token).get("userId");
+    }
+
+    public int getMunicipalityIdFromToken(String token) {
+        return (int) getAllClaimsFromToken(token).get("municipalityId");
     }
 
     private String createToken(Map<String, Object> claims, String subjct){
