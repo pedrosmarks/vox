@@ -77,6 +77,12 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public List<Project> findByMunicipalityId(int municipalityId) {
+        if (municipalityId <= 0) return List.of();
+        return projectDao.findByMunicipalityId(municipalityId);
+    }
+
+    @Override
     public void update(int id, Project entity) {
         if (id != entity.getId()) return;
         if (findByid(id) == null) return;
