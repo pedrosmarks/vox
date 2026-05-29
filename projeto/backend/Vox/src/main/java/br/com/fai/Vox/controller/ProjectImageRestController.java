@@ -4,6 +4,8 @@ import br.com.fai.Vox.domain.ProjectImage;
 import br.com.fai.Vox.port.service.projectimage.ProjectImageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -19,30 +21,30 @@ public class ProjectImageRestController {
         this.projectImageService = projectImageService;
     }
 
-
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<ProjectImage>> getEntities() {
-        List<ProjectImage> entities = projectImageService.findAll();
-
-        return ResponseEntity.ok(entities);
+        return ResponseEntity.ok(projectImageService.findAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectImage> getEntityById(@PathVariable final int id) {
         ProjectImage entity = projectImageService.findByid(id);
-
         return entity == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(entity);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Boolean> delete(@PathVariable final int id) {
-        projectImageService.delete(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/project-id/{projectId}")
+    public ResponseEntity<List<ProjectImage>> getByProjectId(@PathVariable final int projectId) {
+        List<ProjectImage> entities = projectImageService.findByProjectId(projectId);
+        return ResponseEntity.ok(entities);
     }
 
-    @PostMapping
-    public ResponseEntity<ProjectImage> create(@RequestBody final ProjectImage data) {
-        final int id = projectImageService.create(data);
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<Void> create(
+            @RequestParam("projectId") final int projectId,
+            MultipartHttpServletRequest request) {
+        MultipartFile file = request.getFile("file");
+        final int id = projectImageService.create(projectId, file);
+        if (id < 0) return ResponseEntity.badRequest().build();
 
         final URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -52,20 +54,18 @@ public class ProjectImageRestController {
         return ResponseEntity.created(uri).build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProjectImage> update(@PathVariable final int id, @RequestBody final ProjectImage data) {
-
-        projectImageService.update(id, data);
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable final int id) {
+        projectImageService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/project-id/{projectId}")
-    public ResponseEntity<List<ProjectImage>> getEntityByProjectId(@PathVariable final int projectId) {
-        final List<ProjectImage> entity = projectImageService.findByProjectId(projectId);
-        if(entity == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().body(entity);
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<Void> update(
+            @PathVariable final int id,
+            MultipartHttpServletRequest request) {
+        MultipartFile file = request.getFile("file");
+        projectImageService.update(id, file);
+        return ResponseEntity.noContent().build();
     }
 }
