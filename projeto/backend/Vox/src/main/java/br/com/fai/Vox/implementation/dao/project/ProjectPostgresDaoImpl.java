@@ -195,6 +195,25 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
         }
     }
 
+    @Override
+    public List<Project> findByAuthorId(int authorId) {
+        final List<Project> projects = new ArrayList<>();
+        final String sql = "SELECT * FROM project WHERE author_id = ? ORDER BY created_at DESC";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, authorId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                projects.add(mapResultSetToProject(rs));
+            }
+            rs.close();
+            ps.close();
+            return projects;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private Project mapResultSetToProject(ResultSet rs) throws SQLException {
         Project project = new Project();
         project.setId(rs.getInt("id"));

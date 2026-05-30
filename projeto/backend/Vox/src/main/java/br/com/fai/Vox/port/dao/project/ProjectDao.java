@@ -2,12 +2,15 @@ package br.com.fai.Vox.port.dao.project;
 
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
-import br.com.fai.Vox.port.dao.crud.CreateDao;
-import br.com.fai.Vox.port.dao.crud.DeleteDao;
-import br.com.fai.Vox.port.dao.crud.ReadDao;
-import br.com.fai.Vox.port.dao.crud.UpdateDao;
 
 import java.util.List;
 
-public interface ProjectDao extends CreateDao<CreateProjectDto>, ReadDao<Project>, UpdateDao<Project>, DeleteDao, ReadByMunicipalityIdDao {
+public interface ProjectDao {
+    int create(CreateProjectDto dto);
+    void delete(int id);
+    Project findByid(int id);
+    List<Project> findAll();
+    List<Project> findByMunicipalityId(int municipalityId);
+    List<Project> findByAuthorId(int authorId);
+    void update(int id, Project entity);
 }
