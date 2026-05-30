@@ -5,14 +5,20 @@ import br.com.fai.Vox.port.service.drive.CloudinaryService;
 import br.com.fai.Vox.implementation.dao.category.CategoryPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.municipality.MunicipalityPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.project.ProjectPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.projectcouncilor.ProjectCouncilorPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.projectimage.ProjectImagePostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.projectopinion.ProjectOpinionPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.projectstatushistory.ProjectStatusHistoryPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.user.UserPostgresDaoImpl;
 import br.com.fai.Vox.implementation.service.authentication.BasicAuthenticationServiceImpl;
 import br.com.fai.Vox.implementation.service.authentication.JwtAuthenticationServiceImpl;
 import br.com.fai.Vox.port.dao.category.CategoryDao;
 import br.com.fai.Vox.port.dao.municipality.MunicipalityDao;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
+import br.com.fai.Vox.port.dao.projectcouncilor.ProjectCouncilorDao;
 import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
+import br.com.fai.Vox.port.dao.projectopinion.ProjectOpinionDao;
+import br.com.fai.Vox.port.dao.projectstatushistory.ProjectStatusHistoryDao;
 import br.com.fai.Vox.port.dao.user.UserDao;
 import br.com.fai.Vox.port.service.authentication.AuthenticationService;
 import br.com.fai.Vox.port.service.user.UserService;
@@ -96,6 +102,21 @@ public class AppConfiguration {
     @Bean
     public ProjectImageDao getProjectImageFakeDao(final Connection connection) {
         return new ProjectImagePostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public ProjectStatusHistoryDao getProjectStatusHistoryDao(final Connection connection) {
+        return new ProjectStatusHistoryPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public ProjectOpinionDao getProjectOpinionDao(final Connection connection) {
+        return new ProjectOpinionPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public ProjectCouncilorDao getProjectCouncilorDao(final Connection connection) {
+        return new ProjectCouncilorPostgresDaoImpl(connection);
     }
 
     @Bean
