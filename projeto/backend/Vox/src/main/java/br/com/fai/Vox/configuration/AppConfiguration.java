@@ -62,7 +62,7 @@ public class AppConfiguration {
     //    http://localhost:8080/swagger-ui/index.html
     @Bean
     public OpenAPI customOpenApi() {
-        return new OpenAPI().info(new Info().title("LIFE BANK").version("0.0.1").description("API - LIFE BANK"));
+        return new OpenAPI().info(new Info().title("VOX").version("0.0.1").description("API - VOX"));
     }
 
     @Value("${cloudinary.cloud-name}")
