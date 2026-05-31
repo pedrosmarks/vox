@@ -43,6 +43,7 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                 ).permitAll()
                                 .requestMatchers("/api/user/**").hasAnyAuthority(
                                         UserModel.UserRole.CITIZEN.name(),
+                                        UserModel.UserRole.MODERATOR.name(),
                                         UserModel.UserRole.ADMINISTRATOR.name())
                                 .anyRequest().authenticated()
                 )

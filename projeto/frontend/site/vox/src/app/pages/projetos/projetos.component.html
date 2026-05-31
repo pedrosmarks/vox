@@ -72,6 +72,19 @@
         <div class="card-footer">
           <span class="card-meta">{{ project.neighborhood }}</span>
           <span class="card-meta">{{ project.startDate | date:'dd/MM/yyyy' }}</span>
+          <button
+            *ngIf="isModerator && !project.isOfficial"
+            class="btn-promote-card"
+            (click)="$event.stopPropagation(); promoteProject(project.id)"
+          >🏅 Tornar Oficial</button>
+          <button
+            *ngIf="!isModerator"
+            class="btn-sign-card"
+            [class.signed]="hasSigned(project.id)"
+            (click)="$event.stopPropagation(); toggleSign(project.id)"
+          >
+            {{ hasSigned(project.id) ? '✓ Assinado' : '✏️ Assinar' }}
+          </button>
         </div>
       </div>
     </section>

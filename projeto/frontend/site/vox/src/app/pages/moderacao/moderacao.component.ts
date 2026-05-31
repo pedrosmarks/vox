@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
@@ -40,6 +40,7 @@ export class ModeracaoComponent implements OnInit {
   actionSuccess = '';
 
   // Novo projeto
+  editingProjectId: number | null = null; // se !== null, está editando projeto existente
   categories: Category[] = [];
   isSubmitting = false;
   submitSuccess = false;
@@ -87,7 +88,8 @@ export class ModeracaoComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private projectService: ProjectService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -99,6 +101,15 @@ export class ModeracaoComponent implements OnInit {
     this.form.municipalityId = this.authService.getMunicipalityId();
     this.loadPendingProjects();
     this.loadCategories();
+
+    // Verifica se veio da página de projetos com um projeto para oficializar
+    const promoteId = this.route.snapshot.queryParamMap.get('promoteId');
+    if (promoteId) {
+      this.projectService.getProjectById(Number(promoteId)).subscribe({
+        next: (project) => this.promoteToOfficial(project),
+        error: () => {}
+      });
+    }
   }
 
   // ── Aba: Pendentes ────────────────────────────────────────
@@ -158,6 +169,36 @@ export class ModeracaoComponent implements OnInit {
       },
       error: () => { this.actionInProgress = null; }
     });
+  }
+
+  promoteToOfficial(project: Project): void {
+    this.editingProjectId = project.id;
+    this.submitSuccess = false;
+    this.submitError = '';
+    // Pré-preenche com os dados do projeto cidadão
+    this.form = {
+      ...this.form,
+      title:           project.title,
+      description:     project.description,
+      categoryId:      project.categoryId ? String(project.categoryId) : '',
+      type:            'CHAMBER',
+      status:          'PUBLISHED',
+      highlighted:     false,
+      isOfficial:      true,
+      neighborhood:    project.neighborhood ?? '',
+      street:          project.street      ?? '',
+      number:          project.number      ?? '',
+      latitude:        project.latitude    ?? null,
+      longitude:       project.longitude   ?? null,
+      startDate:       '',
+      expectedEndDate: '',
+      endDate:         '',
+      financialAnalysis: '',
+      estimatedCost:   null,
+      approvedBudget:  null
+    };
+    this.selectedFile = null;
+    this.activeTab = 'novo';
   }
 
   // ── Aba: Novo Projeto ─────────────────────────────────────
@@ -224,20 +265,36 @@ export class ModeracaoComponent implements OnInit {
     if (this.form.longitude != null) fd.append('longitude', String(this.form.longitude));
     if (this.selectedFile) fd.append('file', this.selectedFile);
 
-    this.projectService.createProject(fd).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.submitSuccess = true;
-        this.resetForm();
-      },
-      error: (err) => {
-        this.isSubmitting = false;
-        this.submitError = err?.error?.message ?? 'Erro ao criar projeto. Tente novamente.';
-      }
-    });
+    if (this.editingProjectId !== null) {
+      this.projectService.updateProject(this.editingProjectId, fd).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.submitSuccess = true;
+          this.pendingProjects = this.pendingProjects.filter(p => p.id !== this.editingProjectId);
+          this.resetForm();
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.submitError = err?.error?.message ?? 'Erro ao atualizar projeto. Tente novamente.';
+        }
+      });
+    } else {
+      this.projectService.createProject(fd).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.submitSuccess = true;
+          this.resetForm();
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.submitError = err?.error?.message ?? 'Erro ao criar projeto. Tente novamente.';
+        }
+      });
+    }
   }
 
   resetForm(): void {
+    this.editingProjectId = null;
     this.form = {
       title: '', description: '',
       municipalityId: this.authService.getMunicipalityId(),

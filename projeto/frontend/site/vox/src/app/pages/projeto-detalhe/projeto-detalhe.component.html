@@ -29,6 +29,19 @@
         </span>
         <span *ngIf="project.highlighted" class="badge-destaque">Destaque</span>
       </div>
+      <div class="header-actions">
+        <button
+          *ngIf="isModerator && !project.isOfficial"
+          class="btn-action btn-promote"
+          (click)="promoteProject()"
+        >🏅 Tornar Oficial</button>
+        <button
+          *ngIf="!isModerator"
+          class="btn-action btn-sign"
+          [class.signed]="signed"
+          (click)="toggleSign()"
+        >{{ signed ? '✓ Assinado' : '✏️ Assinar' }}</button>
+      </div>
     </div>
 
     <div class="detalhe-grid">

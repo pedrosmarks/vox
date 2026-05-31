@@ -23,6 +23,8 @@ export class ProjetosComponent implements OnInit {
   activeFilter: FilterKey = 'todos';
   isLoading = true;
   errorMessage = '';
+  isModerator = false;
+  private signedProjects: Set<number> = new Set();
 
   filters: { key: FilterKey; label: string }[] = [
     { key: 'todos',     label: 'Todos os projetos' },
@@ -42,6 +44,8 @@ export class ProjetosComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+    const role = this.authService.getUserRole();
+    this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
     this.loadProjects();
   }
 
@@ -73,12 +77,13 @@ export class ProjetosComponent implements OnInit {
     if (uniqueIds.length === 0) return;
 
     const requests = uniqueIds.map(id =>
-      this.projectService.getUserById(id).pipe(catchError(() => of({ id, name: '' })))
+      this.projectService.getUserById(id).pipe(catchError(() => of({ id, name: '', fullname: '' })))
     );
 
     forkJoin(requests).subscribe(users => {
       users.forEach(u => {
-        if (u.name) this.authorNames.set(u.id, u.name);
+        const displayName = u.fullname || u.name;
+        if (displayName) this.authorNames.set(u.id, displayName);
       });
     });
   }
@@ -142,5 +147,22 @@ export class ProjetosComponent implements OnInit {
 
   openProject(id: number): void {
     this.router.navigate(['/projetos', id]);
+  }
+
+  promoteProject(id: number): void {
+    this.router.navigate(['/moderacao'], { queryParams: { promoteId: id } });
+  }
+
+  toggleSign(id: number): void {
+    // TODO: POST /api/project/{id}/sign quando backend suportar
+    if (this.signedProjects.has(id)) {
+      this.signedProjects.delete(id);
+    } else {
+      this.signedProjects.add(id);
+    }
+  }
+
+  hasSigned(id: number): boolean {
+    return this.signedProjects.has(id);
   }
 }

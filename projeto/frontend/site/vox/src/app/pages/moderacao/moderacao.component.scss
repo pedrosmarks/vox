@@ -96,6 +96,15 @@ $error-bg:   #fee2e2;
 
   &-success { background: $success-bg; color: $success; border: 1px solid #6ee7b7; }
   &-error   { background: $error-bg;   color: $error;   border: 1px solid #fca5a5; }
+  &-info    {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
 }
 
 // ── State message ───────────────────────────────────────────
@@ -183,7 +192,7 @@ $error-bg:   #fee2e2;
   flex-shrink: 0;
 }
 
-.btn-approve, .btn-reject {
+.btn-approve, .btn-reject, .btn-promote {
   padding: 8px 20px;
   border-radius: 8px;
   border: none;
@@ -202,11 +211,30 @@ $error-bg:   #fee2e2;
   &:hover:not(:disabled) { background: #047857; }
 }
 
+.btn-promote {
+  background: $primary;
+  color: #fff;
+  &:hover:not(:disabled) { background: darken($primary, 6%); }
+}
+
 .btn-reject {
   background: $white;
   color: $error;
   border: 1.5px solid #fca5a5;
   &:hover:not(:disabled) { background: $error-bg; }
+}
+
+.btn-cancel-edit {
+  padding: 4px 14px;
+  border-radius: 6px;
+  border: 1.5px solid #1d4ed8;
+  background: transparent;
+  color: #1d4ed8;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  &:hover { background: #dbeafe; }
 }
 
 // ── Form ─────────────────────────────────────────────────────

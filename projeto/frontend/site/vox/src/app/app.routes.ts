@@ -6,6 +6,8 @@ import { SugestoesComponent } from './pages/sugestoes/sugestoes.component';
 import { ModeracaoComponent } from './pages/moderacao/moderacao.component';
 import { ComunidadeComponent } from './pages/comunidade/comunidade.component';
 import { PerfilComponent } from './pages/perfil/perfil.component';
+import { AudienciaComponent } from './pages/audiencia/audiencia.component';
+import { AudienciaSalaComponent } from './pages/audiencia-sala/audiencia-sala.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'projetos', pathMatch: 'full' },
@@ -16,5 +18,7 @@ export const routes: Routes = [
   { path: 'moderacao', component: ModeracaoComponent },
   { path: 'comunidade', component: ComunidadeComponent },
   { path: 'perfil', component: PerfilComponent },
+  { path: 'audiencia', component: AudienciaComponent },
+  { path: 'audiencia/:id', component: AudienciaSalaComponent },
   { path: '**', redirectTo: 'projetos' }
 ];

@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ProjectService, Project, ProjectImage } from '../../services/project.service';
+import { AuthService } from '../../services/auth.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 
 @Component({
@@ -21,14 +22,19 @@ export class ProjetoDetalheComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   selectedImage = '';
+  isModerator = false;
+  signed = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    const role = this.authService.getUserRole();
+    this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
       this.router.navigate(['/projetos']);
@@ -75,6 +81,17 @@ export class ProjetoDetalheComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/projetos']);
+  }
+
+  promoteProject(): void {
+    if (this.project) {
+      this.router.navigate(['/moderacao'], { queryParams: { promoteId: this.project.id } });
+    }
+  }
+
+  toggleSign(): void {
+    // TODO: POST /api/project/{id}/sign quando backend suportar
+    this.signed = !this.signed;
   }
 
   getStatusLabel(status: string): string {

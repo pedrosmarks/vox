@@ -70,7 +70,13 @@
   <div *ngIf="activeTab === 'novo'" class="tab-content">
 
     <div *ngIf="submitSuccess" class="alert alert-success">
-      Projeto criado com sucesso!
+      {{ editingProjectId ? 'Projeto oficializado com sucesso!' : 'Projeto criado com sucesso!' }}
+    </div>
+
+    <!-- Banner quando está editando um projeto existente -->
+    <div *ngIf="editingProjectId" class="alert alert-info">
+      📌 Editando sugestão #{{ editingProjectId }}. Preencha os campos faltantes e clique em <strong>Oficializar Projeto</strong>.
+      <button class="btn-cancel-edit" (click)="resetForm(); activeTab = 'pendentes'">Cancelar</button>
     </div>
 
     <div class="form-card">
@@ -203,7 +209,7 @@
 
       <div class="form-actions">
         <button class="btn-submit" (click)="onSubmit()" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Enviando...' : 'Criar Projeto Oficial' }}
+          {{ isSubmitting ? 'Enviando...' : (editingProjectId ? 'Oficializar Projeto' : 'Criar Projeto Oficial') }}
         </button>
       </div>
 

@@ -36,6 +36,7 @@ export interface Category {
 export interface UserSummary {
   id: number;
   name: string;
+  fullname?: string;
 }
 
 export interface ProjectImage {
@@ -87,5 +88,9 @@ export class ProjectService {
 
   createProject(formData: FormData): Observable<Project> {
     return this.http.post<Project>(`${this.API_URL}/api/project`, formData);
+  }
+
+  updateProject(id: number, formData: FormData): Observable<Project> {
+    return this.http.put<Project>(`${this.API_URL}/api/project/${id}`, formData);
   }
 }

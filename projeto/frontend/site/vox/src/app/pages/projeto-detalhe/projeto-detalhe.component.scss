@@ -55,6 +55,35 @@ $border:     #e5e7eb;
   flex-wrap: wrap;
 }
 
+.header-actions {
+  margin-left: auto;
+}
+
+.btn-action {
+  padding: 0.4rem 1.1rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-promote {
+  border: 1.5px solid $primary;
+  background: transparent;
+  color: $primary;
+  &:hover { background: $primary; color: #fff; }
+}
+
+.btn-sign {
+  border: 1.5px solid $accent;
+  background: transparent;
+  color: $accent;
+  &:hover { background: $accent; color: #fff; }
+  &.signed { background: $accent; color: #fff; border-color: $accent; }
+}
+
 .btn-back {
   padding: 0.45rem 1rem;
   border: 1px solid $border;
