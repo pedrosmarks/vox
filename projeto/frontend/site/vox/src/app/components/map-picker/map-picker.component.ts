@@ -8,14 +8,23 @@ import {
   ElementRef,
   ViewChild,
   OnChanges,
-  SimpleChanges
+  SimpleChanges,
+  inject
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import * as maplibregl from 'maplibre-gl';
 
 export interface LatLng {
   latitude: number;
   longitude: number;
+}
+
+export interface AddressResult {
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
 }
 
 @Component({
@@ -32,6 +41,9 @@ export interface LatLng {
           📍 Lat: {{ selectedLocation.latitude | number:'1.6-6' }} &nbsp;|&nbsp;
           Lng: {{ selectedLocation.longitude | number:'1.6-6' }}
         </p>
+      }
+      @if (isGeocoding) {
+        <p class="map-hint">🔍 Buscando endereço...</p>
       }
     </div>
   `,
@@ -78,11 +90,14 @@ export class MapPickerComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() value: LatLng | null = null;
 
   @Output() locationChange = new EventEmitter<LatLng>();
+  @Output() addressChange = new EventEmitter<AddressResult>();
 
   selectedLocation: LatLng | null = null;
+  isGeocoding = false;
 
   private map!: maplibregl.Map;
   private marker: maplibregl.Marker | null = null;
+  private http = inject(HttpClient);
 
   ngAfterViewInit(): void {
     this.map = new maplibregl.Map({
@@ -153,5 +168,24 @@ export class MapPickerComponent implements AfterViewInit, OnDestroy, OnChanges {
   private emitLocation(lng: number, lat: number): void {
     this.selectedLocation = { latitude: lat, longitude: lng };
     this.locationChange.emit(this.selectedLocation);
+    this.reverseGeocode(lat, lng);
+  }
+
+  private reverseGeocode(lat: number, lng: number): void {
+    this.isGeocoding = true;
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pt-BR`;
+    this.http.get<any>(url).subscribe({
+      next: (result) => {
+        this.isGeocoding = false;
+        const addr = result.address ?? {};
+        this.addressChange.emit({
+          street: addr.road ?? addr.pedestrian ?? addr.footway ?? '',
+          number: addr.house_number ?? '',
+          neighborhood: addr.suburb ?? addr.neighbourhood ?? addr.quarter ?? addr.village ?? addr.town ?? '',
+          city: addr.city ?? addr.town ?? addr.village ?? addr.county ?? ''
+        });
+      },
+      error: () => { this.isGeocoding = false; }
+    });
   }
 }

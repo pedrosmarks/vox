@@ -122,7 +122,10 @@
       <div class="form-section">
         <h3 class="section-title">Localização</h3>
 
-        <app-map-picker (locationChange)="onLocationChange($event)"></app-map-picker>
+        <app-map-picker
+          (locationChange)="onLocationChange($event)"
+          (addressChange)="onAddressChange($event)"
+        ></app-map-picker>
 
         <div class="form-row" style="margin-top: 16px">
           <div class="form-group">

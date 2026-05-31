@@ -33,8 +33,18 @@ export class LoginComponent {
 
     this.authService.login(this.email, this.password).subscribe({
       next: () => {
-        this.isLoading = false;
-        this.router.navigate(['/dashboard']);
+        // Fetch user profile to store numeric ID (needed for API calls)
+        this.authService.fetchCurrentUser().subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.router.navigate(['/projetos']);
+          },
+          error: () => {
+            // Proceed even if profile fetch fails; authorId will be unavailable
+            this.isLoading = false;
+            this.router.navigate(['/projetos']);
+          }
+        });
       },
       error: (err) => {
         this.isLoading = false;

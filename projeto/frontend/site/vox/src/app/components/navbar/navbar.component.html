@@ -22,7 +22,20 @@
         routerLink="/sugestoes"
         routerLinkActive="active"
         class="nav-link"
-      >Sugestões</a>
+      >Sugerir um Projeto</a>
+
+      <a
+        *ngIf="!isModerator"
+        routerLink="/relatar-problema"
+        routerLinkActive="active"
+        class="nav-link"
+      >Relatar um Problema</a>
+
+      <a
+        routerLink="/audiencia-publica"
+        routerLinkActive="active"
+        class="nav-link"
+      >Audiência Pública</a>
 
       <a
         routerLink="/comunidade"

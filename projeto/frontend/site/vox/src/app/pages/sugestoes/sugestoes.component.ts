@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ProjectService, Project, Category } from '../../services/project.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
-import { MapPickerComponent, LatLng } from '../../components/map-picker/map-picker.component';
+import { MapPickerComponent, LatLng, AddressResult } from '../../components/map-picker/map-picker.component';
 
 const FALLBACK_CATEGORIES: Category[] = [
   { id: 1, name: 'Infraestrutura' },
@@ -41,7 +41,10 @@ export class SugestoesComponent implements OnInit {
     description: '',
     file: null as File | null,
     latitude: null as number | null,
-    longitude: null as number | null
+    longitude: null as number | null,
+    street: '',
+    number: '',
+    neighborhood: ''
   };
 
   private userId: number | null = null;
@@ -90,12 +93,18 @@ export class SugestoesComponent implements OnInit {
     this.showForm = true;
     this.submitSuccess = false;
     this.submitError = '';
-    this.form = { title: '', categoryId: '', description: '', file: null, latitude: null, longitude: null };
+    this.form = { title: '', categoryId: '', description: '', file: null, latitude: null, longitude: null, street: '', number: '', neighborhood: '' };
   }
 
   onLocationChange(location: LatLng): void {
     this.form.latitude = location.latitude;
     this.form.longitude = location.longitude;
+  }
+
+  onAddressChange(address: AddressResult): void {
+    this.form.street = address.street;
+    this.form.number = address.number;
+    this.form.neighborhood = address.neighborhood;
   }
 
   cancelForm(): void {
@@ -133,6 +142,9 @@ export class SugestoesComponent implements OnInit {
       fd.append('latitude', String(this.form.latitude));
       fd.append('longitude', String(this.form.longitude));
     }
+    if (this.form.street) fd.append('street', this.form.street);
+    if (this.form.number) fd.append('number', this.form.number);
+    if (this.form.neighborhood) fd.append('neighborhood', this.form.neighborhood);
     if (this.form.file) {
       fd.append('file', this.form.file);
     }

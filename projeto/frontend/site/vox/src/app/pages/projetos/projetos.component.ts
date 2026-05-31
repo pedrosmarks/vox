@@ -45,14 +45,19 @@ export class ProjetosComponent implements OnInit {
     this.loadProjects();
   }
 
+  private isVisible(p: Project): boolean {
+    const isCitizen = !p.isOfficial && p.type === 'CITIZEN';
+    return !isCitizen || (p.status !== 'PENDING_APPROVAL' && p.status !== 'IN_ANALYSIS');
+  }
+
   loadProjects(): void {
     this.isLoading = true;
     this.errorMessage = '';
     this.projectService.getProjects().subscribe({
       next: (projects) => {
-        this.allProjects = projects;
+        this.allProjects = projects.filter(p => this.isVisible(p));
         this.applyFilter();
-        this.loadAuthorNames(projects);
+        this.loadAuthorNames(this.allProjects);
         this.isLoading = false;
       },
       error: () => {
@@ -133,5 +138,9 @@ export class ProjetosComponent implements OnInit {
 
   getTypeClass(project: Project): string {
     return project.isOfficial || project.type === 'OFFICIAL' ? 'type-oficial' : 'type-sugerido';
+  }
+
+  openProject(id: number): void {
+    this.router.navigate(['/projetos', id]);
   }
 }

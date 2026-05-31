@@ -38,6 +38,12 @@ export interface UserSummary {
   name: string;
 }
 
+export interface ProjectImage {
+  id: number;
+  projectId: number;
+  url: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   private readonly API_URL = 'http://localhost:8080';
@@ -57,6 +63,14 @@ export class ProjectService {
 
   getCategories(): Observable<Category[]> {
     return this.http.get<Category[]>(`${this.API_URL}/api/category`);
+  }
+
+  getCategoryById(id: number): Observable<Category> {
+    return this.http.get<Category>(`${this.API_URL}/api/category/${id}`);
+  }
+
+  getProjectImages(projectId: number): Observable<ProjectImage[]> {
+    return this.http.get<ProjectImage[]>(`${this.API_URL}/api/project-image/project-id/${projectId}`);
   }
 
   getUserById(id: number): Observable<UserSummary> {

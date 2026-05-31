@@ -50,7 +50,8 @@
       <!-- Cards -->
       <div
         *ngFor="let project of filteredProjects"
-        class="project-card"
+        class="project-card clickable"
+        (click)="openProject(project.id)"
       >
         <div class="card-badges">
           <span class="badge-status" [ngClass]="getStatusClass(project.status)">

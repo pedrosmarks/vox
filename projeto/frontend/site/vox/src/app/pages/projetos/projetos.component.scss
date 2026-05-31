@@ -159,10 +159,15 @@ $border:    #e5e7eb;
   border: 1px solid $border;
   padding: 1.25rem 1.5rem;
   box-shadow: 0 1px 3px rgba(27,63,139,0.06);
-  transition: box-shadow 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s;
+
+  &.clickable {
+    cursor: pointer;
+  }
 
   &:hover {
     box-shadow: 0 4px 12px rgba(27,63,139,0.12);
+    transform: translateY(-1px);
   }
 }
 

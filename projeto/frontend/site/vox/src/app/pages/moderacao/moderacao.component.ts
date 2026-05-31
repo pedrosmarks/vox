@@ -7,7 +7,7 @@ import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { ProjectService, Project, Category } from '../../services/project.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
-import { MapPickerComponent, LatLng } from '../../components/map-picker/map-picker.component';
+import { MapPickerComponent, LatLng, AddressResult } from '../../components/map-picker/map-picker.component';
 
 const FALLBACK_CATEGORIES: Category[] = [
   { id: 1, name: 'Infraestrutura' },
@@ -172,6 +172,12 @@ export class ModeracaoComponent implements OnInit {
   onLocationChange(location: LatLng): void {
     this.form.latitude = location.latitude;
     this.form.longitude = location.longitude;
+  }
+
+  onAddressChange(address: AddressResult): void {
+    this.form.street       = address.street;
+    this.form.number       = address.number;
+    this.form.neighborhood = address.neighborhood;
   }
 
   onFileChange(event: Event): void {
