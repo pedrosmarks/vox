@@ -1,0 +1,124 @@
+<app-navbar></app-navbar>
+
+<main class="sugestoes-page">
+  <div class="page-header">
+    <h1 class="page-title">Sugestões de Projetos</h1>
+    <p class="page-subtitle">Você tem uma ideia para melhorar sua cidade? Compartilhe com a comunidade!</p>
+  </div>
+
+  <div class="page-body">
+    <!-- Botão sugerir -->
+    <div *ngIf="!showForm" class="suggest-btn-wrapper">
+      <button class="btn-suggest" (click)="openForm()">
+        <span class="btn-icon">+</span>
+        Sugerir um novo projeto
+      </button>
+    </div>
+
+    <!-- Sucesso -->
+    <div *ngIf="submitSuccess" class="alert alert-success">
+      Sugestão enviada com sucesso! Aguarde a análise da equipe.
+    </div>
+
+    <!-- Formulário -->
+    <div *ngIf="showForm" class="form-card">
+      <h2 class="form-title">Nova Sugestão</h2>
+
+      <div class="form-group">
+        <label class="form-label">Título do Projeto <span class="required">*</span></label>
+        <input
+          type="text"
+          class="form-input"
+          placeholder="Ex: Construção de uma biblioteca comunitária"
+          [(ngModel)]="form.title"
+          [disabled]="isSubmitting"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Categoria <span class="required">*</span></label>
+        <select
+          class="form-select"
+          [(ngModel)]="form.categoryId"
+          [disabled]="isSubmitting"
+        >
+          <option value="">Selecione uma categoria</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descrição <span class="required">*</span></label>
+        <textarea
+          class="form-textarea"
+          placeholder="Descreva sua ideia em detalhes. Quanto mais informações, melhor!"
+          [(ngModel)]="form.description"
+          rows="5"
+          [disabled]="isSubmitting"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Imagem (opcional)</label>
+        <input
+          type="file"
+          class="form-input-file"
+          accept="image/*"
+          (change)="onFileChange($event)"
+          [disabled]="isSubmitting"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Localização no Mapa (opcional)</label>
+        <p class="form-hint">Clique no mapa para marcar o local do projeto. O marcador pode ser arrastado para ajuste fino.</p>
+        <app-map-picker (locationChange)="onLocationChange($event)"></app-map-picker>
+        <div *ngIf="form.latitude" class="coords-info">
+          📍 Lat: {{ form.latitude | number:'1.6-6' }} &nbsp;|&nbsp; Lng: {{ form.longitude | number:'1.6-6' }}
+        </div>
+      </div>
+
+      <div *ngIf="submitError" class="alert alert-error">{{ submitError }}</div>
+
+      <div class="form-actions">
+        <button class="btn-submit" (click)="onSubmit()" [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">&#9993; Enviar Sugestão</span>
+          <span *ngIf="isSubmitting">Enviando...</span>
+        </button>
+        <button class="btn-cancel" (click)="cancelForm()" [disabled]="isSubmitting">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+    <!-- Minhas sugestões -->
+    <div class="suggestions-card">
+      <h2 class="section-title">Sugestões Recentes</h2>
+
+      <div *ngIf="isLoadingSuggestions" class="state-message">
+        <div class="spinner"></div>
+        <p>Carregando suas sugestões...</p>
+      </div>
+
+      <div *ngIf="!isLoadingSuggestions && loadError" class="state-message error">
+        {{ loadError }}
+      </div>
+
+      <div *ngIf="!isLoadingSuggestions && !loadError && mySuggestions.length === 0" class="state-message">
+        Você ainda não enviou sugestões.
+      </div>
+
+      <ul *ngIf="!isLoadingSuggestions && mySuggestions.length > 0" class="suggestions-list">
+        <li *ngFor="let s of mySuggestions" class="suggestion-item">
+          <div class="suggestion-meta">
+            <span class="suggestion-title">{{ s.title }}</span>
+            <span class="suggestion-date">{{ formatDate(s.startDate) }}</span>
+          </div>
+          <span class="badge-status" [ngClass]="getStatusClass(s.status)">
+            {{ getStatusLabel(s.status) }}
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</main>

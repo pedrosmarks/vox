@@ -15,6 +15,20 @@ import java.util.logging.Logger;
 
 @Service
 public class ProjectServiceImpl implements ProjectService {
+    @Override
+    public List<Project> findByStatus(Project.ProjectStatus status) {
+        return projectDao.findByStatus(status);
+    }
+
+    @Override
+    public List<Project> findByMunicipalityIdAndStatus(int municipalityId, Project.ProjectStatus status) {
+        return projectDao.findByMunicipalityIdAndStatus(municipalityId, status);
+    }
+
+    @Override
+    public void updateStatus(int id, Project.ProjectStatus status) {
+        projectDao.updateStatus(id, status);
+    }
 
     private static final Logger logger = Logger.getLogger(ProjectServiceImpl.class.getName());
 

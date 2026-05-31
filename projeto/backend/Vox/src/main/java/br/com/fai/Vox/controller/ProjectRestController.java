@@ -17,6 +17,33 @@ import java.util.List;
 @RequestMapping("/api/project")
 public class ProjectRestController {
 
+    // Listar projetos por status: /api/project?status=PENDING_APPROVAL
+    @GetMapping(params = "status")
+    public ResponseEntity<List<Project>> getByStatus(
+            @RequestParam("status") Project.ProjectStatus status,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            int municipalityId = jwtService.getMunicipalityIdFromToken(token);
+            return ResponseEntity.ok(projectService.findByMunicipalityIdAndStatus(municipalityId, status));
+        }
+        return ResponseEntity.ok(projectService.findByStatus(status));
+    }
+
+    // Aprovar projeto: /api/project/{id}/approve
+    @PutMapping("/{id}/approve")
+    public ResponseEntity<Void> approve(@PathVariable int id) {
+        projectService.updateStatus(id, Project.ProjectStatus.PUBLISHED);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Rejeitar projeto: /api/project/{id}/reject
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<Void> reject(@PathVariable int id) {
+        projectService.updateStatus(id, Project.ProjectStatus.REJECTED);
+        return ResponseEntity.noContent().build();
+    }
+
     private final ProjectService projectService;
     private final JwtService jwtService;
 

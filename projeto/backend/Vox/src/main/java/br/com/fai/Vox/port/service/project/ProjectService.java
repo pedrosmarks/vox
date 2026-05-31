@@ -7,4 +7,7 @@ import br.com.fai.Vox.port.service.crud.*;
 import java.util.List;
 
 public interface ProjectService extends CreateService<CreateProjectDto>, ReadService<Project>, UpdateService<Project>, DeleteService, ReadByMunicipalityIdService {
+    List<Project> findByStatus(Project.ProjectStatus status);
+    List<Project> findByMunicipalityIdAndStatus(int municipalityId, Project.ProjectStatus status);
+    void updateStatus(int id, Project.ProjectStatus status);
 }

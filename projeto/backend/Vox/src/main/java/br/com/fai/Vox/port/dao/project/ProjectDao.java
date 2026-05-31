@@ -10,4 +10,7 @@ import br.com.fai.Vox.port.dao.crud.UpdateDao;
 import java.util.List;
 
 public interface ProjectDao extends CreateDao<CreateProjectDto>, ReadDao<Project>, UpdateDao<Project>, DeleteDao, ReadByMunicipalityIdDao {
+    List<Project> findByStatus(Project.ProjectStatus status);
+    List<Project> findByMunicipalityIdAndStatus(int municipalityId, Project.ProjectStatus status);
+    void updateStatus(int id, Project.ProjectStatus status);
 }

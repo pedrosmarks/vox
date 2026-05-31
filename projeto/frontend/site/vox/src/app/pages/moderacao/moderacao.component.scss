@@ -1,0 +1,329 @@
+$primary:    #1b3f8b;
+$accent:     #2d6fcc;
+$secondary:  #f5a800;
+$bg:         #f0f4ff;
+$white:      #ffffff;
+$text:       #1b3f8b;
+$text-muted: #6b7280;
+$border:     #e5e7eb;
+$success:    #065f46;
+$success-bg: #d1fae5;
+$error:      #991b1b;
+$error-bg:   #fee2e2;
+
+.moderacao-page {
+  min-height: calc(100vh - 64px);
+  background: $bg;
+  font-family: 'Inter', sans-serif;
+  padding: 2rem 1.5rem;
+}
+
+.page-header {
+  max-width: 900px;
+  margin: 0 auto 1.5rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: $text-muted;
+  margin: 0;
+}
+
+// ── Tabs ────────────────────────────────────────────────────
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 900px;
+  margin: 0 auto 1.5rem;
+  border-bottom: 2px solid $border;
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.65rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $text-muted;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+
+  &.active {
+    color: $primary;
+    border-bottom-color: $primary;
+  }
+
+  &:hover:not(.active) {
+    color: $primary;
+  }
+}
+
+.badge {
+  background: $secondary;
+  color: #7c4a00;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+// ── Tab content ────────────────────────────────────────────
+.tab-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+// ── Alerts ──────────────────────────────────────────────────
+.alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+  font-size: 14px;
+  font-weight: 500;
+
+  &-success { background: $success-bg; color: $success; border: 1px solid #6ee7b7; }
+  &-error   { background: $error-bg;   color: $error;   border: 1px solid #fca5a5; }
+}
+
+// ── State message ───────────────────────────────────────────
+.state-message {
+  text-align: center;
+  color: $text-muted;
+  padding: 3rem 1rem;
+  font-size: 0.9rem;
+
+  &.error { color: $error; }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid $border;
+    border-top-color: $primary;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 0.75rem;
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-retry {
+  margin-top: 0.75rem;
+  padding: 8px 20px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+// ── Pending cards ───────────────────────────────────────────
+.pending-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+}
+
+.pending-card-body {
+  flex: 1;
+}
+
+.pending-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.4rem;
+}
+
+.pending-description {
+  font-size: 0.875rem;
+  color: #374151;
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.pending-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: $text-muted;
+
+  strong { color: $primary; }
+}
+
+.pending-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-approve, .btn-reject {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.btn-approve {
+  background: #059669;
+  color: #fff;
+  &:hover:not(:disabled) { background: #047857; }
+}
+
+.btn-reject {
+  background: $white;
+  color: $error;
+  border: 1.5px solid #fca5a5;
+  &:hover:not(:disabled) { background: $error-bg; }
+}
+
+// ── Form ─────────────────────────────────────────────────────
+.form-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.form-section {
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid $border;
+
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+
+  &.full { width: 100%; }
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+
+  .required { color: #ef4444; }
+}
+
+.form-input, .form-select, .form-textarea {
+  padding: 9px 13px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus { border-color: $accent; box-shadow: 0 0 0 3px rgba(45, 111, 204, 0.1); }
+  &[readonly] { background: #f9fafb; color: $text-muted; cursor: default; }
+}
+
+.form-textarea { resize: vertical; }
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+
+  .form-group { min-width: 150px; }
+}
+
+.checkboxes { align-items: flex-start; margin-top: 12px; }
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+
+  input[type='checkbox'] { width: 15px; height: 15px; accent-color: $primary; }
+}
+
+.form-input-file {
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  color: $text-muted;
+}
+
+.file-name {
+  font-size: 0.75rem;
+  color: $accent;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+}
+
+.btn-submit {
+  padding: 11px 32px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+
+  &:hover:not(:disabled) { background: #152b6e; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}

@@ -11,6 +11,58 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ProjectPostgresDaoImpl implements ProjectDao {
+    @Override
+    public List<Project> findByStatus(Project.ProjectStatus status) {
+        final List<Project> projects = new ArrayList<>();
+        final String sql = "SELECT * FROM project WHERE status = CAST(? AS project_status) ORDER BY created_at DESC";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, status.name());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                projects.add(mapResultSetToProject(rs));
+            }
+            rs.close();
+            ps.close();
+            return projects;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Project> findByMunicipalityIdAndStatus(int municipalityId, Project.ProjectStatus status) {
+        final List<Project> projects = new ArrayList<>();
+        final String sql = "SELECT * FROM project WHERE municipality_id = ? AND status = CAST(? AS project_status) ORDER BY created_at DESC";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, municipalityId);
+            ps.setString(2, status.name());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                projects.add(mapResultSetToProject(rs));
+            }
+            rs.close();
+            ps.close();
+            return projects;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void updateStatus(int id, Project.ProjectStatus status) {
+        final String sql = "UPDATE project SET status = CAST(? AS project_status), updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, status.name());
+            ps.setInt(2, id);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static final Logger logger = Logger.getLogger(ProjectPostgresDaoImpl.class.getName());
 
