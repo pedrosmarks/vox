@@ -240,10 +240,10 @@ CREATE TABLE notification (
 );
 
 
-CREATE INDEX idx_projects_status_municipality ON project(status, municipality_id);
-CREATE INDEX idx_projects_type ON project(type);
-CREATE INDEX idx_votes_project ON project_opinion(project_id);
-CREATE INDEX idx_votes_user ON project_opinion(user_id);
-CREATE INDEX idx_status_history_project ON project_status_history(project_id);
-CREATE INDEX idx_project_status ON project(status);
-CREATE INDEX idx_project_author ON project(author_id);
+CREATE INDEX IF NOT EXISTS idx_projects_status_municipality ON project(status, municipality_id);
+CREATE INDEX IF NOT EXISTS idx_projects_type ON project(type);
+CREATE INDEX IF NOT EXISTS idx_votes_project ON project_opinion(project_id);
+CREATE INDEX IF NOT EXISTS idx_votes_user ON project_opinion(user_id);
+CREATE INDEX IF NOT EXISTS idx_status_history_project ON project_status_history(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_status ON project(status);
+CREATE INDEX IF NOT EXISTS idx_project_author ON project(author_id);
