@@ -126,4 +126,15 @@ export class AuthService {
       return 1;
     }
   }
+
+  updateProfile(id: number, data: Partial<UserProfile>): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`${this.API_URL}/api/user/${id}`, data);
+  }
+
+  updatePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/api/user/update-password`, {
+      currentPassword,
+      newPassword
+    });
+  }
 }

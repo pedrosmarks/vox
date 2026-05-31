@@ -1,0 +1,246 @@
+$primary:    #1b3f8b;
+$accent:     #2d6fcc;
+$bg:         #f0f4ff;
+$white:      #ffffff;
+$text:       #1b3f8b;
+$text-muted: #6b7280;
+$border:     #e5e7eb;
+
+.perfil-page {
+  min-height: calc(100vh - 64px);
+  background: $bg;
+  font-family: 'Inter', sans-serif;
+  padding: 2rem 1.5rem;
+}
+
+// ── States ────────────────────────────────────────────────
+.state-message {
+  max-width: 520px;
+  margin: 4rem auto;
+  background: $white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: $text-muted;
+  font-size: 0.9rem;
+  &.error { color: #dc2626; }
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid $border;
+  border-top-color: $accent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-retry {
+  margin-top: 0.75rem;
+  padding: 0.45rem 1.25rem;
+  background: $accent;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+// ── Content ───────────────────────────────────────────────
+.perfil-content {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// ── Identity card ─────────────────────────────────────────
+.identity-card {
+  background: $white;
+  border-radius: 14px;
+  border: 1px solid $border;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 1px 4px rgba(27,63,139,0.08);
+}
+
+.avatar-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: $primary;
+  color: $white;
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.identity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.identity-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+}
+
+.identity-email {
+  font-size: 0.875rem;
+  color: $text-muted;
+  margin: 0;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  align-self: flex-start;
+
+  &.role-admin   { background: #fef3c7; color: #92400e; }
+  &.role-mod     { background: #ede9fe; color: #4f46e5; }
+  &.role-citizen { background: #dcfce7; color: #15803d; }
+}
+
+// ── Tabs ──────────────────────────────────────────────────
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab-btn {
+  padding: 0.55rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid $border;
+  background: $white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $text-muted;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover { background: $bg; border-color: $accent; color: $text; }
+  &.active { background: $primary; color: $white; border-color: $primary; }
+}
+
+// ── Tab panel ─────────────────────────────────────────────
+.tab-panel {
+  background: $white;
+  border-radius: 14px;
+  border: 1px solid $border;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 1px 4px rgba(27,63,139,0.06);
+}
+
+// ── Alerts ────────────────────────────────────────────────
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  &.alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+  &.alert-error   { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+}
+
+// ── Form ──────────────────────────────────────────────────
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  &.single-col { grid-template-columns: 1fr; }
+
+  @media (max-width: 540px) { grid-template-columns: 1fr; }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-input {
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: $text;
+  background: #fafbff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus    { border-color: $accent; box-shadow: 0 0 0 3px rgba(45,111,204,0.15); }
+  &.disabled,
+  &:disabled { background: #f3f4f6; color: $text-muted; cursor: not-allowed; }
+}
+
+// ── Password input ────────────────────────────────────────
+.input-password {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-input { padding-right: 2.5rem; }
+}
+
+.toggle-pw {
+  position: absolute;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+  &:hover { opacity: 1; }
+}
+
+// ── Actions ───────────────────────────────────────────────
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.btn-save {
+  padding: 0.65rem 1.75rem;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+
+  &:hover:not(:disabled) { background: darken($primary, 6%); transform: translateY(-1px); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
