@@ -1,0 +1,153 @@
+<app-navbar></app-navbar>
+
+<main class="detalhe-page">
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="state-message">
+    <div class="spinner"></div>
+    <p>Carregando projeto...</p>
+  </div>
+
+  <!-- Erro -->
+  <div *ngIf="!isLoading && errorMessage" class="state-message error">
+    <p>{{ errorMessage }}</p>
+    <button class="btn-back" (click)="goBack()">← Voltar aos projetos</button>
+  </div>
+
+  <!-- Conteúdo -->
+  <div *ngIf="!isLoading && !errorMessage && project" class="detalhe-content">
+
+    <!-- Header -->
+    <div class="detalhe-header">
+      <button class="btn-back" (click)="goBack()">← Voltar</button>
+      <div class="header-badges">
+        <span class="badge-status" [ngClass]="getStatusClass(project.status)">
+          {{ getStatusLabel(project.status) }}
+        </span>
+        <span class="badge-type" [ngClass]="getTypeClass(project)">
+          {{ getTypeLabel(project) }}
+        </span>
+        <span *ngIf="project.highlighted" class="badge-destaque">Destaque</span>
+      </div>
+      <div class="header-actions">
+        <button
+          *ngIf="isModerator && !project.isOfficial"
+          class="btn-action btn-promote"
+          (click)="promoteProject()"
+        >🏅 Tornar Oficial</button>
+        <button
+          *ngIf="!isModerator"
+          class="btn-action btn-sign"
+          [class.signed]="signed"
+          (click)="toggleSign()"
+        >{{ signed ? '✓ Assinado' : '✏️ Assinar' }}</button>
+      </div>
+    </div>
+
+    <div class="detalhe-grid">
+
+      <!-- Coluna principal -->
+      <div class="col-main">
+
+        <!-- Galeria de imagens -->
+        <div *ngIf="images.length > 0" class="gallery">
+          <img class="gallery-main" [src]="selectedImage" alt="Imagem do projeto" />
+          <div *ngIf="images.length > 1" class="gallery-thumbs">
+            <img
+              *ngFor="let img of images"
+              class="gallery-thumb"
+              [class.active]="img.url === selectedImage"
+              [src]="img.url"
+              (click)="selectImage(img.url)"
+              alt="Miniatura"
+            />
+          </div>
+        </div>
+
+        <!-- Título e descrição -->
+        <h1 class="detalhe-title">{{ project.title }}</h1>
+        <p class="detalhe-description">{{ project.description }}</p>
+
+        <!-- Info cards -->
+        <div class="info-grid">
+
+          <div class="info-card">
+            <span class="info-label">Categoria</span>
+            <span class="info-value">{{ categoryName || '—' }}</span>
+          </div>
+
+          <div class="info-card" *ngIf="!project.isOfficial && project.type === 'CITIZEN'">
+            <span class="info-label">Sugerido por</span>
+            <span class="info-value">{{ authorName || ('Usuário #' + project.authorId) }}</span>
+          </div>
+
+          <div class="info-card">
+            <span class="info-label">Bairro</span>
+            <span class="info-value">{{ project.neighborhood || '—' }}</span>
+          </div>
+
+          <div class="info-card" *ngIf="project.street">
+            <span class="info-label">Endereço</span>
+            <span class="info-value">{{ project.street }}<span *ngIf="project.number">, {{ project.number }}</span></span>
+          </div>
+
+          <div class="info-card">
+            <span class="info-label">Data de início</span>
+            <span class="info-value">{{ project.startDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="info-card">
+            <span class="info-label">Previsão de término</span>
+            <span class="info-value">{{ project.expectedEndDate ? (project.expectedEndDate | date:'dd/MM/yyyy') : '—' }}</span>
+          </div>
+
+          <div class="info-card" *ngIf="project.endDate">
+            <span class="info-label">Data de conclusão</span>
+            <span class="info-value">{{ project.endDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="info-card">
+            <span class="info-label">Criado em</span>
+            <span class="info-value">{{ project.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Coluna lateral: financeiro -->
+      <aside class="col-aside">
+
+        <div class="aside-card">
+          <h3 class="aside-title">Informações Financeiras</h3>
+
+          <div class="fin-row" *ngIf="project.estimatedCost">
+            <span class="fin-label">Custo estimado</span>
+            <span class="fin-value">{{ project.estimatedCost | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+          </div>
+
+          <div class="fin-row" *ngIf="project.approvedBudget">
+            <span class="fin-label">Orçamento aprovado</span>
+            <span class="fin-value">{{ project.approvedBudget | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
+          </div>
+
+          <div class="fin-row" *ngIf="project.financialAnalysis">
+            <span class="fin-label">Análise financeira</span>
+            <span class="fin-value">{{ project.financialAnalysis }}</span>
+          </div>
+
+          <p *ngIf="!project.estimatedCost && !project.approvedBudget && !project.financialAnalysis" class="fin-empty">
+            Sem informações financeiras disponíveis.
+          </p>
+        </div>
+
+        <!-- Localização -->
+        <div class="aside-card" *ngIf="project.latitude && project.longitude">
+          <h3 class="aside-title">Localização</h3>
+          <p class="fin-label">Lat: {{ project.latitude }} / Lng: {{ project.longitude }}</p>
+        </div>
+
+      </aside>
+    </div>
+  </div>
+
+</main>

@@ -1,0 +1,280 @@
+$primary:   #1b3f8b;
+$accent:    #2d6fcc;
+$secondary: #f5a800;
+$bg:        #f0f4ff;
+$white:     #ffffff;
+$text:      #1b3f8b;
+$text-muted: #6b7280;
+$border:    #e5e7eb;
+
+.projetos-page {
+  min-height: calc(100vh - 64px);
+  background: $bg;
+  font-family: 'Inter', sans-serif;
+  padding: 2rem 1.5rem;
+}
+
+.page-header {
+  max-width: 1200px;
+  margin: 0 auto 1.5rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: $text-muted;
+  margin: 0;
+}
+
+.page-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+// ── Sidebar ────────────────────────────────────────────────
+.filters-sidebar {
+  flex-shrink: 0;
+  width: 220px;
+}
+
+.filters-card {
+  background: $white;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(27,63,139,0.08);
+  padding: 1.25rem;
+}
+
+.filters-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.filters-icon {
+  color: $accent;
+  font-size: 1rem;
+}
+
+.filters-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.filters-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.filter-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid $border;
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $text;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: $bg;
+    border-color: $accent;
+  }
+
+  &.active {
+    background: $primary;
+    color: $white;
+    border-color: $primary;
+  }
+}
+
+// ── Projects list ─────────────────────────────────────────
+.projects-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+// ── States ────────────────────────────────────────────────
+.state-message {
+  background: $white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: $text-muted;
+  font-size: 0.9rem;
+
+  &.error {
+    color: #dc2626;
+  }
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid $border;
+  border-top-color: $accent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-retry {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  background: $accent;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+// ── Project Card ──────────────────────────────────────────
+.project-card {
+  background: $white;
+  border-radius: 12px;
+  border: 1px solid $border;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(27,63,139,0.06);
+  transition: box-shadow 0.15s, transform 0.15s;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(27,63,139,0.12);
+    transform: translateY(-1px);
+  }
+}
+
+.card-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.badge-status,
+.badge-type {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+// Status badges
+.status-votacao   { background: #ede9fe; color: #4f46e5; }
+.status-analise   { background: #fff7ed; color: #c2410c; }
+.status-aprovado  { background: #dcfce7; color: #15803d; }
+.status-rejeitado { background: #fee2e2; color: #dc2626; }
+.status-concluido { background: #f1f5f9; color: #475569; }
+
+// Type badges
+.type-oficial  { background: #f1f5f9; color: #475569; }
+.type-sugerido { background: #f0f9ff; color: #0369a1; }
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: $accent;
+  margin: 0 0 0.5rem;
+}
+
+.card-description {
+  font-size: 0.875rem;
+  color: $text-muted;
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.card-author {
+  font-size: 0.8rem;
+  color: $text-muted;
+  margin: 0 0 0.75rem;
+
+  strong {
+    color: $accent;
+  }
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid $border;
+}
+
+.card-meta {
+  font-size: 0.78rem;
+  color: $text-muted;
+}
+
+.btn-promote-card {
+  margin-left: auto;
+  padding: 0.3rem 0.9rem;
+  border-radius: 20px;
+  border: 1.5px solid $primary;
+  background: transparent;
+  color: $primary;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: $primary;
+    color: #fff;
+  }
+}
+
+.btn-sign-card {
+  margin-left: auto;
+  padding: 0.3rem 0.9rem;
+  border-radius: 20px;
+  border: 1.5px solid $accent;
+  background: transparent;
+  color: $accent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: $accent;
+    color: #fff;
+  }
+
+  &.signed {
+    background: $accent;
+    color: #fff;
+    border-color: $accent;
+  }
+}
