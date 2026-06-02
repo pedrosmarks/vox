@@ -72,12 +72,6 @@ public class ProjectRestController {
         return ResponseEntity.created(uri).build();
     }
 
-    @GetMapping
-    public ResponseEntity<List<Project>> findAll(HttpServletRequest request) {
-        int municipalityId = authHelper.getMunicipalityId(request);
-        return ResponseEntity.ok(projectService.findByMunicipalityId(municipalityId));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<Project> findById(@PathVariable final int id) {
         Project entity = projectService.findByid(id);
