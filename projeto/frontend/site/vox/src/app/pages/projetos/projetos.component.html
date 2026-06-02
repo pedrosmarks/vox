@@ -1,0 +1,92 @@
+<app-navbar></app-navbar>
+
+<main class="projetos-page">
+  <div class="page-header">
+    <h1 class="page-title">Projetos em Votação</h1>
+    <p class="page-subtitle">Confira os projetos em votação e participe das decisões da sua cidade.</p>
+  </div>
+
+  <div class="page-body">
+    <!-- Sidebar de Filtros -->
+    <aside class="filters-sidebar">
+      <div class="filters-card">
+        <div class="filters-header">
+          <span class="filters-icon">&#9638;</span>
+          <span class="filters-title">Filtros</span>
+        </div>
+        <ul class="filters-list">
+          <li *ngFor="let filter of filters">
+            <button
+              class="filter-btn"
+              [class.active]="activeFilter === filter.key"
+              (click)="setFilter(filter.key)"
+            >
+              {{ filter.label }}
+            </button>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Lista de Projetos -->
+    <section class="projects-list">
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="state-message">
+        <div class="spinner"></div>
+        <p>Carregando projetos...</p>
+      </div>
+
+      <!-- Erro -->
+      <div *ngIf="!isLoading && errorMessage" class="state-message error">
+        <p>{{ errorMessage }}</p>
+        <button class="btn-retry" (click)="loadProjects()">Tentar novamente</button>
+      </div>
+
+      <!-- Sem projetos -->
+      <div *ngIf="!isLoading && !errorMessage && filteredProjects.length === 0" class="state-message">
+        <p>Nenhum projeto encontrado para este filtro.</p>
+      </div>
+
+      <!-- Cards -->
+      <div
+        *ngFor="let project of filteredProjects"
+        class="project-card clickable"
+        (click)="openProject(project.id)"
+      >
+        <div class="card-badges">
+          <span class="badge-status" [ngClass]="getStatusClass(project.status)">
+            {{ getStatusLabel(project.status) }}
+          </span>
+          <span class="badge-type" [ngClass]="getTypeClass(project)">
+            {{ getTypeLabel(project) }}
+          </span>
+        </div>
+
+        <h2 class="card-title">{{ project.title }}</h2>
+        <p class="card-description">{{ project.description }}</p>
+
+        <p *ngIf="!project.isOfficial && project.type === 'CITIZEN'" class="card-author">
+          Sugerido por <strong>{{ getAuthorName(project.authorId) }}</strong>
+        </p>
+
+        <div class="card-footer">
+          <span class="card-meta">{{ project.neighborhood }}</span>
+          <span class="card-meta">{{ project.startDate | date:'dd/MM/yyyy' }}</span>
+          <button
+            *ngIf="isModerator && !project.isOfficial"
+            class="btn-promote-card"
+            (click)="$event.stopPropagation(); promoteProject(project.id)"
+          >🏅 Tornar Oficial</button>
+          <button
+            *ngIf="!isModerator"
+            class="btn-sign-card"
+            [class.signed]="hasSigned(project.id)"
+            (click)="$event.stopPropagation(); toggleSign(project.id)"
+          >
+            {{ hasSigned(project.id) ? '✓ Assinado' : '✏️ Assinar' }}
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>

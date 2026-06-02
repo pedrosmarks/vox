@@ -1,0 +1,296 @@
+$primary:    #1b3f8b;
+$accent:     #2d6fcc;
+$secondary:  #f5a800;
+$bg:         #f0f4ff;
+$white:      #ffffff;
+$text:       #1b3f8b;
+$text-muted: #6b7280;
+$border:     #e5e7eb;
+
+.detalhe-page {
+  min-height: calc(100vh - 64px);
+  background: $bg;
+  font-family: 'Inter', sans-serif;
+  padding: 2rem 1.5rem;
+}
+
+// ── States ────────────────────────────────────────────────
+.state-message {
+  max-width: 600px;
+  margin: 4rem auto;
+  background: $white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: $text-muted;
+  font-size: 0.9rem;
+
+  &.error { color: #dc2626; }
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid $border;
+  border-top-color: $accent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Content ───────────────────────────────────────────────
+.detalhe-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// ── Header ────────────────────────────────────────────────
+.detalhe-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  margin-left: auto;
+}
+
+.btn-action {
+  padding: 0.4rem 1.1rem;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-promote {
+  border: 1.5px solid $primary;
+  background: transparent;
+  color: $primary;
+  &:hover { background: $primary; color: #fff; }
+}
+
+.btn-sign {
+  border: 1.5px solid $accent;
+  background: transparent;
+  color: $accent;
+  &:hover { background: $accent; color: #fff; }
+  &.signed { background: $accent; color: #fff; border-color: $accent; }
+}
+
+.btn-back {
+  padding: 0.45rem 1rem;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: $white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $text;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: $bg;
+    border-color: $accent;
+  }
+}
+
+.header-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+// ── Grid ──────────────────────────────────────────────────
+.detalhe-grid {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.col-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.col-aside {
+  flex-shrink: 0;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+// ── Gallery ───────────────────────────────────────────────
+.gallery {
+  background: $white;
+  border-radius: 12px;
+  border: 1px solid $border;
+  overflow: hidden;
+  padding: 0.75rem;
+}
+
+.gallery-main {
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.gallery-thumbs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.gallery-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &.active,
+  &:hover {
+    border-color: $accent;
+  }
+}
+
+// ── Title & Description ───────────────────────────────────
+.detalhe-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+}
+
+.detalhe-description {
+  font-size: 0.9rem;
+  color: $text-muted;
+  line-height: 1.65;
+  margin: 0;
+  background: $white;
+  border-radius: 12px;
+  border: 1px solid $border;
+  padding: 1rem 1.25rem;
+}
+
+// ── Info grid ─────────────────────────────────────────────
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.info-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.info-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: $text;
+}
+
+// ── Aside card ────────────────────────────────────────────
+.aside-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.aside-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid $border;
+}
+
+.fin-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.85rem;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.fin-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fin-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.fin-empty {
+  font-size: 0.85rem;
+  color: $text-muted;
+  margin: 0;
+}
+
+// ── Badges ────────────────────────────────────────────────
+.badge-status,
+.badge-type,
+.badge-destaque {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-votacao   { background: #ede9fe; color: #4f46e5; }
+.status-analise   { background: #fff7ed; color: #c2410c; }
+.status-aprovado  { background: #dcfce7; color: #15803d; }
+.status-rejeitado { background: #fee2e2; color: #dc2626; }
+.status-concluido { background: #f1f5f9; color: #475569; }
+
+.type-oficial  { background: #f1f5f9; color: #475569; }
+.type-sugerido { background: #f0f9ff; color: #0369a1; }
+
+.badge-destaque { background: #fef9c3; color: #854d0e; }

@@ -9,11 +9,11 @@ VALUES
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Maria Antonieta', 'maria@example.com', '11111111111', '(11) 98888-1111', crypt('aa', gen_salt('bf')), 'MODERATOR', '1985-10-22', 2);
+    ('Maria Antonieta', 'maria@example.com', '11111111111', '(11) 98888-1111', crypt('aa', gen_salt('bf')), 'MODERATOR', '1985-10-22', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Carlos Costa', 'carlos@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'ADMINISTRATOR', '1978-03-08', 3);
+    ('Carlos Costa', 'carlos@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'ADMINISTRATOR', '1978-03-08', 1);
 
 INSERT INTO category (name, description)
 VALUES

@@ -1,0 +1,78 @@
+<app-navbar></app-navbar>
+
+<main class="audiencia-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Audiência Pública</h1>
+      <p class="page-subtitle">Participe das discussões públicas da sua cidade em tempo real.</p>
+    </div>
+    <button *ngIf="isModerator" class="btn-create" (click)="showCreateForm = !showCreateForm">
+      {{ showCreateForm ? '✕ Cancelar' : '+ Nova Audiência' }}
+    </button>
+  </div>
+
+  <!-- Formulário de criação (moderador) -->
+  <div *ngIf="showCreateForm" class="create-form-card">
+    <h3 class="form-title">Nova Audiência Pública</h3>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label class="form-label">Título *</label>
+        <input type="text" class="form-input" [(ngModel)]="novaAudiencia.titulo" placeholder="Ex: Audiência — Projeto de Lei nº 12/2026" />
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Descrição</label>
+        <textarea class="form-textarea" [(ngModel)]="novaAudiencia.descricao" rows="3" placeholder="Descreva a pauta da audiência..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data *</label>
+        <input type="date" class="form-input" [(ngModel)]="novaAudiencia.dataInicio" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Horário *</label>
+        <input type="time" class="form-input" [(ngModel)]="novaAudiencia.horaInicio" />
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Projeto relacionado (opcional)</label>
+        <input type="text" class="form-input" [(ngModel)]="novaAudiencia.projetoRelacionado" placeholder="Ex: Construção de Ciclovia Central" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-submit" (click)="criarAudiencia()">Criar Audiência</button>
+    </div>
+  </div>
+
+  <!-- Lista de audiências -->
+  <div class="cards-grid">
+    <div *ngFor="let a of audiencias" class="audiencia-card" [ngClass]="'card-' + a.status">
+
+      <div class="card-top">
+        <span class="status-badge" [ngClass]="'badge-' + a.status">{{ getStatusLabel(a.status) }}</span>
+        <span *ngIf="a.participantes > 0" class="participants-count">👥 {{ a.participantes }}</span>
+      </div>
+
+      <h2 class="card-title">{{ a.titulo }}</h2>
+      <p class="card-description">{{ a.descricao }}</p>
+
+      <div class="card-meta">
+        <span>🕐 {{ formatDate(a.dataInicio) }}</span>
+        <span *ngIf="a.projetoRelacionado">📋 {{ a.projetoRelacionado }}</span>
+        <span>👤 {{ a.criadoPor }}</span>
+      </div>
+
+      <div class="card-footer">
+        <button
+          *ngIf="a.status !== 'encerrada'"
+          class="btn-enter"
+          [class.btn-live]="a.status === 'ao_vivo'"
+          (click)="entrar(a.id)"
+        >
+          {{ a.status === 'ao_vivo' ? '🔴 Entrar ao vivo' : '📅 Ver detalhes' }}
+        </button>
+        <span *ngIf="a.status === 'encerrada'" class="encerrada-label">Audiência encerrada</span>
+      </div>
+
+    </div>
+  </div>
+
+</main>

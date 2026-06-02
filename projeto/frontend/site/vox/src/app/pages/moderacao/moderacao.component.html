@@ -1,0 +1,218 @@
+<app-navbar></app-navbar>
+
+<main class="moderacao-page">
+  <div class="page-header">
+    <h1 class="page-title">Moderação</h1>
+    <p class="page-subtitle">Gerencie sugestões da comunidade e crie projetos oficiais.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'pendentes'" (click)="activeTab = 'pendentes'">
+      Sugestões Pendentes
+      <span class="badge" *ngIf="pendingProjects.length > 0">{{ pendingProjects.length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'novo'" (click)="activeTab = 'novo'; submitSuccess = false">
+      + Novo Projeto Oficial
+    </button>
+  </div>
+
+  <!-- ── ABA: PENDENTES ───────────────────────────────── -->
+  <div *ngIf="activeTab === 'pendentes'" class="tab-content">
+
+    <div *ngIf="actionSuccess" class="alert alert-success">{{ actionSuccess }}</div>
+
+    <div *ngIf="isLoadingPending" class="state-message">
+      <div class="spinner"></div>
+      <p>Carregando sugestões pendentes...</p>
+    </div>
+
+    <div *ngIf="!isLoadingPending && pendingError" class="state-message error">
+      {{ pendingError }}
+      <button class="btn-retry" (click)="loadPendingProjects()">Tentar novamente</button>
+    </div>
+
+    <div *ngIf="!isLoadingPending && !pendingError && pendingProjects.length === 0" class="state-message">
+      <p>Nenhuma sugestão aguardando aprovação. 🎉</p>
+    </div>
+
+    <div *ngFor="let project of pendingProjects" class="pending-card">
+      <div class="pending-card-body">
+        <h2 class="pending-title">{{ project.title }}</h2>
+        <p class="pending-description">{{ project.description }}</p>
+        <div class="pending-meta">
+          <span>Sugerido por <strong>{{ getAuthorName(project.authorId) }}</strong></span>
+          <span *ngIf="project.neighborhood">📍 {{ project.neighborhood }}</span>
+          <span *ngIf="project.latitude && project.longitude">
+            🗺️ {{ project.latitude | number:'1.4-4' }}, {{ project.longitude | number:'1.4-4' }}
+          </span>
+        </div>
+      </div>
+      <div class="pending-card-actions">
+        <button
+          class="btn-approve"
+          (click)="approve(project)"
+          [disabled]="actionInProgress === project.id"
+        >
+          {{ actionInProgress === project.id ? '...' : '✓ Aprovar' }}
+        </button>
+        <button
+          class="btn-reject"
+          (click)="reject(project)"
+          [disabled]="actionInProgress === project.id"
+        >
+          {{ actionInProgress === project.id ? '...' : '✕ Rejeitar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ABA: NOVO PROJETO ────────────────────────────── -->
+  <div *ngIf="activeTab === 'novo'" class="tab-content">
+
+    <div *ngIf="submitSuccess" class="alert alert-success">
+      {{ editingProjectId ? 'Projeto oficializado com sucesso!' : 'Projeto criado com sucesso!' }}
+    </div>
+
+    <!-- Banner quando está editando um projeto existente -->
+    <div *ngIf="editingProjectId" class="alert alert-info">
+      📌 Editando sugestão #{{ editingProjectId }}. Preencha os campos faltantes e clique em <strong>Oficializar Projeto</strong>.
+      <button class="btn-cancel-edit" (click)="resetForm(); activeTab = 'pendentes'">Cancelar</button>
+    </div>
+
+    <div class="form-card">
+
+      <div class="form-section">
+        <h3 class="section-title">Informações Básicas</h3>
+
+        <div class="form-group full">
+          <label class="form-label">Título <span class="required">*</span></label>
+          <input type="text" class="form-input" [(ngModel)]="form.title" placeholder="Ex: Construção de Escola Municipal" />
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Descrição <span class="required">*</span></label>
+          <textarea class="form-textarea" [(ngModel)]="form.description" rows="4" placeholder="Descreva o projeto..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Categoria <span class="required">*</span></label>
+            <select class="form-select" [(ngModel)]="form.categoryId">
+              <option value="">Selecione...</option>
+              <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" [(ngModel)]="form.type">
+              <option *ngFor="let t of projectTypes" [value]="t.value">{{ t.label }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" [(ngModel)]="form.status">
+              <option *ngFor="let s of projectStatuses" [value]="s.value">{{ s.label }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row checkboxes">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="form.highlighted" /> Em destaque
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Localização</h3>
+
+        <app-map-picker
+          (locationChange)="onLocationChange($event)"
+          (addressChange)="onAddressChange($event)"
+        ></app-map-picker>
+
+        <div class="form-row" style="margin-top: 16px">
+          <div class="form-group">
+            <label class="form-label">Bairro</label>
+            <input type="text" class="form-input" [(ngModel)]="form.neighborhood" placeholder="Ex: Centro" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rua</label>
+            <input type="text" class="form-input" [(ngModel)]="form.street" placeholder="Ex: Rua das Flores" />
+          </div>
+          <div class="form-group" style="max-width: 140px">
+            <label class="form-label">Número</label>
+            <input type="text" class="form-input" [(ngModel)]="form.number" placeholder="Ex: 123" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Latitude</label>
+            <input type="number" class="form-input" [(ngModel)]="form.latitude" readonly />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Longitude</label>
+            <input type="number" class="form-input" [(ngModel)]="form.longitude" readonly />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Datas</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Início <span class="required">*</span></label>
+            <input type="date" class="form-input" [(ngModel)]="form.startDate" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Previsão de término <span class="required">*</span></label>
+            <input type="date" class="form-input" [(ngModel)]="form.expectedEndDate" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Conclusão</label>
+            <input type="date" class="form-input" [(ngModel)]="form.endDate" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Financeiro</h3>
+        <div class="form-group full">
+          <label class="form-label">Análise Financeira</label>
+          <textarea class="form-textarea" [(ngModel)]="form.financialAnalysis" rows="2" placeholder="Ex: Aprovado pelo comitê"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Custo Estimado (R$)</label>
+            <input type="number" class="form-input" [(ngModel)]="form.estimatedCost" min="0" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Orçamento Aprovado (R$)</label>
+            <input type="number" class="form-input" [(ngModel)]="form.approvedBudget" min="0" step="0.01" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Imagem</h3>
+        <div class="form-group full">
+          <label class="form-label">Imagem do projeto (opcional)</label>
+          <input type="file" class="form-input-file" accept="image/*" (change)="onFileChange($event)" />
+          <span *ngIf="selectedFile" class="file-name">{{ selectedFile.name }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="submitError" class="alert alert-error">{{ submitError }}</div>
+
+      <div class="form-actions">
+        <button class="btn-submit" (click)="onSubmit()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Enviando...' : (editingProjectId ? 'Oficializar Projeto' : 'Criar Projeto Oficial') }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</main>
