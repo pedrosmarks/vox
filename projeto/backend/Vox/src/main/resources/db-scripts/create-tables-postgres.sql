@@ -9,8 +9,10 @@ DROP TABLE IF EXISTS project_image CASCADE;
 DROP TABLE IF EXISTS project CASCADE;
 DROP TABLE IF EXISTS issue_image CASCADE;
 DROP TABLE IF EXISTS issue_report CASCADE;
+DROP TABLE IF EXISTS issue_moderation CASCADE;
+DROP TABLE IF EXISTS issue_status_history CASCADE;
 DROP TABLE IF EXISTS category CASCADE;
-DROP TABLE IF EXISTS councilor_follow CASCADE;
+DROP TABLE IF EXISTS subscription CASCADE;
 DROP TABLE IF EXISTS password_reset_token CASCADE;
 DROP TABLE IF EXISTS user_model CASCADE;
 DROP TABLE IF EXISTS municipality CASCADE;
@@ -19,9 +21,11 @@ DROP TYPE IF EXISTS user_role CASCADE;
 DROP TYPE IF EXISTS project_type CASCADE;
 DROP TYPE IF EXISTS project_status CASCADE;
 DROP TYPE IF EXISTS moderation_action CASCADE;
+DROP TYPE IF EXISTS moderation_status CASCADE;
 DROP TYPE IF EXISTS issue_status CASCADE;
 DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS vote_type CASCADE;
+DROP TYPE IF EXISTS subscription_type CASCADE;
 
 CREATE TYPE user_role AS ENUM (
     'CITIZEN',
@@ -53,26 +57,48 @@ CREATE TYPE moderation_action AS ENUM (
     'REJECTED'
 );
 
+CREATE TYPE moderation_status AS ENUM (
+    'PENDING',
+    'APPROVED',
+    'REJECTED'
+);
+
 CREATE TYPE issue_status AS ENUM (
     'OPEN',
     'UNDER_REVIEW',
+    'IN_PROGRESS'
     'FORWARDED',
     'RESOLVED',
-    'REJECTED'
+    'REJECTED',
+    'CLOSED'
 );
 
 CREATE TYPE notification_type AS ENUM (
     'PROJECT_CREATED',
-    'PROJECT_TAGGED',
-    'ISSUE_TAGGED',
+    'PROJECT_UPDATED',
+    'PROJECT_STATUS_CHANGED',
+
+    'ISSUE_CREATED',
+    'ISSUE_UPDATED',
     'ISSUE_STATUS_CHANGED',
-    'PROJECT_STATUS_CHANGED'
+
+    'PROJECT_TAGGED',
+    'ISSUE_TAGGED'
 );
 
 CREATE TYPE vote_type AS ENUM (
     'APPROVE',
     'DISAPPROVE',
     'NEUTRAL'
+);
+
+CREATE TYPE subscription_type AS ENUM (
+    'ALL_PROJECTS',
+    'ALL_ISSUES',
+    'PROJECT',
+    'ISSUE',
+    'CATEGORY',
+    'COUNCILOR'
 );
 
 CREATE TABLE municipality (
@@ -105,19 +131,10 @@ CREATE TABLE user_model (
 CREATE TABLE password_reset_token (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
-    token TEXT NOT NULL UNIQUE,
+    token VARCHAR(255) NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,
-    used BOOLEAN DEFAULT FALSE,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE councilor_follow (
-    id SERIAL PRIMARY KEY,
-    citizen_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
-    councilor_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    UNIQUE(citizen_id, councilor_id)
 );
 
 CREATE TABLE category (
@@ -135,12 +152,13 @@ CREATE TABLE issue_report (
     councilor_id INTEGER NOT NULL REFERENCES user_model(id),
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    neighborhood TEXT,
-    street TEXT,
-    number TEXT,
+    neighborhood VARCHAR(255),
+    street VARCHAR(255),
+    number VARCHAR(50),
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8),
-    status issue_status DEFAULT 'OPEN',
+    status issue_status NOT NULL DEFAULT 'OPEN',
+    moderation_status moderation_status NOT NULL DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -149,6 +167,25 @@ CREATE TABLE issue_image (
     id SERIAL PRIMARY KEY,
     issue_id INTEGER NOT NULL REFERENCES issue_report(id) ON DELETE CASCADE,
     url TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE issue_status_history (
+    id SERIAL PRIMARY KEY,
+    issue_id INTEGER NOT NULL REFERENCES issue_report(id) ON DELETE CASCADE,
+    previous_status issue_status,
+    new_status issue_status NOT NULL,
+    changed_by INTEGER REFERENCES user_model(id) ON DELETE SET NULL,
+    note TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE issue_moderation (
+    id SERIAL PRIMARY KEY,
+    issue_id INTEGER NOT NULL REFERENCES issue_report(id) ON DELETE CASCADE,
+    moderator_id INTEGER REFERENCES user_model(id) ON DELETE SET NULL,
+    action moderation_action NOT NULL,
+    feedback TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -162,9 +199,9 @@ CREATE TABLE project (
     status project_status DEFAULT 'PENDING_APPROVAL',
     author_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
     is_official BOOLEAN DEFAULT FALSE,
-    neighborhood TEXT,
-    street TEXT,
-    number TEXT,
+    neighborhood VARCHAR(255),
+    street VARCHAR(255),
+    number VARCHAR(50),
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8),
     start_date DATE,
@@ -173,6 +210,7 @@ CREATE TABLE project (
     financial_analysis TEXT,
     estimated_cost NUMERIC(14,2),
     approved_budget NUMERIC(14,2),
+    moderation_status moderation_status DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -214,8 +252,7 @@ CREATE TABLE project_moderation (
     moderator_id INTEGER REFERENCES user_model(id) ON DELETE SET NULL,
     action moderation_action NOT NULL,
     feedback TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE project_status_history (
@@ -229,6 +266,17 @@ CREATE TABLE project_status_history (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE subscription (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+    type subscription_type NOT NULL,
+    project_id INTEGER REFERENCES project(id) ON DELETE CASCADE,
+    issue_id INTEGER REFERENCES issue_report(id) ON DELETE CASCADE,
+    category_id INTEGER REFERENCES category(id) ON DELETE CASCADE,
+    councilor_id INTEGER REFERENCES user_model(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE notification (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
@@ -236,6 +284,7 @@ CREATE TABLE notification (
     message TEXT NOT NULL,
     type notification_type NOT NULL,
     read BOOLEAN DEFAULT FALSE,
+    read_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
