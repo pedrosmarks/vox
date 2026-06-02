@@ -38,7 +38,7 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                         "/swagger-ui.html",
                                         "/v3/api-docs/**",
                                         "/authenticate",
-                                        "/api/project/**",
+                                        "/api/auth/**",
                                         "/error"
                                 ).permitAll()
                                 .anyRequest().authenticated()
