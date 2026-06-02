@@ -7,8 +7,10 @@ import br.com.fai.Vox.port.dao.project.ProjectDao;
 import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
 import br.com.fai.Vox.port.service.drive.CloudinaryService;
 import br.com.fai.Vox.port.service.project.ProjectService;
+import br.com.fai.Vox.port.service.projectstatushistory.ProjectStatusHistoryService;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,40 +22,38 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectDao projectDao;
     private final ProjectImageDao projectImageDao;
-    private final CloudinaryService googleDriveService;
+    private final CloudinaryService cloudinaryService;
+    private final ProjectStatusHistoryService projectStatusHistoryService;
 
-    public ProjectServiceImpl(ProjectDao projectDao, ProjectImageDao projectImageDao, CloudinaryService googleDriveService) {
+    public ProjectServiceImpl(ProjectDao projectDao, ProjectImageDao projectImageDao,
+                               CloudinaryService cloudinaryService,
+                               ProjectStatusHistoryService projectStatusHistoryService) {
         this.projectDao = projectDao;
         this.projectImageDao = projectImageDao;
-        this.googleDriveService = googleDriveService;
+        this.cloudinaryService = cloudinaryService;
+        this.projectStatusHistoryService = projectStatusHistoryService;
     }
 
     @Override
     public int create(CreateProjectDto dto) {
-        if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) {
-            return -1;
-        }
+        if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) return -1;
 
         final int projectId = projectDao.create(dto);
-        logger.log(Level.INFO, "Projeto criado. ID: " + projectId + " | File: " + (dto.getFile() != null ? dto.getFile().getOriginalFilename() + " size=" + dto.getFile().getSize() : "NULL"));
+        logger.log(Level.INFO, "Projeto criado. ID: " + projectId);
 
         if (dto.getFile() != null && !dto.getFile().isEmpty()) {
             try {
                 String fileName = "project_" + projectId + "_" + dto.getFile().getOriginalFilename();
-                logger.log(Level.INFO, "Iniciando upload para o Google Drive. Arquivo: " + fileName);
-                String url = googleDriveService.uploadFile(dto.getFile(), fileName);
-                logger.log(Level.INFO, "Upload concluído. URL: " + url);
+                String url = cloudinaryService.uploadFile(dto.getFile(), fileName);
 
                 ProjectImage image = new ProjectImage();
                 image.setProjectId(projectId);
                 image.setUrl(url);
                 projectImageDao.create(image);
                 logger.log(Level.INFO, "Imagem salva no banco para o projeto ID: " + projectId);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 logger.log(Level.SEVERE, "Erro ao processar imagem para o projeto ID: " + projectId, e);
             }
-        } else {
-            logger.log(Level.WARNING, "Nenhum arquivo recebido no DTO para o projeto ID: " + projectId);
         }
 
         return projectId;
@@ -61,13 +61,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void delete(int id) {
-        if (id < 0) return;
+        if (id <= 0) return;
         projectDao.delete(id);
     }
 
     @Override
     public Project findByid(int id) {
-        if (id < 0) return null;
+        if (id <= 0) return null;
         return projectDao.findByid(id);
     }
 
@@ -83,9 +83,23 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void update(int id, Project entity) {
-        if (id != entity.getId()) return;
-        if (findByid(id) == null) return;
+    public List<Project> findByAuthorId(int authorId) {
+        if (authorId <= 0) return List.of();
+        return projectDao.findByAuthorId(authorId);
+    }
+
+    @Override
+    public void update(int id, Project entity, int changedBy) {
+        if (id <= 0) return;
+
+        Project existing = findByid(id);
+        if (existing == null) return;
+
+        if (existing.getStatus() != entity.getStatus()) {
+            projectStatusHistoryService.recordStatusChange(
+                    id, existing.getStatus(), entity.getStatus(), changedBy, null);
+        }
+
         projectDao.update(id, entity);
     }
 }

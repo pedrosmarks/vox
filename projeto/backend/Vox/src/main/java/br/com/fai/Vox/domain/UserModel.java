@@ -27,6 +27,7 @@ public class UserModel {
     public enum UserRole {
         ADMINISTRATOR,
         MODERATOR,
+        COUNCILOR,
         CITIZEN
     }
 

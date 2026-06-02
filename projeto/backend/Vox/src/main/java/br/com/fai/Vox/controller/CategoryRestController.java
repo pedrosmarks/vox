@@ -9,6 +9,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+@RestController
+@RequestMapping("/api/categories")
 public class CategoryRestController {
 
     private final CategoryService categoryService;

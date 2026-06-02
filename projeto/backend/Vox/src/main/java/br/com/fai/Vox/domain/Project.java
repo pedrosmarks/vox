@@ -1,5 +1,6 @@
 package br.com.fai.Vox.domain;
 
+import br.com.fai.Vox.domain.enuns.ModerationStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,7 @@ public class Project {
     private String title;
     private String description;
     private ProjectStatus status;
+    private ModerationStatus moderationStatus;
     private Integer authorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

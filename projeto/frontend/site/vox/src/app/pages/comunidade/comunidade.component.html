@@ -1,0 +1,159 @@
+<app-navbar></app-navbar>
+
+<main class="comunidade-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Comunidade</h1>
+      <p class="page-subtitle">Acompanhe tudo que está acontecendo com os projetos da sua cidade.</p>
+    </div>
+
+    <!-- Dropdown: Receber notificações de -->
+    <div class="notif-panel">
+      <button class="notif-panel-toggle" (click)="showFollowPanel = !showFollowPanel">
+        🔔 Receber notificações de
+        <span *ngIf="followingCount > 0" class="follow-badge">{{ followingCount }}</span>
+        <span class="chevron" [class.open]="showFollowPanel">▾</span>
+      </button>
+
+      <div *ngIf="showFollowPanel" class="notif-panel-body">
+
+        <!-- Tipos de evento -->
+        <div class="notif-section">
+          <p class="notif-section-title">Tipo de atividade</p>
+          <ul class="toggle-list">
+            <li *ngFor="let n of notifTypeLabels" class="toggle-item">
+              <label class="toggle-label">
+                <span class="toggle-icon">{{ n.icon }}</span>
+                <span class="toggle-text">{{ n.label }}</span>
+                <span
+                  class="toggle-switch"
+                  [class.on]="prefs.notifTypes[n.key]"
+                  (click)="toggleNotifType(n.key)"
+                  role="switch"
+                  [attr.aria-checked]="prefs.notifTypes[n.key]"
+                ></span>
+              </label>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Seguir vereadores -->
+        <div class="notif-section">
+          <p class="notif-section-title">Vereadores / Autoridades</p>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Buscar..."
+            [(ngModel)]="followSearchPeople"
+          />
+          <ul class="follow-list">
+            <li *ngFor="let person of filteredPeople" class="follow-item">
+              <div class="follow-info">
+                <span class="follow-avatar">{{ person.name.charAt(0) }}</span>
+                <div>
+                  <span class="follow-name">{{ person.name }}</span>
+                  <span class="follow-sub">{{ person.subtitle }}</span>
+                </div>
+              </div>
+              <button
+                class="btn-follow"
+                [class.following]="isFollowingPerson(person.id)"
+                (click)="togglePerson(person.id)"
+              >
+                {{ isFollowingPerson(person.id) ? '✓ Seguindo' : '+ Seguir' }}
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Seguir projetos -->
+        <div class="notif-section">
+          <p class="notif-section-title">Projetos em andamento</p>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Buscar projeto..."
+            [(ngModel)]="followSearchProject"
+          />
+          <ul class="follow-list">
+            <li *ngFor="let proj of filteredProjects" class="follow-item">
+              <div class="follow-info">
+                <span class="follow-avatar proj">📋</span>
+                <div>
+                  <span class="follow-name">{{ proj.name }}</span>
+                  <span class="follow-sub">{{ proj.subtitle }}</span>
+                </div>
+              </div>
+              <button
+                class="btn-follow"
+                [class.following]="isFollowingProject(proj.id)"
+                (click)="toggleProject(proj.id)"
+              >
+                {{ isFollowingProject(proj.id) ? '✓ Seguindo' : '+ Seguir' }}
+              </button>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- ── Sidebar ── -->
+    <aside class="filters-sidebar">
+
+      <!-- Filtrar feed -->
+      <div class="filters-card">
+        <div class="filters-header">
+          <span class="filters-title">Filtrar por</span>
+        </div>
+        <ul class="filters-list">
+          <li *ngFor="let f of filters">
+            <button
+              class="filter-btn"
+              [class.active]="activeFilter === f.key"
+              (click)="setFilter(f.key)"
+            >{{ f.label }}</button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- notif-panel movido para page-header -->
+    </aside>
+
+    <!-- ── Feed de eventos ── -->
+    <section class="feed">
+
+      <div *ngIf="events.length === 0" class="empty-state">
+        <p>Nenhuma atividade para este filtro.</p>
+      </div>
+
+      <div *ngFor="let event of events" class="event-card" [ngClass]="getTypeClass(event.type)">
+        <div class="event-icon">{{ getIcon(event.type) }}</div>
+
+        <div class="event-body">
+          <div class="event-header">
+            <span class="event-title">{{ event.title }}</span>
+            <span class="event-time">{{ timeAgo(event.timestamp) }}</span>
+          </div>
+
+          <p class="event-description">{{ event.description }}</p>
+
+          <div class="event-footer">
+            <span *ngIf="event.actor" class="event-actor">{{ event.actor }}</span>
+            <a
+              *ngIf="event.projectId"
+              [routerLink]="['/projetos', event.projectId]"
+              class="event-link"
+            >Ver projeto →</a>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</main>
+

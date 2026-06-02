@@ -1,0 +1,436 @@
+$primary:    #1b3f8b;
+$accent:     #2d6fcc;
+$bg:         #f0f4ff;
+$white:      #ffffff;
+$text:       #1b3f8b;
+$text-muted: #6b7280;
+$border:     #e5e7eb;
+
+.comunidade-page {
+  min-height: calc(100vh - 64px);
+  background: $bg;
+  font-family: 'Inter', sans-serif;
+  padding: 2rem 1.5rem;
+}
+
+.page-header {
+  max-width: 1100px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: $text-muted;
+  margin: 0;
+}
+
+.page-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+// ── Sidebar ────────────────────────────────────────────────
+.filters-sidebar {
+  flex-shrink: 0;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.filters-card {
+  background: $white;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(27,63,139,0.08);
+  padding: 1.25rem;
+}
+
+.filters-header {
+  margin-bottom: 0.85rem;
+}
+
+.filters-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filters-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid $border;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: $text;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover   { background: $bg; border-color: $accent; }
+  &.active  { background: $primary; color: $white; border-color: $primary; }
+}
+
+// ── Feed ──────────────────────────────────────────────────
+.feed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.empty-state {
+  background: $white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: $text-muted;
+  font-size: 0.9rem;
+}
+
+// ── Event card ────────────────────────────────────────────
+.event-card {
+  background: $white;
+  border-radius: 12px;
+  border: 1px solid $border;
+  border-left-width: 4px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(27,63,139,0.05);
+  transition: box-shadow 0.15s;
+
+  &:hover { box-shadow: 0 4px 12px rgba(27,63,139,0.1); }
+
+  &.event-voting     { border-left-color: #4f46e5; }
+  &.event-status     { border-left-color: #0369a1; }
+  &.event-official   { border-left-color: #1b3f8b; }
+  &.event-suggestion { border-left-color: #f59e0b; }
+  &.event-completed  { border-left-color: #15803d; }
+}
+
+.event-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.event-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.event-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.event-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $text;
+}
+
+.event-time {
+  font-size: 0.75rem;
+  color: $text-muted;
+  white-space: nowrap;
+}
+
+.event-description {
+  font-size: 0.875rem;
+  color: $text-muted;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.event-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
+.event-actor {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $primary;
+  background: #f0f4ff;
+  padding: 0.15rem 0.6rem;
+  border-radius: 20px;
+}
+
+.event-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $accent;
+  text-decoration: none;
+  margin-left: auto;
+
+  &:hover { text-decoration: underline; }
+}
+
+// ── Notif panel (dropdown no header) ─────────────────────────────────────
+.notif-panel {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.notif-panel-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  background: #e84545;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(232,69,69,0.25);
+  transition: background 0.15s;
+
+  &:hover { background: #c93030; }
+}
+
+.follow-badge {
+  background: $primary;
+  color: $white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 20px;
+}
+
+.chevron {
+  font-size: 0.85rem;
+  color: $text-muted;
+  transition: transform 0.2s;
+  &.open { transform: rotate(180deg); }
+}
+
+.notif-panel-body {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 320px;
+  background: $white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(27,63,139,0.15);
+  border: 1px solid $border;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notif-section {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid $border;
+
+  &:last-child { border-bottom: none; }
+}
+
+.notif-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.6rem;
+}
+
+// Toggle switches
+.toggle-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.toggle-item { list-style: none; }
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-icon { font-size: 0.85rem; }
+
+.toggle-text {
+  flex: 1;
+  font-size: 0.8rem;
+  color: $text;
+}
+
+.toggle-switch {
+  width: 32px;
+  height: 18px;
+  border-radius: 20px;
+  background: $border;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: $white;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  &.on {
+    background: $accent;
+    &::after { transform: translateX(14px); }
+  }
+}
+
+// Search input
+.search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid $border;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  color: $text;
+  background: $bg;
+  outline: none;
+  margin-bottom: 0.6rem;
+
+  &:focus { border-color: $accent; }
+}
+
+// Follow list
+.follow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.follow-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.follow-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.follow-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: $primary;
+  color: $white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.proj {
+    background: #f0f4ff;
+    font-size: 0.85rem;
+  }
+}
+
+.follow-name {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.follow-sub {
+  display: block;
+  font-size: 0.68rem;
+  color: $text-muted;
+}
+
+.btn-follow {
+  flex-shrink: 0;
+  padding: 0.22rem 0.6rem;
+  border-radius: 20px;
+  border: 1.5px solid $accent;
+  background: transparent;
+  color: $accent;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  &.following {
+    background: $accent;
+    color: $white;
+    border-color: $accent;
+  }
+
+  &:hover:not(.following) { background: $bg; }
+}
+

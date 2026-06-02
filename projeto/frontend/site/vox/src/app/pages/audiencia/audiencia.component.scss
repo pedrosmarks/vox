@@ -1,0 +1,230 @@
+$primary:    #1b3f8b;
+$accent:     #2d6fcc;
+$bg:         #f0f4ff;
+$white:      #ffffff;
+$text:       #1b3f8b;
+$text-muted: #6b7280;
+$border:     #e5e7eb;
+$live:       #dc2626;
+
+.audiencia-page {
+  min-height: calc(100vh - 64px);
+  background: $bg;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.page-header {
+  max-width: 1100px;
+  margin: 0 auto 1.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: $text-muted;
+  margin: 0;
+}
+
+.btn-create {
+  padding: 0.6rem 1.4rem;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  &:hover { background: darken($primary, 6%); }
+}
+
+// ── Create form ───────────────────────────────────────────
+.create-form-card {
+  max-width: 1100px;
+  margin: 0 auto 1.75rem;
+  background: $white;
+  border-radius: 14px;
+  padding: 1.75rem;
+  box-shadow: 0 2px 12px rgba(27,63,139,0.10);
+  border: 1px solid $border;
+}
+
+.form-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 1.25rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.form-group.full { grid-column: 1 / -1; }
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.form-input, .form-textarea {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid $border;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: $text;
+  background: $bg;
+  outline: none;
+  &:focus { border-color: $accent; background: $white; }
+}
+
+.form-textarea { resize: vertical; }
+
+.form-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-submit {
+  padding: 0.6rem 1.75rem;
+  background: $accent;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover { background: darken($accent, 6%); }
+}
+
+// ── Cards grid ────────────────────────────────────────────
+.cards-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.audiencia-card {
+  background: $white;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(27,63,139,0.08);
+  border: 1px solid $border;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+
+  &.card-ao_vivo {
+    border-left: 4px solid $live;
+    box-shadow: 0 2px 16px rgba(220,38,38,0.10);
+  }
+
+  &.card-agendada { border-left: 4px solid $accent; }
+  &.card-encerrada { border-left: 4px solid #9ca3af; opacity: 0.85; }
+
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(27,63,139,0.12); }
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+
+  &.badge-ao_vivo  { background: #fee2e2; color: $live; }
+  &.badge-agendada { background: #dbeafe; color: $accent; }
+  &.badge-encerrada{ background: #f3f4f6; color: #6b7280; }
+}
+
+.participants-count {
+  font-size: 0.78rem;
+  color: $text-muted;
+  font-weight: 600;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.card-description {
+  font-size: 0.85rem;
+  color: $text-muted;
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: $text-muted;
+  padding-top: 0.5rem;
+  border-top: 1px solid $border;
+}
+
+.card-footer {
+  margin-top: auto;
+}
+
+.btn-enter {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1.5px solid $accent;
+  background: transparent;
+  color: $accent;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: $accent; color: $white; }
+
+  &.btn-live {
+    background: $live;
+    border-color: $live;
+    color: $white;
+    &:hover { background: darken($live, 8%); }
+  }
+}
+
+.encerrada-label {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  font-style: italic;
+}

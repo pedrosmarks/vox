@@ -1,23 +1,33 @@
 package br.com.fai.Vox.implementation.service.user;
 
 import br.com.fai.Vox.domain.UserModel;
+import br.com.fai.Vox.port.dao.passwordresettoken.PasswordResetTokenDao;
 import br.com.fai.Vox.port.dao.user.UserDao;
 import br.com.fai.Vox.port.service.user.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class UserServiceImpl implements UserService {
 
+    private static final Logger logger = Logger.getLogger(UserServiceImpl.class.getName());
+
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetTokenDao passwordResetTokenDao;
 
-    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder,
+                            PasswordResetTokenDao passwordResetTokenDao) {
         this.userDao = userDao;
         this.passwordEncoder = passwordEncoder;
+        this.passwordResetTokenDao = passwordResetTokenDao;
     }
 
     @Override
@@ -129,11 +139,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Boolean forgotPassword(String email) {
-        return null;
+        if (email == null || email.isEmpty()) return false;
+
+        UserModel user = userDao.findByEmail(email);
+        if (user == null) {
+            // Não revelar se o e-mail existe por questões de segurança
+            logger.log(Level.INFO, "Forgot password solicitado para e-mail não encontrado: " + email);
+            return true;
+        }
+
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiresAt = LocalDateTime.now().plusHours(2);
+        passwordResetTokenDao.save(user.getId(), token, expiresAt);
+
+        // TODO: enviar e-mail com o token. Token gerado: token
+        logger.log(Level.INFO, "Token de reset gerado para userId: " + user.getId() + " | Token: " + token);
+        return true;
     }
 
     @Override
     public Boolean resetPassword(String token, String newPassword) {
-        return null;
+        if (token == null || token.isEmpty() || isPassWordInvalid(newPassword)) return false;
+
+        if (!passwordResetTokenDao.isTokenValid(token)) return false;
+
+        Integer userId = passwordResetTokenDao.findUserIdByToken(token);
+        if (userId == null) return false;
+
+        String encoded = passwordEncoder.encode(newPassword);
+        userDao.updatePassword(userId, encoded);
+        passwordResetTokenDao.markAsUsed(token);
+
+        logger.log(Level.INFO, "Senha resetada com sucesso para userId: " + userId);
+        return true;
     }
 }

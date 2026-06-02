@@ -38,12 +38,9 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                         "/swagger-ui.html",
                                         "/v3/api-docs/**",
                                         "/authenticate",
-                                        "/api/project/**",
+                                        "/api/auth/**",
                                         "/error"
                                 ).permitAll()
-                                .requestMatchers("/api/user/**").hasAnyAuthority(
-                                        UserModel.UserRole.CITIZEN.name(),
-                                        UserModel.UserRole.ADMINISTRATOR.name())
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

@@ -159,10 +159,15 @@ $border:    #e5e7eb;
   border: 1px solid $border;
   padding: 1.25rem 1.5rem;
   box-shadow: 0 1px 3px rgba(27,63,139,0.06);
-  transition: box-shadow 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s;
+
+  &.clickable {
+    cursor: pointer;
+  }
 
   &:hover {
     box-shadow: 0 4px 12px rgba(27,63,139,0.12);
+    transform: translateY(-1px);
   }
 }
 
@@ -219,6 +224,7 @@ $border:    #e5e7eb;
 
 .card-footer {
   display: flex;
+  align-items: center;
   gap: 1rem;
   padding-top: 0.75rem;
   border-top: 1px solid $border;
@@ -227,4 +233,48 @@ $border:    #e5e7eb;
 .card-meta {
   font-size: 0.78rem;
   color: $text-muted;
+}
+
+.btn-promote-card {
+  margin-left: auto;
+  padding: 0.3rem 0.9rem;
+  border-radius: 20px;
+  border: 1.5px solid $primary;
+  background: transparent;
+  color: $primary;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: $primary;
+    color: #fff;
+  }
+}
+
+.btn-sign-card {
+  margin-left: auto;
+  padding: 0.3rem 0.9rem;
+  border-radius: 20px;
+  border: 1.5px solid $accent;
+  background: transparent;
+  color: $accent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: $accent;
+    color: #fff;
+  }
+
+  &.signed {
+    background: $accent;
+    color: #fff;
+    border-color: $accent;
+  }
 }

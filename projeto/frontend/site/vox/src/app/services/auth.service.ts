@@ -98,11 +98,43 @@ export class AuthService {
 
   getUserId(): number | null {
     const stored = localStorage.getItem(this.USER_ID_KEY);
-    return stored ? Number(stored) : null;
+    if (stored) return Number(stored);
+    // fallback: ler do payload do JWT
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      const id = decoded.userId ?? decoded.user_id ?? decoded.sub_id ?? null;
+      return id != null ? Number(id) : null;
+    } catch {
+      return null;
+    }
   }
 
   getMunicipalityId(): number {
     const stored = localStorage.getItem(this.MUNICIPALITY_ID_KEY);
-    return stored ? Number(stored) : 1;
+    if (stored) return Number(stored);
+    // fallback: ler do payload do JWT
+    const token = this.getToken();
+    if (!token) return 1;
+    try {
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      return decoded.municipalityId ?? decoded.municipality_id ?? 1;
+    } catch {
+      return 1;
+    }
+  }
+
+  updateProfile(id: number, data: Partial<UserProfile>): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`${this.API_URL}/api/user/${id}`, data);
+  }
+
+  updatePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/api/user/update-password`, {
+      currentPassword,
+      newPassword
+    });
   }
 }

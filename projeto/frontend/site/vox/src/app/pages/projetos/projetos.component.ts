@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { ProjectService, Project } from '../../services/project.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
@@ -17,9 +19,12 @@ type FilterKey = 'todos' | 'oficiais' | 'sugeridos' | 'curtidos';
 export class ProjetosComponent implements OnInit {
   allProjects: Project[] = [];
   filteredProjects: Project[] = [];
+  authorNames: Map<number, string> = new Map();
   activeFilter: FilterKey = 'todos';
   isLoading = true;
   errorMessage = '';
+  isModerator = false;
+  private signedProjects: Set<number> = new Set();
 
   filters: { key: FilterKey; label: string }[] = [
     { key: 'todos',     label: 'Todos os projetos' },
@@ -39,7 +44,14 @@ export class ProjetosComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+    const role = this.authService.getUserRole();
+    this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
     this.loadProjects();
+  }
+
+  private isVisible(p: Project): boolean {
+    const isCitizen = !p.isOfficial && p.type === 'CITIZEN';
+    return !isCitizen || (p.status !== 'PENDING_APPROVAL' && p.status !== 'IN_ANALYSIS');
   }
 
   loadProjects(): void {
@@ -47,8 +59,9 @@ export class ProjetosComponent implements OnInit {
     this.errorMessage = '';
     this.projectService.getProjects().subscribe({
       next: (projects) => {
-        this.allProjects = projects;
+        this.allProjects = projects.filter(p => this.isVisible(p));
         this.applyFilter();
+        this.loadAuthorNames(this.allProjects);
         this.isLoading = false;
       },
       error: () => {
@@ -56,6 +69,27 @@ export class ProjetosComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  loadAuthorNames(projects: Project[]): void {
+    const citizenProjects = projects.filter(p => !p.isOfficial && p.type === 'CITIZEN');
+    const uniqueIds = [...new Set(citizenProjects.map(p => p.authorId))];
+    if (uniqueIds.length === 0) return;
+
+    const requests = uniqueIds.map(id =>
+      this.projectService.getUserById(id).pipe(catchError(() => of({ id, name: '', fullname: '' })))
+    );
+
+    forkJoin(requests).subscribe(users => {
+      users.forEach(u => {
+        const displayName = u.fullname || u.name;
+        if (displayName) this.authorNames.set(u.id, displayName);
+      });
+    });
+  }
+
+  getAuthorName(authorId: number): string {
+    return this.authorNames.get(authorId) ?? `Usuário #${authorId}`;
   }
 
   setFilter(key: FilterKey): void {
@@ -109,5 +143,26 @@ export class ProjetosComponent implements OnInit {
 
   getTypeClass(project: Project): string {
     return project.isOfficial || project.type === 'OFFICIAL' ? 'type-oficial' : 'type-sugerido';
+  }
+
+  openProject(id: number): void {
+    this.router.navigate(['/projetos', id]);
+  }
+
+  promoteProject(id: number): void {
+    this.router.navigate(['/moderacao'], { queryParams: { promoteId: id } });
+  }
+
+  toggleSign(id: number): void {
+    // TODO: POST /api/project/{id}/sign quando backend suportar
+    if (this.signedProjects.has(id)) {
+      this.signedProjects.delete(id);
+    } else {
+      this.signedProjects.add(id);
+    }
+  }
+
+  hasSigned(id: number): boolean {
+    return this.signedProjects.has(id);
   }
 }
