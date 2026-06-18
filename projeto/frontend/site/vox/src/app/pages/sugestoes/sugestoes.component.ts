@@ -53,7 +53,7 @@ export class SugestoesComponent implements OnInit {
     private authService: AuthService,
     private projectService: ProjectService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     if (!this.authService.isLoggedIn()) {
@@ -136,7 +136,6 @@ export class SugestoesComponent implements OnInit {
     if (this.userId !== null) {
       fd.append('authorId', String(this.userId));
     }
-    fd.append('highlighted', 'false');
     fd.append('isOfficial', 'false');
     if (this.form.latitude !== null && this.form.longitude !== null) {
       fd.append('latitude', String(this.form.latitude));
@@ -170,11 +169,11 @@ export class SugestoesComponent implements OnInit {
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
       PENDING_APPROVAL: 'Em análise',
-      IN_VOTING:        'Em votação',
-      APPROVED:         'Aprovada para votação',
-      REJECTED:         'Rejeitada',
-      IN_ANALYSIS:      'Em análise',
-      COMPLETED:        'Concluída'
+      IN_VOTING: 'Em votação',
+      APPROVED: 'Aprovada para votação',
+      REJECTED: 'Rejeitada',
+      IN_ANALYSIS: 'Em análise',
+      COMPLETED: 'Concluída'
     };
     return map[status] ?? status;
   }
@@ -182,11 +181,11 @@ export class SugestoesComponent implements OnInit {
   getStatusClass(status: string): string {
     const map: Record<string, string> = {
       PENDING_APPROVAL: 'status-analise',
-      IN_VOTING:        'status-votacao',
-      APPROVED:         'status-aprovado',
-      REJECTED:         'status-rejeitado',
-      IN_ANALYSIS:      'status-analise',
-      COMPLETED:        'status-concluido'
+      IN_VOTING: 'status-votacao',
+      APPROVED: 'status-aprovado',
+      REJECTED: 'status-rejeitado',
+      IN_ANALYSIS: 'status-analise',
+      COMPLETED: 'status-concluido'
     };
     return map[status] ?? 'status-analise';
   }

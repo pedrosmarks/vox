@@ -13,7 +13,6 @@ export interface Project {
   authorId: number;
   createdAt: string;
   updatedAt: string;
-  highlighted: boolean;
   isOfficial: boolean;
   neighborhood: string;
   street: string;
@@ -49,7 +48,7 @@ export interface ProjectImage {
 export class ProjectService {
   private readonly API_URL = 'http://localhost:8080';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getProjects(status?: string): Observable<Project[]> {
     const url = status
@@ -79,7 +78,7 @@ export class ProjectService {
   }
 
   approveProject(id: number): Observable<void> {
-    return this.http.put<void>(`${this.API_URL}/api/project/${id}/approve`, null);
+    return this.http.post<void>(`${this.API_URL}/api/moderation/projects/${id}/approve`, null);
   }
 
   rejectProject(id: number): Observable<void> {
