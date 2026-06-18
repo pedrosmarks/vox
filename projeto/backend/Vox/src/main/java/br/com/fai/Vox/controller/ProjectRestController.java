@@ -1,10 +1,6 @@
 package br.com.fai.Vox.controller;
 
-import br.com.fai.Vox.domain.Project;
-import br.com.fai.Vox.domain.ProjectCouncilor;
-import br.com.fai.Vox.domain.ProjectImage;
-import br.com.fai.Vox.domain.ProjectOpinion;
-import br.com.fai.Vox.domain.ProjectStatusHistory;
+import br.com.fai.Vox.domain.*;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
 import br.com.fai.Vox.domain.dto.ProjectOpinionDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
@@ -91,6 +87,13 @@ public class ProjectRestController {
     public ResponseEntity<Void> delete(@PathVariable final int id) {
         projectService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<Project>> getEntities() {
+        List<Project> entities = projectService.findAll();
+
+        return ResponseEntity.ok(entities);
     }
 
     // --- MEUS PROJETOS ---

@@ -199,6 +199,7 @@ CREATE TABLE project (
     status project_status DEFAULT 'PENDING_APPROVAL',
     author_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
     is_official BOOLEAN DEFAULT FALSE,
+    highlighted BOOLEAN DEFAULT FALSE,
     neighborhood VARCHAR(255),
     street VARCHAR(255),
     number VARCHAR(50),

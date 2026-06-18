@@ -23,7 +23,7 @@ public class ProjectModerationPostgresDaoImpl implements ProjectModerationDao {
     @Override
     public void create(ProjectModeration entity) {
         final String sql = "INSERT INTO project_moderation (project_id, moderator_id, action, feedback) " +
-                "VALUES (?, ?, CAST(? AS moderation_status), ?)";
+                "VALUES (?, ?, CAST(? AS moderation_action), ?)";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, entity.getProjectId());
