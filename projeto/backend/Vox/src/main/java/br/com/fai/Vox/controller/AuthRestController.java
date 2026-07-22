@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @Profile("jwt")
 @RestController
@@ -34,13 +35,13 @@ public class AuthRestController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@RequestBody final ForgotPasswordDto data) {
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody final ForgotPasswordDto data) {
         final boolean response = userService.forgotPassword(data.getEmail());
         return response ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@RequestBody final ResetPasswordDto data) {
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody final ResetPasswordDto data) {
         final boolean response = userService.resetPassword(data.getToken(), data.getNewPassword());
         return response ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }

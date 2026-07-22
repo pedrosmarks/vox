@@ -6,6 +6,7 @@ import br.com.fai.Vox.domain.ProjectImage;
 import br.com.fai.Vox.domain.ProjectOpinion;
 import br.com.fai.Vox.domain.ProjectStatusHistory;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
+import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.domain.dto.ProjectOpinionDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
 import br.com.fai.Vox.port.service.project.ProjectService;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -51,9 +53,18 @@ public class ProjectRestController {
 
     // --- CRUD ---
 
+    @GetMapping
+    public ResponseEntity<?> findAll(HttpServletRequest request,
+                                     @RequestParam(required = false) Integer page,
+                                     @RequestParam(defaultValue = "10") int size) {
+        int municipalityId = authHelper.getMunicipalityId(request);
+        if (page != null) return ResponseEntity.ok(projectService.findByMunicipalityId(municipalityId, page, size));
+        return ResponseEntity.ok(projectService.findByMunicipalityId(municipalityId));
+    }
+
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<Void> create(
-            @ModelAttribute final CreateProjectDto data,
+            @Valid @ModelAttribute final CreateProjectDto data,
             MultipartHttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         int municipalityId = authHelper.getMunicipalityId(request);
@@ -142,7 +153,7 @@ public class ProjectRestController {
 
     @PostMapping("/{id}/opinion")
     public ResponseEntity<Void> submitOpinion(@PathVariable final int id,
-                                               @RequestBody final ProjectOpinionDto data,
+                                               @Valid @RequestBody final ProjectOpinionDto data,
                                                HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         projectOpinionService.submitOpinion(id, userId, data.getOpinion());
