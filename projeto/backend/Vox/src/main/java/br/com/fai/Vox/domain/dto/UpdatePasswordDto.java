@@ -1,5 +1,6 @@
 package br.com.fai.Vox.domain.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,33 +9,12 @@ import lombok.Setter;
 public class UpdatePasswordDto {
 
     private int id;
+
+    @NotBlank(message = "Senha atual é obrigatória")
     private String oldPassword;
+
+    @NotBlank(message = "Nova senha é obrigatória")
     private String newPassword;
 
-    public UpdatePasswordDto() {
-    }
-
-//    public int getId() {
-//        return id;
-//    }
-//
-//    public void setId(int id) {
-//        this.id = id;
-//    }
-//
-//    public String getOldPassword() {
-//        return oldPassword;
-//    }
-//
-//    public void setOldPassword(String oldPassword) {
-//        this.oldPassword = oldPassword;
-//    }
-//
-//    public String getNewPassword() {
-//        return newPassword;
-//    }
-//
-//    public void setNewPassword(String newPassword) {
-//        this.newPassword = newPassword;
-//    }
+    public UpdatePasswordDto() {}
 }

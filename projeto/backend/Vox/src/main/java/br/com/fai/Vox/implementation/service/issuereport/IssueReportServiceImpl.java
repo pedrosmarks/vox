@@ -5,6 +5,7 @@ import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.domain.Subscription;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
+import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.domain.enuns.ModerationStatus;
 import br.com.fai.Vox.port.dao.issuereport.IssueReportDao;
 import br.com.fai.Vox.port.dao.issueimage.IssueImageDao;
@@ -85,8 +86,16 @@ public class IssueReportServiceImpl implements IssueReportService {
     @Override
     public List<IssueReport> findByMunicipalityId(int municipalityId) {
         if (municipalityId <= 0) return List.of();
-        // Cidadão e vereador só veem ocorrências aprovadas
         return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.APPROVED);
+    }
+
+    @Override
+    public PageResponse<IssueReport> findByMunicipalityId(int municipalityId, int page, int size) {
+        if (municipalityId <= 0) return new PageResponse<>(List.of(), page, size, 0);
+        int offset = page * size;
+        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.APPROVED, size, offset);
+        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.APPROVED);
+        return new PageResponse<>(content, page, size, total);
     }
 
     @Override
@@ -99,6 +108,15 @@ public class IssueReportServiceImpl implements IssueReportService {
     public List<IssueReport> findPendingByMunicipalityId(int municipalityId) {
         if (municipalityId <= 0) return List.of();
         return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING);
+    }
+
+    @Override
+    public PageResponse<IssueReport> findPendingByMunicipalityId(int municipalityId, int page, int size) {
+        if (municipalityId <= 0) return new PageResponse<>(List.of(), page, size, 0);
+        int offset = page * size;
+        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING, size, offset);
+        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING);
+        return new PageResponse<>(content, page, size, total);
     }
 
     @Override

@@ -5,7 +5,9 @@ import br.com.fai.Vox.port.dao.projectopinion.ProjectOpinionDao;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,6 +86,28 @@ public class ProjectOpinionPostgresDaoImpl implements ProjectOpinionDao {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    @Override
+    public Map<String, Integer> countByProjectId(int projectId) {
+        final String sql = "SELECT opinion, COUNT(*) as total FROM project_opinion WHERE project_id = ? GROUP BY opinion";
+        Map<String, Integer> result = new HashMap<>();
+        result.put("APPROVE", 0);
+        result.put("DISAPPROVE", 0);
+        result.put("NEUTRAL", 0);
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, projectId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.put(rs.getString("opinion"), rs.getInt("total"));
+            }
+            rs.close();
+            ps.close();
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private ProjectOpinion mapResultSet(ResultSet rs) throws SQLException {

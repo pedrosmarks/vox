@@ -5,6 +5,7 @@ import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.ProjectModeration;
 import br.com.fai.Vox.domain.dto.ModerationActionDto;
+import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.domain.dto.UpdateIssueStatusDto;
 import br.com.fai.Vox.domain.dto.UpdateProjectStatusDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
@@ -35,8 +36,11 @@ public class ModerationRestController {
     // --- PROJETOS ---
 
     @GetMapping("/projects/pending")
-    public ResponseEntity<List<Project>> findPendingProjects(HttpServletRequest request) {
+    public ResponseEntity<?> findPendingProjects(HttpServletRequest request,
+                                                  @RequestParam(required = false) Integer page,
+                                                  @RequestParam(defaultValue = "10") int size) {
         int municipalityId = authHelper.getMunicipalityId(request);
+        if (page != null) return ResponseEntity.ok(projectModerationService.findPending(municipalityId, page, size));
         return ResponseEntity.ok(projectModerationService.findPending(municipalityId));
     }
 
@@ -72,8 +76,11 @@ public class ModerationRestController {
     // --- OCORRÊNCIAS ---
 
     @GetMapping("/issues/pending")
-    public ResponseEntity<List<IssueReport>> findPendingIssues(HttpServletRequest request) {
+    public ResponseEntity<?> findPendingIssues(HttpServletRequest request,
+                                                @RequestParam(required = false) Integer page,
+                                                @RequestParam(defaultValue = "10") int size) {
         int municipalityId = authHelper.getMunicipalityId(request);
+        if (page != null) return ResponseEntity.ok(issueModerationService.findPending(municipalityId, page, size));
         return ResponseEntity.ok(issueModerationService.findPending(municipalityId));
     }
 

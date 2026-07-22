@@ -4,6 +4,7 @@ import br.com.fai.Vox.domain.IssueImage;
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.IssueStatusHistory;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
+import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.domain.dto.UpdateIssueStatusDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
 import br.com.fai.Vox.port.service.issueimage.IssueImageService;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 
@@ -40,7 +42,7 @@ public class IssueReportRestController {
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<Void> create(
-            @ModelAttribute final CreateIssueReportDto data,
+            @Valid @ModelAttribute final CreateIssueReportDto data,
             MultipartHttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         int municipalityId = authHelper.getMunicipalityId(request);
@@ -62,8 +64,11 @@ public class IssueReportRestController {
     }
 
     @GetMapping
-    public ResponseEntity<List<IssueReport>> findAll(HttpServletRequest request) {
+    public ResponseEntity<?> findAll(HttpServletRequest request,
+                                     @RequestParam(required = false) Integer page,
+                                     @RequestParam(defaultValue = "10") int size) {
         int municipalityId = authHelper.getMunicipalityId(request);
+        if (page != null) return ResponseEntity.ok(issueReportService.findByMunicipalityId(municipalityId, page, size));
         return ResponseEntity.ok(issueReportService.findByMunicipalityId(municipalityId));
     }
 

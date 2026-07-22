@@ -1,6 +1,8 @@
 package br.com.fai.Vox.domain.dto;
 
 import br.com.fai.Vox.domain.Project;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,9 +17,13 @@ public class CreateProjectDto {
     // Campos do objeto de projeto
     private Integer id;
     private Integer municipalityId;
+    @NotNull(message = "Categoria é obrigatória")
     private Integer categoryId;
+    @NotNull(message = "Tipo é obrigatório")
     private Project.ProjectType type;
+    @NotBlank(message = "Título é obrigatório")
     private String title;
+    @NotBlank(message = "Descrição é obrigatória")
     private String description;
     private Project.ProjectStatus status;
     private Integer authorId;

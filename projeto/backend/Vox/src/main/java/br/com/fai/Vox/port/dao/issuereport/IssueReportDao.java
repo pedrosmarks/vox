@@ -14,6 +14,8 @@ public interface IssueReportDao {
     List<IssueReport> findByMunicipalityId(int municipalityId);
     List<IssueReport> findByAuthorId(int authorId);
     List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus);
+    List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus, int limit, int offset);
+    long countByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus);
     void update(int id, IssueReport entity);
     void updateModerationStatus(int id, ModerationStatus status);
     void updateStatus(int id, IssueReport.IssueStatus status);
