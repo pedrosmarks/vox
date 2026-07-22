@@ -22,6 +22,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/project")
@@ -151,6 +152,11 @@ public class ProjectRestController {
     @GetMapping("/{id}/opinion")
     public ResponseEntity<List<ProjectOpinion>> getOpinions(@PathVariable final int id) {
         return ResponseEntity.ok(projectOpinionService.findByProjectId(id));
+    }
+
+    @GetMapping("/{id}/opinion/stats")
+    public ResponseEntity<Map<String, Integer>> getOpinionStats(@PathVariable final int id) {
+        return ResponseEntity.ok(projectOpinionService.countByProjectId(id));
     }
 
     @GetMapping("/{id}/opinion/me")
