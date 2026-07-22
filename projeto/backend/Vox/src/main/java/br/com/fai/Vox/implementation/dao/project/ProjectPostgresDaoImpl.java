@@ -199,6 +199,41 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
     }
 
     @Override
+    public List<Project> findByMunicipalityId(int municipalityId, int limit, int offset) {
+        final List<Project> projects = new ArrayList<>();
+        final String sql = "SELECT * FROM project WHERE municipality_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, municipalityId);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) projects.add(mapResultSetToProject(rs));
+            rs.close();
+            ps.close();
+            return projects;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public long countByMunicipalityId(int municipalityId) {
+        final String sql = "SELECT COUNT(*) FROM project WHERE municipality_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, municipalityId);
+            ResultSet rs = ps.executeQuery();
+            long count = rs.next() ? rs.getLong(1) : 0;
+            rs.close();
+            ps.close();
+            return count;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public List<Project> findByAuthorId(int authorId) {
         final List<Project> projects = new ArrayList<>();
         final String sql = "SELECT * FROM project WHERE author_id = ? ORDER BY created_at DESC";

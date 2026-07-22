@@ -4,6 +4,7 @@ import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.ProjectModeration;
 import br.com.fai.Vox.domain.Subscription;
+import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.domain.enuns.ModerationStatus;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
 import br.com.fai.Vox.port.dao.projectmoderation.ProjectModerationDao;
@@ -46,6 +47,16 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         return projectDao.findByMunicipalityId(municipalityId).stream()
                 .filter(p -> ModerationStatus.PENDING.equals(p.getModerationStatus()))
                 .toList();
+    }
+
+    @Override
+    public PageResponse<Project> findPending(int municipalityId, int page, int size) {
+        if (municipalityId <= 0) return new PageResponse<>(List.of(), page, size, 0);
+        List<Project> all = findPending(municipalityId);
+        long total = all.size();
+        int offset = page * size;
+        List<Project> content = all.stream().skip(offset).limit(size).toList();
+        return new PageResponse<>(content, page, size, total);
     }
 
     @Override

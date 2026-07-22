@@ -160,6 +160,43 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     }
 
     @Override
+    public List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus, int limit, int offset) {
+        final List<IssueReport> list = new ArrayList<>();
+        final String sql = "SELECT * FROM issue_report WHERE municipality_id = ? AND moderation_status = CAST(? AS moderation_status) ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, municipalityId);
+            ps.setString(2, moderationStatus.name());
+            ps.setInt(3, limit);
+            ps.setInt(4, offset);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) list.add(mapResultSetToIssueReport(rs));
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return list;
+    }
+
+    @Override
+    public long countByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus) {
+        final String sql = "SELECT COUNT(*) FROM issue_report WHERE municipality_id = ? AND moderation_status = CAST(? AS moderation_status)";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, municipalityId);
+            ps.setString(2, moderationStatus.name());
+            ResultSet rs = ps.executeQuery();
+            long count = rs.next() ? rs.getLong(1) : 0;
+            rs.close();
+            ps.close();
+            return count;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void update(int id, IssueReport entity) {
         final String sql = "UPDATE issue_report SET councilor_id = ?, title = ?, description = ?, " +
                 "neighborhood = ?, street = ?, number = ?, latitude = ?, longitude = ?, " +

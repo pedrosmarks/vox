@@ -11,6 +11,8 @@ public interface ProjectDao {
     Project findByid(int id);
     List<Project> findAll();
     List<Project> findByMunicipalityId(int municipalityId);
+    List<Project> findByMunicipalityId(int municipalityId, int limit, int offset);
+    long countByMunicipalityId(int municipalityId);
     List<Project> findByAuthorId(int authorId);
     void update(int id, Project entity);
 }

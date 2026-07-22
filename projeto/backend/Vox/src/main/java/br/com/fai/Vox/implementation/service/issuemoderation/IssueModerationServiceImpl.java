@@ -4,6 +4,7 @@ import br.com.fai.Vox.domain.IssueModeration;
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.domain.Subscription;
+import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.domain.enuns.ModerationStatus;
 import br.com.fai.Vox.port.dao.issuemoderation.IssueModerationDao;
 import br.com.fai.Vox.port.dao.issuereport.IssueReportDao;
@@ -44,6 +45,15 @@ public class IssueModerationServiceImpl implements IssueModerationService {
     public List<IssueReport> findPending(int municipalityId) {
         if (municipalityId <= 0) return List.of();
         return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING);
+    }
+
+    @Override
+    public PageResponse<IssueReport> findPending(int municipalityId, int page, int size) {
+        if (municipalityId <= 0) return new PageResponse<>(List.of(), page, size, 0);
+        int offset = page * size;
+        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING, size, offset);
+        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING);
+        return new PageResponse<>(content, page, size, total);
     }
 
     @Override

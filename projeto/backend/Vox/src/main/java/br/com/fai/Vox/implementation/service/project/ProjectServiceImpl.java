@@ -3,6 +3,7 @@ package br.com.fai.Vox.implementation.service.project;
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.ProjectImage;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
+import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
 import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
 import br.com.fai.Vox.port.service.drive.CloudinaryService;
@@ -80,6 +81,15 @@ public class ProjectServiceImpl implements ProjectService {
     public List<Project> findByMunicipalityId(int municipalityId) {
         if (municipalityId <= 0) return List.of();
         return projectDao.findByMunicipalityId(municipalityId);
+    }
+
+    @Override
+    public PageResponse<Project> findByMunicipalityId(int municipalityId, int page, int size) {
+        if (municipalityId <= 0) return new PageResponse<>(List.of(), page, size, 0);
+        int offset = page * size;
+        List<Project> content = projectDao.findByMunicipalityId(municipalityId, size, offset);
+        long total = projectDao.countByMunicipalityId(municipalityId);
+        return new PageResponse<>(content, page, size, total);
     }
 
     @Override

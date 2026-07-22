@@ -41,6 +41,9 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                         "/api/auth/**",
                                         "/error"
                                 ).permitAll()
+                                .requestMatchers("/api/user/**").hasAuthority("ADMINISTRATOR")
+                                .requestMatchers("/api/moderation/**").hasAnyAuthority("ADMINISTRATOR", "MODERATOR")
+                                .requestMatchers("/api/councilor/**").hasAuthority("ADMINISTRATOR")
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
