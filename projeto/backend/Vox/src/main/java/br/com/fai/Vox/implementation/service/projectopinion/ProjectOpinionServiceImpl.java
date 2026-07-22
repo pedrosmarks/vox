@@ -6,6 +6,7 @@ import br.com.fai.Vox.port.service.projectopinion.ProjectOpinionService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProjectOpinionServiceImpl implements ProjectOpinionService {
@@ -31,6 +32,12 @@ public class ProjectOpinionServiceImpl implements ProjectOpinionService {
     public List<ProjectOpinion> findByProjectId(int projectId) {
         if (projectId <= 0) return List.of();
         return projectOpinionDao.findByProjectId(projectId);
+    }
+
+    @Override
+    public Map<String, Integer> countByProjectId(int projectId) {
+        if (projectId <= 0) return Map.of("APPROVE", 0, "DISAPPROVE", 0, "NEUTRAL", 0);
+        return projectOpinionDao.countByProjectId(projectId);
     }
 
     @Override
