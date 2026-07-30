@@ -47,9 +47,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _logout() async {
     await _authService.logout();
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
 
   String get _roleLabel {
@@ -79,22 +79,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Color get _roleBorderColor {
     switch (_role) {
       case 'ADMINISTRATOR':
-        return _primary.withOpacity(0.3);
+        return _primary.withValues(alpha: 0.3);
       case 'MODERATOR':
-        return _accent.withOpacity(0.3);
+        return _accent.withValues(alpha: 0.3);
       default:
-        return _secondary.withOpacity(0.3);
+        return _secondary.withValues(alpha: 0.3);
     }
   }
 
   Color get _roleBgColor {
     switch (_role) {
       case 'ADMINISTRATOR':
-        return _primary.withOpacity(0.08);
+        return _primary.withValues(alpha: 0.08);
       case 'MODERATOR':
-        return _accent.withOpacity(0.08);
+        return _accent.withValues(alpha: 0.08);
       default:
-        return _secondary.withOpacity(0.08);
+        return _secondary.withValues(alpha: 0.08);
     }
   }
 
@@ -122,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 50,
                       offset: const Offset(0, 25),
                     ),
@@ -195,7 +195,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
-                          vertical: 24, horizontal: 32),
+                        vertical: 24,
+                        horizontal: 32,
+                      ),
                       decoration: BoxDecoration(
                         color: _roleBgColor,
                         border: Border.all(color: _roleBorderColor, width: 2),
@@ -203,10 +205,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       child: Column(
                         children: [
-                          Text(
-                            _roleIcon,
-                            style: const TextStyle(fontSize: 40),
-                          ),
+                          Text(_roleIcon, style: const TextStyle(fontSize: 40)),
                           const SizedBox(height: 8),
                           Text(
                             _roleLabel,
@@ -230,15 +229,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const Text(
                             'Role do JWT: ',
                             style: TextStyle(
-                                fontSize: 14, color: Color(0xFF717182)),
+                              fontSize: 14,
+                              color: Color(0xFF717182),
+                            ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3F3F5),
                               border: Border.all(
-                                  color: Colors.black12, width: 1),
+                                color: Colors.black12,
+                                width: 1,
+                              ),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -265,7 +270,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFFBE123C),
                           side: const BorderSide(
-                              color: Color(0xFFFECDD3), width: 2),
+                            color: Color(0xFFFECDD3),
+                            width: 2,
+                          ),
                           backgroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
