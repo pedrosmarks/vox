@@ -63,15 +63,15 @@ export class ProjectService {
   }
 
   getCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(`${this.API_URL}/api/category`);
+    return this.http.get<Category[]>(`${this.API_URL}/api/categories`);
   }
 
   getCategoryById(id: number): Observable<Category> {
-    return this.http.get<Category>(`${this.API_URL}/api/category/${id}`);
+    return this.http.get<Category>(`${this.API_URL}/api/categories/${id}`);
   }
 
   getProjectImages(projectId: number): Observable<ProjectImage[]> {
-    return this.http.get<ProjectImage[]>(`${this.API_URL}/api/project-image/project-id/${projectId}`);
+    return this.http.get<ProjectImage[]>(`${this.API_URL}/api/project/${projectId}/image`);
   }
 
   getUserById(id: number): Observable<UserSummary> {
@@ -79,11 +79,19 @@ export class ProjectService {
   }
 
   approveProject(id: number): Observable<void> {
-    return this.http.put<void>(`${this.API_URL}/api/project/${id}/approve`, null);
+    return this.http.post<void>(`${this.API_URL}/api/moderation/projects/${id}/approve`, null);
   }
 
   rejectProject(id: number): Observable<void> {
-    return this.http.put<void>(`${this.API_URL}/api/project/${id}/reject`, null);
+    return this.http.post<void>(`${this.API_URL}/api/moderation/projects/${id}/reject`, null);
+  }
+
+  getPendingProjects(page?: number, size?: number): Observable<Project[]> {
+    const params: string[] = [];
+    if (page !== undefined) params.push(`page=${page}`);
+    if (size !== undefined) params.push(`size=${size}`);
+    const query = params.length ? `?${params.join('&')}` : '';
+    return this.http.get<Project[]>(`${this.API_URL}/api/moderation/projects/pending${query}`);
   }
 
   createProject(formData: FormData): Observable<Project> {

@@ -117,7 +117,7 @@ export class ModeracaoComponent implements OnInit {
   loadPendingProjects(): void {
     this.isLoadingPending = true;
     this.pendingError = '';
-    this.projectService.getProjects('PENDING_APPROVAL').subscribe({
+    this.projectService.getPendingProjects().subscribe({
       next: (projects) => {
         this.pendingProjects = projects;
         this.isLoadingPending = false;

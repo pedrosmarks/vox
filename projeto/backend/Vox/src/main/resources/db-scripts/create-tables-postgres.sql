@@ -190,33 +190,33 @@ CREATE TABLE issue_moderation (
 );
 
 CREATE TABLE project (
-    id SERIAL PRIMARY KEY,
-    municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
-    category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
-    type project_type NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    status project_status DEFAULT 'PENDING_APPROVAL',
-    author_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
-    is_official BOOLEAN DEFAULT FALSE,
-    neighborhood VARCHAR(255),
-    street VARCHAR(255),
-    number VARCHAR(50),
-    latitude DECIMAL(10,8),
-    longitude DECIMAL(11,8),
-    start_date DATE,
-    expected_end_date DATE,
-    end_date DATE,
-    financial_analysis TEXT,
-    estimated_cost NUMERIC(14,2),
-    approved_budget NUMERIC(14,2),
-    moderation_status moderation_status DEFAULT 'PENDING',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CHECK (end_date IS NULL OR end_date >= start_date),
-    CHECK (latitude BETWEEN -90 AND 90 OR latitude IS NULL),
-    CHECK (longitude BETWEEN -180 AND 180 OR longitude IS NULL)
+                         id SERIAL PRIMARY KEY,
+                         municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
+                         category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
+                         type project_type NOT NULL,
+                         title VARCHAR(255) NOT NULL,
+                         description TEXT,
+                         status project_status DEFAULT 'PENDING_APPROVAL',
+                         author_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+                         is_official BOOLEAN DEFAULT FALSE,
+                         highlighted BOOLEAN DEFAULT FALSE,
+                         neighborhood VARCHAR(255),
+                         street VARCHAR(255),
+                         number VARCHAR(50),
+                         latitude DECIMAL(10,8),
+                         longitude DECIMAL(11,8),
+                         start_date DATE,
+                         expected_end_date DATE,
+                         end_date DATE,
+                         financial_analysis TEXT,
+                         estimated_cost NUMERIC(14,2),
+                         approved_budget NUMERIC(14,2),
+                         moderation_status moderation_status DEFAULT 'PENDING',
+                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         CHECK (end_date IS NULL OR end_date >= start_date),
+                         CHECK (latitude BETWEEN -90 AND 90 OR latitude IS NULL),
+                         CHECK (longitude BETWEEN -180 AND 180 OR longitude IS NULL)
 );
 
 CREATE TABLE project_image (
@@ -289,10 +289,10 @@ CREATE TABLE notification (
 );
 
 
-CREATE INDEX idx_projects_status_municipality ON project(status, municipality_id);
-CREATE INDEX idx_projects_type ON project(type);
-CREATE INDEX idx_votes_project ON project_opinion(project_id);
-CREATE INDEX idx_votes_user ON project_opinion(user_id);
-CREATE INDEX idx_status_history_project ON project_status_history(project_id);
-CREATE INDEX idx_project_status ON project(status);
-CREATE INDEX idx_project_author ON project(author_id);
+--CREATE INDEX idx_projects_status_municipality ON project(status, municipality_id);
+--CREATE INDEX idx_projects_type ON project(type);
+--CREATE INDEX idx_votes_project ON project_opinion(project_id);
+--CREATE INDEX idx_votes_user ON project_opinion(user_id);
+--CREATE INDEX idx_status_history_project ON project_status_history(project_id);
+--CREATE INDEX idx_project_status ON project(status);
+--CREATE INDEX idx_project_author ON project(author_id);

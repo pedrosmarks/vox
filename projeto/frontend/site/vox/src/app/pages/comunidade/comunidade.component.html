@@ -65,6 +65,7 @@
               </button>
             </li>
           </ul>
+          <p *ngIf="filteredPeople.length === 0" class="follow-empty">Nenhum vereador disponível no momento.</p>
         </div>
 
         <!-- Seguir projetos -->
@@ -94,6 +95,7 @@
               </button>
             </li>
           </ul>
+          <p *ngIf="filteredProjects.length === 0" class="follow-empty">Nenhum projeto disponível no momento.</p>
         </div>
 
       </div>

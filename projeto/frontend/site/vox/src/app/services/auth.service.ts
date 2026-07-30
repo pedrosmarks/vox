@@ -40,12 +40,7 @@ export class AuthService {
   }
 
   fetchCurrentUser(): Observable<UserProfile> {
-    const email = this.getEmailFromToken();
-    const url = email
-      ? `${this.API_URL}/api/user/email/${encodeURIComponent(email)}`
-      : `${this.API_URL}/api/user/me`;
-
-    return this.http.get<UserProfile>(url).pipe(
+    return this.http.get<UserProfile>(`${this.API_URL}/api/auth/me`).pipe(
       tap(user => {
         if (user?.id) {
           localStorage.setItem(this.USER_ID_KEY, String(user.id));
@@ -136,5 +131,21 @@ export class AuthService {
       currentPassword,
       newPassword
     });
+  }
+
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/auth/reset-password`, { token, newPassword });
+  }
+
+  getCouncilors(): Observable<UserProfile[]> {
+    return this.http.get<UserProfile[]>(`${this.API_URL}/api/users/councilors`);
+  }
+
+  getCouncilorById(id: number): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.API_URL}/api/users/councilors/${id}`);
   }
 }
