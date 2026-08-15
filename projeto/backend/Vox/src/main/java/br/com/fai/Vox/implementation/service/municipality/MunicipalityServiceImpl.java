@@ -1,7 +1,6 @@
 package br.com.fai.Vox.implementation.service.municipality;
 
 import br.com.fai.Vox.domain.Municipality;
-import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.port.dao.municipality.MunicipalityDao;
 import br.com.fai.Vox.port.service.municipality.MunicipalityService;
 import org.springframework.stereotype.Service;

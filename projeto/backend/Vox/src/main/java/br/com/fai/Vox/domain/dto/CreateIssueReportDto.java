@@ -1,6 +1,5 @@
 package br.com.fai.Vox.domain.dto;
 
-import br.com.fai.Vox.domain.IssueReport;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;

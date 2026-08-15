@@ -1,11 +1,6 @@
 package br.com.fai.Vox.controller;
 
-import br.com.fai.Vox.domain.IssueModeration;
-import br.com.fai.Vox.domain.IssueReport;
-import br.com.fai.Vox.domain.Project;
-import br.com.fai.Vox.domain.ProjectModeration;
 import br.com.fai.Vox.domain.dto.ModerationActionDto;
-import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.domain.dto.UpdateIssueStatusDto;
 import br.com.fai.Vox.domain.dto.UpdateProjectStatusDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
@@ -15,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/moderation")

@@ -6,7 +6,6 @@ import br.com.fai.Vox.domain.ProjectImage;
 import br.com.fai.Vox.domain.ProjectOpinion;
 import br.com.fai.Vox.domain.ProjectStatusHistory;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
-import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.domain.dto.ProjectOpinionDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
 import br.com.fai.Vox.port.service.project.ProjectService;

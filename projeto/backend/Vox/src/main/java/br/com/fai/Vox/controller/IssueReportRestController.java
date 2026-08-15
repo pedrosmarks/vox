@@ -4,8 +4,6 @@ import br.com.fai.Vox.domain.IssueImage;
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.IssueStatusHistory;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
-import br.com.fai.Vox.domain.dto.PageResponse;
-import br.com.fai.Vox.domain.dto.UpdateIssueStatusDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
 import br.com.fai.Vox.port.service.issueimage.IssueImageService;
 import br.com.fai.Vox.port.service.issuereport.IssueReportService;

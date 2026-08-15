@@ -3,7 +3,6 @@ package br.com.fai.Vox.port.service.issuereport;
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
 import br.com.fai.Vox.domain.dto.PageResponse;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
 
 import java.util.List;
 

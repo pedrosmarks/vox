@@ -1,6 +1,5 @@
 package br.com.fai.Vox.configuration.security;
 
-import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.implementation.service.authentication.jwt.JwtRequestFilter;
 import br.com.fai.Vox.implementation.service.authentication.jwt.JwtService;
 import org.springframework.context.annotation.Bean;
