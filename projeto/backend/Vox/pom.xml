@@ -111,15 +111,12 @@
             <artifactId>cloudinary-http45</artifactId>
             <version>1.36.0</version>
         </dependency>
+
+        <!-- LiveKit Server SDK -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>4.0.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
+            <groupId>io.livekit</groupId>
+            <artifactId>livekit-server</artifactId>
+            <version>0.15.0</version>
         </dependency>
     </dependencies>
 

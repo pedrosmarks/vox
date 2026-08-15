@@ -3,6 +3,7 @@ package br.com.fai.Vox.configuration;
 import br.com.fai.Vox.implementation.service.drive.CloudinaryServiceImpl;
 import br.com.fai.Vox.port.service.drive.CloudinaryService;
 import br.com.fai.Vox.implementation.dao.category.CategoryPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.conferenceroom.ConferenceRoomPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.issueimage.IssueImagePostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.issuemoderation.IssueModerationPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.issuereport.IssueReportPostgresDaoImpl;
@@ -16,11 +17,14 @@ import br.com.fai.Vox.implementation.dao.projectimage.ProjectImagePostgresDaoImp
 import br.com.fai.Vox.implementation.dao.projectmoderation.ProjectModerationPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.projectopinion.ProjectOpinionPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.projectstatushistory.ProjectStatusHistoryPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.roomparticipant.RoomParticipantPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.subscription.SubscriptionPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.user.UserPostgresDaoImpl;
 import br.com.fai.Vox.implementation.service.authentication.BasicAuthenticationServiceImpl;
 import br.com.fai.Vox.implementation.service.authentication.JwtAuthenticationServiceImpl;
+import br.com.fai.Vox.implementation.service.livekit.LiveKitServiceImpl;
 import br.com.fai.Vox.port.dao.category.CategoryDao;
+import br.com.fai.Vox.port.dao.conferenceroom.ConferenceRoomDao;
 import br.com.fai.Vox.port.dao.issueimage.IssueImageDao;
 import br.com.fai.Vox.port.dao.issuemoderation.IssueModerationDao;
 import br.com.fai.Vox.port.dao.issuereport.IssueReportDao;
@@ -34,9 +38,11 @@ import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
 import br.com.fai.Vox.port.dao.projectmoderation.ProjectModerationDao;
 import br.com.fai.Vox.port.dao.projectopinion.ProjectOpinionDao;
 import br.com.fai.Vox.port.dao.projectstatushistory.ProjectStatusHistoryDao;
+import br.com.fai.Vox.port.dao.roomparticipant.RoomParticipantDao;
 import br.com.fai.Vox.port.dao.subscription.SubscriptionDao;
 import br.com.fai.Vox.port.dao.user.UserDao;
 import br.com.fai.Vox.port.service.authentication.AuthenticationService;
+import br.com.fai.Vox.port.service.livekit.LiveKitService;
 import br.com.fai.Vox.port.service.user.UserService;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -90,9 +96,23 @@ public class AppConfiguration {
     @Value("${cloudinary.api-secret}")
     private String cloudinaryApiSecret;
 
+    @Value("${livekit.api-key}")
+    private String livekitApiKey;
+
+    @Value("${livekit.api-secret}")
+    private String livekitApiSecret;
+
+    @Value("${livekit.url}")
+    private String livekitUrl;
+
     @Bean
     public CloudinaryService getGoogleDriveService() {
         return new CloudinaryServiceImpl(cloudinaryCloudName, cloudinaryApiKey, cloudinaryApiSecret);
+    }
+
+    @Bean
+    public LiveKitService getLiveKitService() {
+        return new LiveKitServiceImpl(livekitApiKey, livekitApiSecret, livekitUrl);
     }
 
     // --- Existing DAOs ---
@@ -177,6 +197,16 @@ public class AppConfiguration {
     @Bean
     public PasswordResetTokenDao getPasswordResetTokenDao(final Connection connection) {
         return new PasswordResetTokenPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public ConferenceRoomDao getConferenceRoomDao(final Connection connection) {
+        return new ConferenceRoomPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public RoomParticipantDao getRoomParticipantDao(final Connection connection) {
+        return new RoomParticipantPostgresDaoImpl(connection);
     }
 
     // --- Authentication ---

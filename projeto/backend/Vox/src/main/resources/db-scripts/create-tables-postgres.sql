@@ -14,6 +14,8 @@ DROP TABLE IF EXISTS issue_status_history CASCADE;
 DROP TABLE IF EXISTS category CASCADE;
 DROP TABLE IF EXISTS subscription CASCADE;
 DROP TABLE IF EXISTS password_reset_token CASCADE;
+DROP TABLE IF EXISTS room_participant CASCADE;
+DROP TABLE IF EXISTS conference_room CASCADE;
 DROP TABLE IF EXISTS user_model CASCADE;
 DROP TABLE IF EXISTS municipality CASCADE;
 
@@ -26,6 +28,8 @@ DROP TYPE IF EXISTS issue_status CASCADE;
 DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS vote_type CASCADE;
 DROP TYPE IF EXISTS subscription_type CASCADE;
+DROP TYPE IF EXISTS room_status CASCADE;
+DROP TYPE IF EXISTS participant_status CASCADE;
 
 CREATE TYPE user_role AS ENUM (
     'CITIZEN',
@@ -288,11 +292,47 @@ CREATE TABLE notification (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- =============================================
+-- Salas de conferência / audiências públicas
+-- =============================================
 
---CREATE INDEX idx_projects_status_municipality ON project(status, municipality_id);
---CREATE INDEX idx_projects_type ON project(type);
---CREATE INDEX idx_votes_project ON project_opinion(project_id);
---CREATE INDEX idx_votes_user ON project_opinion(user_id);
---CREATE INDEX idx_status_history_project ON project_status_history(project_id);
---CREATE INDEX idx_project_status ON project(status);
---CREATE INDEX idx_project_author ON project(author_id);
+CREATE TYPE room_status AS ENUM (
+    'OPEN',
+    'CLOSED'
+);
+
+CREATE TYPE participant_status AS ENUM (
+    'PENDING',
+    'APPROVED',
+    'REJECTED',
+    'REMOVED'
+);
+
+CREATE TABLE conference_room (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    moderator_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+    municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
+    status room_status NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE room_participant (
+    id SERIAL PRIMARY KEY,
+    room_id INTEGER NOT NULL REFERENCES conference_room(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+    status participant_status NOT NULL DEFAULT 'PENDING',
+    can_publish_audio BOOLEAN NOT NULL DEFAULT FALSE,
+    can_publish_video BOOLEAN NOT NULL DEFAULT FALSE,
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    decided_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--CREATE INDEX idx_conference_room_municipality ON conference_room(municipality_id);
+--CREATE INDEX idx_conference_room_moderator ON conference_room(moderator_id);
+--CREATE INDEX idx_room_participant_room ON room_participant(room_id);
+--CREATE INDEX idx_room_participant_user ON room_participant(user_id);
