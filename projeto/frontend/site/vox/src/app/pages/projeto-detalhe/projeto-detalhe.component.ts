@@ -3,8 +3,9 @@ import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ProjectService, Project, ProjectImage } from '../../services/project.service';
+import { ProjectService, Project, ProjectImage, UserSummary } from '../../services/project.service';
 import { AuthService } from '../../services/auth.service';
+import { SubscriptionService } from '../../services/subscription.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 
 @Component({
@@ -23,24 +24,53 @@ export class ProjetoDetalheComponent implements OnInit {
   errorMessage = '';
   selectedImage = '';
   isModerator = false;
+  isCouncilor = false;
   signed = false;
+  isSigning = false;
+  councilors: UserSummary[] = [];
+  isCouncilorLinked = false;
+  isLinkingCouncilor = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectService,
-    private authService: AuthService
+    private authService: AuthService,
+    private subscriptionService: SubscriptionService
   ) {}
 
   ngOnInit(): void {
     const role = this.authService.getUserRole();
     this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
+    this.isCouncilor = role === 'COUNCILOR';
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
       this.router.navigate(['/projetos']);
       return;
     }
     this.loadProject(id);
+    this.loadSubscriptionState(id);
+    if (this.isCouncilor || this.isModerator) {
+      this.loadCouncilors(id);
+    }
+  }
+
+  private loadSubscriptionState(projectId: number): void {
+    this.subscriptionService.getSubscriptions().pipe(
+      catchError(() => of([]))
+    ).subscribe(subs => {
+      this.signed = subs.some(s => s.type === 'PROJECT' && s.targetId === projectId);
+    });
+  }
+
+  private loadCouncilors(projectId: number): void {
+    this.projectService.getProjectCouncilors(projectId).pipe(
+      catchError(() => of([] as UserSummary[]))
+    ).subscribe(councilors => {
+      this.councilors = councilors;
+      const myId = this.authService.getUserId();
+      this.isCouncilorLinked = !!myId && councilors.some(c => c.id === myId);
+    });
   }
 
   loadProject(id: number): void {
@@ -90,8 +120,39 @@ export class ProjetoDetalheComponent implements OnInit {
   }
 
   toggleSign(): void {
-    // TODO: POST /api/project/{id}/sign quando backend suportar
-    this.signed = !this.signed;
+    if (!this.project || this.isSigning) return;
+    this.isSigning = true;
+    const projectId = this.project.id;
+    const action$ = this.signed
+      ? this.subscriptionService.unsubscribeProject(projectId)
+      : this.subscriptionService.subscribeProject(projectId);
+
+    action$.subscribe({
+      next: () => {
+        this.signed = !this.signed;
+        this.isSigning = false;
+      },
+      error: () => { this.isSigning = false; }
+    });
+  }
+
+  toggleCouncilorLink(): void {
+    if (!this.project || this.isLinkingCouncilor) return;
+    const myId = this.authService.getUserId();
+    if (!myId) return;
+    this.isLinkingCouncilor = true;
+    const projectId = this.project.id;
+    const action$ = this.isCouncilorLinked
+      ? this.projectService.unlinkCouncilor(projectId, myId)
+      : this.projectService.linkCouncilor(projectId, myId);
+
+    action$.subscribe({
+      next: () => {
+        this.isLinkingCouncilor = false;
+        this.loadCouncilors(projectId);
+      },
+      error: () => { this.isLinkingCouncilor = false; }
+    });
   }
 
   getStatusLabel(status: string): string {

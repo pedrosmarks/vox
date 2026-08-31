@@ -101,4 +101,18 @@ export class ProjectService {
   updateProject(id: number, formData: FormData): Observable<Project> {
     return this.http.put<Project>(`${this.API_URL}/api/project/${id}`, formData);
   }
+
+  // ── Vereadores vinculados ao projeto ────────────────────────
+
+  linkCouncilor(projectId: number, councilorId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/project/${projectId}/councilor/${councilorId}`, null);
+  }
+
+  unlinkCouncilor(projectId: number, councilorId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/api/project/${projectId}/councilor/${councilorId}`);
+  }
+
+  getProjectCouncilors(projectId: number): Observable<UserSummary[]> {
+    return this.http.get<UserSummary[]>(`${this.API_URL}/api/project/${projectId}/councilor`);
+  }
 }

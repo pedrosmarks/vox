@@ -1,0 +1,36 @@
+<app-navbar></app-navbar>
+
+<main class="moderacao-page">
+  <div class="page-header">
+    <h1 class="page-title">Logs do Sistema</h1>
+    <p class="page-subtitle">Histórico de ações administrativas e de moderação.</p>
+  </div>
+
+  <div class="tab-content">
+    <div *ngIf="isLoading" class="state-message">
+      <div class="spinner"></div>
+      <p>Carregando logs...</p>
+    </div>
+
+    <div *ngIf="!isLoading && loadError" class="state-message error">
+      {{ loadError }}
+      <button class="btn-retry" (click)="loadLogs()">Tentar novamente</button>
+    </div>
+
+    <div *ngIf="!isLoading && !loadError && logs.length === 0" class="state-message">
+      <p>Nenhum log registrado.</p>
+    </div>
+
+    <div *ngFor="let log of logs" class="pending-card">
+      <div class="pending-card-body">
+        <h2 class="pending-title">{{ log.action }}</h2>
+        <div class="pending-meta">
+          <span *ngIf="log.userName">👤 {{ log.userName }}</span>
+          <span *ngIf="log.entity">📄 {{ log.entity }}{{ log.entityId ? ' #' + log.entityId : '' }}</span>
+          <span>{{ formatDate(log.createdAt) }}</span>
+        </div>
+        <p class="pending-description" *ngIf="log.message">{{ log.message }}</p>
+      </div>
+    </div>
+  </div>
+</main>

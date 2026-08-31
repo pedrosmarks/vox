@@ -4,7 +4,6 @@ import '../services/auth_service.dart';
 import '../theme/vox_app_bar.dart';
 import '../theme/vox_badges.dart';
 import 'login_screen.dart';
-import 'moderacao_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -147,6 +146,24 @@ class _PerfilScreenState extends State<PerfilScreen> {
     );
   }
 
+  void _openSettings() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Configurações'),
+        content: const Text(
+          'Em breve. Assim como no site, esta área ainda está em construção.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -163,6 +180,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
       appBar: AppBar(
         title: const Text('Perfil'),
         actions: [
+          IconButton(
+            onPressed: _openSettings,
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Configurações',
+          ),
           IconButton(
             onPressed: _logout,
             icon: const Icon(Icons.logout),
@@ -200,19 +222,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ],
                   ),
                 ),
-                if (_user!.role == 'MODERATOR' ||
-                    _user!.role == 'ADMINISTRATOR') ...[
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ModeracaoScreen(),
-                      ),
-                    ),
-                    icon: const Icon(Icons.gavel_outlined),
-                    label: const Text('Moderação'),
-                  ),
-                ],
                 const SizedBox(height: 24),
                 Text(
                   'Dados pessoais',

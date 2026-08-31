@@ -37,7 +37,9 @@ class AuthService {
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    final user = UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    final user = UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_userIdKey, user.id.toString());
     await prefs.setString(_municipalityIdKey, user.municipalityId.toString());
@@ -51,10 +53,15 @@ class AuthService {
       body: jsonEncode(data),
     );
     ApiClient.checkResponse(response);
-    return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
-  Future<void> updatePassword(String currentPassword, String newPassword) async {
+  Future<void> updatePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
     final response = await http.put(
       Uri.parse('$_baseUrl/api/user/update-password'),
       headers: await ApiClient.authHeaders(),
@@ -102,7 +109,73 @@ class AuthService {
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  // ── Administração de usuários (somente ADMINISTRATOR) ──────
+
+  Future<List<UserProfile>> getAllUsers() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/api/user'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list
+        .map((e) => UserProfile.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<UserProfile>> getUsersByRole(String role) async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/api/user/role/$role'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list
+        .map((e) => UserProfile.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> createUser(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/user'),
+      headers: await ApiClient.authHeaders(),
+      body: jsonEncode(data),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  Future<void> updateUser(int id, Map<String, dynamic> data) async {
+    final response = await http.put(
+      Uri.parse('$_baseUrl/api/user/$id'),
+      headers: await ApiClient.authHeaders(),
+      body: jsonEncode(data),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  Future<void> deleteUser(int id) async {
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/api/user/$id'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  // ── Logs (somente ADMINISTRATOR) ────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getLogs() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/api/logs'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list.cast<Map<String, dynamic>>();
   }
 
   Future<void> logout() async {
@@ -165,6 +238,20 @@ class AuthService {
     final payload = decodeToken(token);
     final id = payload['municipalityId'] ?? payload['municipality_id'];
     return id != null ? int.tryParse(id.toString()) ?? 1 : 1;
+  }
+
+  /// Papel do usuário logado ('ADMINISTRATOR' | 'MODERATOR' | 'COUNCILOR' |
+  /// 'CITIZEN'), lido do JWT — usado para decidir quais telas mostrar, igual
+  /// ao site.
+  Future<String?> getUserRole() async {
+    final token = await getToken();
+    if (token == null) return null;
+    final payload = decodeToken(token);
+    final roles = payload['roles'] as List?;
+    final role =
+        payload['role'] ??
+        (roles != null && roles.isNotEmpty ? roles.first : null);
+    return role as String?;
   }
 }
 

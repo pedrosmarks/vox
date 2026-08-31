@@ -10,6 +10,7 @@ import '../theme/vox_badges.dart';
 import '../theme/vox_colors.dart';
 import '../utils/fallback_categories.dart';
 import '../utils/status_labels.dart';
+import '../widgets/map_picker_field.dart';
 
 class SugestoesScreen extends StatefulWidget {
   const SugestoesScreen({super.key});
@@ -137,6 +138,8 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
 
   List<Category> _categories = fallbackCategories;
   int? _categoryId;
+  double? _latitude;
+  double? _longitude;
   XFile? _pickedImage;
   bool _isSubmitting = false;
   String? _error;
@@ -192,6 +195,8 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
           'number': _numberController.text.trim(),
         if (_neighborhoodController.text.isNotEmpty)
           'neighborhood': _neighborhoodController.text.trim(),
+        if (_latitude != null) 'latitude': _latitude.toString(),
+        if (_longitude != null) 'longitude': _longitude.toString(),
       };
 
       final files = <http.MultipartFile>[];
@@ -254,6 +259,24 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
               maxLines: 4,
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Obrigatório' : null,
+            ),
+            const SizedBox(height: 12),
+            MapPickerField(
+              initialLatitude: _latitude,
+              initialLongitude: _longitude,
+              onLocationChanged: (point) => setState(() {
+                _latitude = point.latitude;
+                _longitude = point.longitude;
+              }),
+              onAddressChanged: (address) => setState(() {
+                if (address.street.isNotEmpty)
+                  _streetController.text = address.street;
+                if (address.number.isNotEmpty)
+                  _numberController.text = address.number;
+                if (address.neighborhood.isNotEmpty) {
+                  _neighborhoodController.text = address.neighborhood;
+                }
+              }),
             ),
             const SizedBox(height: 12),
             Row(

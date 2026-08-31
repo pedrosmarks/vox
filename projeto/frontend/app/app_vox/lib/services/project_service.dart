@@ -121,6 +121,16 @@ class ProjectService {
     if (response.body.trim().isEmpty) {
       final id = ApiClient.locationId(response);
       if (id != null) return getProjectById(id);
+      // Sem header Location: busca o projeto mais recente do autor.
+      final authorId = int.tryParse(fields['authorId'] ?? '');
+      final all = await getProjects();
+      final mine = authorId != null
+          ? all.where((p) => p.authorId == authorId).toList()
+          : all;
+      if (mine.isNotEmpty) {
+        mine.sort((a, b) => b.id.compareTo(a.id));
+        return mine.first;
+      }
       throw ApiException(
         'Projeto criado, mas não foi possível carregar os dados.',
       );
@@ -144,5 +154,39 @@ class ProjectService {
     // Backend responde 204 No Content na atualização.
     if (response.body.trim().isEmpty) return getProjectById(id);
     return Project.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  // ── Vereadores vinculados ao projeto ────────────────────────
+
+  Future<void> linkCouncilor(int projectId, int councilorId) async {
+    final response = await http.post(
+      Uri.parse(
+        '${ApiClient.baseUrl}/api/project/$projectId/councilor/$councilorId',
+      ),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  Future<void> unlinkCouncilor(int projectId, int councilorId) async {
+    final response = await http.delete(
+      Uri.parse(
+        '${ApiClient.baseUrl}/api/project/$projectId/councilor/$councilorId',
+      ),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  Future<List<UserSummary>> getProjectCouncilors(int projectId) async {
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$projectId/councilor'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list
+        .map((e) => UserSummary.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

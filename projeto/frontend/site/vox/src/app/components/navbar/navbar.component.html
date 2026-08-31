@@ -12,32 +12,42 @@
 
     <nav class="navbar-nav">
       <a
+        *ngIf="!isAdmin"
         routerLink="/projetos"
         routerLinkActive="active"
         class="nav-link"
       >Projetos em votação</a>
 
       <a
-        *ngIf="!isModerator"
+        *ngIf="isCitizen"
         routerLink="/sugestoes"
         routerLinkActive="active"
         class="nav-link"
       >Sugerir um Projeto</a>
 
       <a
-        *ngIf="!isModerator"
+        *ngIf="isCitizen"
         routerLink="/relatar-problema"
         routerLinkActive="active"
         class="nav-link"
       >Relatar um Problema</a>
 
       <a
+        *ngIf="isCouncilor"
+        routerLink="/problemas"
+        routerLinkActive="active"
+        class="nav-link"
+      >Problemas Relatados</a>
+
+      <a
+        *ngIf="!isAdmin"
         routerLink="/audiencia"
         routerLinkActive="active"
         class="nav-link"
       >Audiência Pública</a>
 
       <a
+        *ngIf="!isAdmin"
         routerLink="/comunidade"
         routerLinkActive="active"
         class="nav-link"
@@ -49,6 +59,20 @@
         routerLinkActive="active"
         class="nav-link"
       >Moderação</a>
+
+      <a
+        *ngIf="isAdmin"
+        routerLink="/usuarios"
+        routerLinkActive="active"
+        class="nav-link"
+      >Usuários</a>
+
+      <a
+        *ngIf="isAdmin"
+        routerLink="/logs"
+        routerLinkActive="active"
+        class="nav-link"
+      >Logs</a>
 
       <div class="user-menu">
         <button class="user-avatar" (click)="toggleMenu()" [class.open]="menuOpen">
@@ -67,13 +91,6 @@
               <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
             </svg>
             Meu Perfil
-          </a>
-          <a routerLink="/configuracoes" class="dropdown-item" (click)="menuOpen = false">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-            Configurações
           </a>
           <div class="dropdown-divider"></div>
           <button class="dropdown-item danger" (click)="logout()">

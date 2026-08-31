@@ -13,6 +13,9 @@ import { AuthService, UserRole } from '../../services/auth.service';
 })
 export class NavbarComponent implements OnInit {
   isModerator = false;
+  isAdmin = false;
+  isCouncilor = false;
+  isCitizen = false;
   menuOpen = false;
 
   constructor(
@@ -22,7 +25,11 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
     const role: UserRole | null = this.authService.getUserRole();
-    this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
+    this.isAdmin = role === 'ADMINISTRATOR';
+    // Admin não navega por Projetos/Audiência/Comunidade/Moderação — só Usuários/Logs/Perfil.
+    this.isModerator = role === 'MODERATOR';
+    this.isCouncilor = role === 'COUNCILOR';
+    this.isCitizen = role === 'CITIZEN';
   }
 
   toggleMenu(): void {

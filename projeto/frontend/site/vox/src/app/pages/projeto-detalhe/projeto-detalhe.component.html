@@ -36,9 +36,16 @@
           (click)="promoteProject()"
         >🏅 Tornar Oficial</button>
         <button
-          *ngIf="!isModerator"
+          *ngIf="isCouncilor"
+          class="btn-action btn-promote"
+          [disabled]="isLinkingCouncilor"
+          (click)="toggleCouncilorLink()"
+        >{{ isCouncilorLinked ? '✓ Vinculado como responsável' : '🏛️ Adotar este projeto' }}</button>
+        <button
+          *ngIf="!isModerator && !isCouncilor"
           class="btn-action btn-sign"
           [class.signed]="signed"
+          [disabled]="isSigning"
           (click)="toggleSign()"
         >{{ signed ? '✓ Assinado' : '✏️ Assinar' }}</button>
       </div>
@@ -144,6 +151,15 @@
         <div class="aside-card" *ngIf="project.latitude && project.longitude">
           <h3 class="aside-title">Localização</h3>
           <p class="fin-label">Lat: {{ project.latitude }} / Lng: {{ project.longitude }}</p>
+        </div>
+
+        <!-- Vereadores vinculados -->
+        <div class="aside-card" *ngIf="councilors.length > 0 || isCouncilor">
+          <h3 class="aside-title">Vereadores Responsáveis</h3>
+          <p *ngIf="councilors.length === 0" class="fin-empty">Nenhum vereador vinculado ainda.</p>
+          <div class="fin-row" *ngFor="let c of councilors">
+            <span class="fin-value">{{ c.name || c.fullname }}</span>
+          </div>
         </div>
 
       </aside>

@@ -59,6 +59,12 @@ class IssueService {
     if (response.body.trim().isEmpty) {
       final id = ApiClient.locationId(response);
       if (id != null) return getIssueById(id);
+      // Sem header Location: busca a ocorrência mais recente do autor.
+      final mine = await getMyIssues();
+      if (mine.isNotEmpty) {
+        mine.sort((a, b) => b.id.compareTo(a.id));
+        return mine.first;
+      }
       throw ApiException(
         'Ocorrência criada, mas não foi possível carregar os dados.',
       );

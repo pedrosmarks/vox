@@ -1,14 +1,18 @@
 $primary:    #1b3f8b;
 $accent:     #2d6fcc;
-$bg:         #0d1117;
-$surface:    #161b22;
-$surface2:   #21262d;
+$gold:       #e8a838;
+$bg:         #0f0f1a;
+$surface:    #1a1a2e;
+$surface2:   #12121f;
 $white:      #ffffff;
 $text:       #e6edf3;
 $text-muted: #8b949e;
-$border:     #30363d;
+$border:     #2a2a3e;
 $live:       #dc2626;
-$green:      #238636;
+$green:      #22c55e;
+$orange:     #f59e0b;
+
+* { box-sizing: border-box; }
 
 .sala-page {
   min-height: calc(100vh - 64px);
@@ -19,12 +23,52 @@ $green:      #238636;
   color: $text;
 }
 
-// ── Topbar ─────────────────────────────────────────────────
+// ── Estado central (loading / waiting / denied) ───────────
+.state-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+
+  &.error { color: #f87171; }
+
+  p { color: $text-muted; font-size: 0.9rem; text-align: center; }
+}
+
+.waiting-card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 2.5rem 3rem;
+  text-align: center;
+  max-width: 420px;
+
+  h2 { margin: 0.75rem 0 0.5rem; font-size: 1.25rem; font-weight: 700; color: $text; }
+  p  { color: $text-muted; font-size: 0.88rem; line-height: 1.6; margin: 0 0 1.5rem; }
+}
+
+.waiting-icon { font-size: 3rem; line-height: 1; }
+
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid $border;
+  border-top-color: $accent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto;
+
+  &.amber { border-top-color: $gold; }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Topbar ────────────────────────────────────────────────
 .sala-topbar {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1.5rem;
   background: $surface;
   border-bottom: 1px solid $border;
   flex-wrap: wrap;
@@ -40,6 +84,7 @@ $green:      #238636;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.15s;
   &:hover { border-color: $accent; color: $text; }
 }
 
@@ -51,29 +96,42 @@ $green:      #238636;
   min-width: 0;
 }
 
-.sala-badge {
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.2rem 0.7rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 20px;
+  border: 1px solid rgba(220,38,38,0.4);
   flex-shrink: 0;
+}
 
-  &.badge-ao_vivo   { background: #450a0a; color: #f87171; }
-  &.badge-agendada  { background: #1e3a5f; color: #93c5fd; }
-  &.badge-encerrada { background: $surface2; color: $text-muted; }
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #f87171;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
 }
 
 .sala-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: $text;
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.sala-topbar-actions {
+.topbar-right {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -81,6 +139,9 @@ $green:      #238636;
 }
 
 .participants-count {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.82rem;
   color: $text-muted;
   font-weight: 600;
@@ -88,103 +149,264 @@ $green:      #238636;
 
 .btn-encerrar {
   padding: 0.4rem 1rem;
-  background: #450a0a;
+  background: rgba(220,38,38,0.15);
   color: #f87171;
-  border: 1px solid #f87171;
+  border: 1px solid rgba(220,38,38,0.5);
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  &:hover { background: $live; color: $white; }
+  transition: all 0.15s;
+  &:hover { background: $live; color: $white; border-color: $live; }
 }
 
 // ── Body ──────────────────────────────────────────────────
 .sala-body {
   flex: 1;
   display: flex;
-  gap: 0;
   overflow: hidden;
+  min-height: 0;
+  height: 100%;
 }
 
 .sala-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1.25rem;
-  gap: 1rem;
-  min-width: 0;
-}
-
-// ── Video grid ────────────────────────────────────────────
-.video-grid {
-  flex: 1;
-  display: grid;
+  padding: 1rem 1.25rem;
   gap: 0.75rem;
-  align-content: start;
-
-  &.grid-1 { grid-template-columns: 1fr; max-width: 700px; margin: 0 auto; width: 100%; }
-  &.grid-2 { grid-template-columns: 1fr 1fr; }
-  &.grid-3 { grid-template-columns: 1fr 1fr; }
-  &.grid-4, &.grid-5, &.grid-6 { grid-template-columns: repeat(3, 1fr); }
+  min-width: 0;
+  overflow-y: auto;
 }
 
-.video-tile {
-  background: $surface;
-  border-radius: 12px;
-  border: 1px solid $border;
-  aspect-ratio: 16/9;
+// ── Tile do moderador ─────────────────────────────────────
+.moderator-stage {
+  flex-shrink: 0;
+}
+
+.mod-tile {
   position: relative;
+  border-radius: 12px;
   overflow: hidden;
+  border: 1.5px solid rgba($gold, 0.6);
+  background: $surface;
+  width: 100%;
+
+  // Força proporção 16:9 via padding-top trick
+  &::before {
+    content: '';
+    display: block;
+    padding-top: 56.25%; // 9/16 = 56.25%
+  }
+
+  // Conteúdo sobre o pseudo-elemento
+  > * {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  &.mod-tile-empty { opacity: 0.6; }
+}
+
+.camara-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 5px;
+  background: $gold;
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  z-index: 3;
+  pointer-events: none;
 
-  &.local { border-color: $accent; }
+  svg { flex-shrink: 0; }
 }
 
-.video-el {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1); // espelhar câmera local
+.mod-placeholder {
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.video-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  background: $surface2;
+.placeholder-label {
+  font-size: 0.8rem;
+  color: $text-muted;
 }
 
-.avatar-big {
-  width: 64px;
-  height: 64px;
+.avatar-xl {
+  width: 80px; height: 80px;
   border-radius: 50%;
-  background: $accent;
-  color: $white;
-  font-size: 1.75rem;
+  background: rgba($gold, 0.2);
+  color: $gold;
+  font-size: 2rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.tile-footer {
+// ── Faixa de cidadãos ─────────────────────────────────────
+.citizens-strip {
+  flex-shrink: 0;
+}
+
+.strip-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.strip-scroll {
+  display: flex;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  // altura mínima para acomodar os tiles 16:9 de 160px de largura ≈ 90px + footer
+  min-height: 100px;
+
+  &::-webkit-scrollbar { height: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+}
+
+.citizen-tile {
+  flex-shrink: 0;
+  width: 160px;
+  border-radius: 10px;
+  border: 1px solid $border;
+  background: $surface;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  // Mantém 16:9 nos tiles de cidadão também
+  &::before {
+    content: '';
+    display: block;
+    padding-top: 56.25%;
+  }
+
+  > * {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  // O footer fica no rodapé, não ocupa o espaço todo
+  > .citizen-footer {
+    top: auto;
+    bottom: 0;
+    height: auto;
+  }
+
+  // badge de "quer falar" não cobre tudo
+  > .wants-mic-badge {
+    top: 6px; right: 6px;
+    bottom: auto; left: auto;
+    width: 24px; height: 24px;
+  }
+
+  // tile-controls no canto
+  > .tile-controls {
+    top: 6px; right: 6px;
+    bottom: auto; left: auto;
+    width: auto; height: auto;
+  }
+
+  &:hover { border-color: $accent; }
+
+  &.wants-permission {
+    border-color: $orange;
+    box-shadow: 0 0 0 1px rgba($orange, 0.3);
+  }
+}
+
+.citizen-placeholder {
+  // herda position absolute do .video-placeholder
+  z-index: 2;
+  background: $surface2;
+}
+
+.avatar-sm {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba($accent, 0.25);
+  color: $white;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wants-mic-badge {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.7));
-  padding: 0.5rem 0.75rem 0.5rem;
+  top: 5px;
+  right: 5px;
+  font-size: 0.8rem;
+  background: $orange;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  line-height: 1;
+}
+
+.citizen-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 4px 6px;
+  background: rgba(#000, 0.55);
+}
+
+.citizen-name {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: $white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+.citizen-mic {
+  font-size: 0.65rem;
+  &.muted { filter: grayscale(1) opacity(0.5); }
+}
+
+.no-citizens {
+  font-size: 0.8rem;
+  color: $text-muted;
+  align-self: center;
+  padding: 0 1rem;
+}
+
+// ── Tile footer (moderador) ────────────────────────────────
+.tile-footer {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(#000, 0.75));
+  padding: 1.5rem 1rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 3;
 }
 
 .tile-name {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: $white;
   display: flex;
@@ -196,58 +418,142 @@ $green:      #238636;
   background: $accent;
   color: $white;
   font-size: 0.6rem;
-  padding: 0.1rem 0.4rem;
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
   font-weight: 700;
   &.small { font-size: 0.55rem; }
 }
 
-.icon-muted { font-size: 0.9rem; }
+.mic-icon {
+  font-size: 0.9rem;
+  &.muted { filter: grayscale(1); }
+}
 
+// ── Tile controls (hover) ─────────────────────────────────
 .tile-controls {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 8px; right: 8px;
   display: none;
-  gap: 0.3rem;
+  gap: 4px;
+  z-index: 3;
 
   button {
-    width: 26px;
-    height: 26px;
+    width: 28px; height: 28px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.6);
-    border: none;
+    background: rgba(#000, 0.65);
+    border: 1px solid rgba($white, 0.2);
     color: $text;
     font-size: 0.75rem;
     cursor: pointer;
-    &:hover { background: rgba(0,0,0,0.85); }
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    &:hover { background: rgba(#000, 0.9); }
   }
 }
 
-.video-tile:hover .tile-controls { display: flex; }
+.mod-tile:hover .tile-controls,
+.citizen-tile:hover .tile-controls { display: flex; }
 
-.empty-stage {
-  grid-column: 1 / -1;
-  text-align: center;
-  color: $text-muted;
-  padding: 3rem;
-  font-size: 0.9rem;
+// ── Placeholders ──────────────────────────────────────────
+.video-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%; height: 100%;
+  background: $surface2;
+  // Fica sobre o video-layer (z-index 1) quando câmera está off
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 2;
+}
+
+// Camada isolada onde o LiveKit injeta o <video>.
+// Fica absolutamente posicionada dentro do tile — o Angular nunca mexe aqui.
+.video-layer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+
+  video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.video-container {
+  width: 100%; height: 100%;
+  position: absolute;
+  top: 0; left: 0;
+
+  ::ng-deep video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
 }
 
 // ── Controls bar ──────────────────────────────────────────
 .controls-bar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding: 0.85rem;
+  padding: 0.85rem 1rem;
   background: $surface;
   border-radius: 12px;
   border: 1px solid $border;
   flex-wrap: wrap;
 }
 
+// Aviso de bloqueio
+.blocked-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: center;
+}
+
+.blocked-icon { font-size: 1.1rem; }
+
+.blocked-text {
+  font-size: 0.85rem;
+  color: $text-muted;
+}
+
+.btn-request {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid rgba($gold, 0.5);
+  background: rgba($gold, 0.12);
+  color: $gold;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) { background: rgba($gold, 0.25); }
+  &:disabled, &.requested {
+    opacity: 0.65;
+    cursor: default;
+    border-color: $border;
+    color: $text-muted;
+    background: transparent;
+  }
+}
+
+// Controles normais
 .ctrl-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   padding: 0.55rem 1.25rem;
   border-radius: 8px;
   border: 1px solid $border;
@@ -256,20 +562,14 @@ $green:      #238636;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: all 0.15s;
 
-  &:hover { background: lighten($surface2, 5%); border-color: $accent; }
-  &.ctrl-off { opacity: 0.55; }
-  &.ctrl-raise { background: $green; border-color: $green; color: $white; &:hover { background: darken($green, 6%); } }
-  &.ctrl-end   { background: #450a0a; border-color: $live; color: #f87171; &:hover { background: $live; color: $white; } }
-  &.ctrl-cancel { background: $surface2; color: #f87171; border-color: #f87171; }
+  &:hover:not(:disabled) { border-color: $accent; background: lighten($surface2, 3%); }
+  &.ctrl-off { opacity: 0.5; }
+  &:disabled { cursor: default; opacity: 0.35; }
 }
 
-.waiting-label {
-  font-size: 0.875rem;
-  color: #f59e0b;
-  font-weight: 600;
-}
+.ctrl-icon { font-size: 1rem; }
 
 // ── Sidebar ───────────────────────────────────────────────
 .sala-sidebar {
@@ -279,8 +579,10 @@ $green:      #238636;
   background: $surface;
   display: flex;
   flex-direction: column;
-  gap: 0;
   overflow-y: auto;
+  min-height: 0;
+  // Garante que a sidebar ocupa a altura total do body
+  align-self: stretch;
 }
 
 .sidebar-card {
@@ -296,6 +598,7 @@ $green:      #238636;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .count-badge {
@@ -304,10 +607,14 @@ $green:      #238636;
   font-size: 0.65rem;
   padding: 0.1rem 0.45rem;
   border-radius: 20px;
+  font-weight: 700;
+
+  &.amber { background: $orange; }
 }
 
 // Queue
-.queue-card { border-left: 3px solid #f59e0b; }
+.queue-card  { border-left: 3px solid $orange; }
+.perm-card   { border-left: 3px solid $gold; }
 
 .queue-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
 
@@ -318,13 +625,14 @@ $green:      #238636;
   gap: 0.5rem;
 }
 
+.perm-item { align-items: flex-start; }
+
 .queue-info { display: flex; align-items: center; gap: 0.5rem; }
 
 .queue-avatar {
-  width: 30px;
-  height: 30px;
+  width: 30px; height: 30px;
   border-radius: 50%;
-  background: #f59e0b;
+  background: $orange;
   color: $white;
   font-size: 0.8rem;
   font-weight: 700;
@@ -332,43 +640,52 @@ $green:      #238636;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+
+  &.amber { background: $gold; }
 }
 
-.queue-name { display: block; font-size: 0.78rem; font-weight: 600; color: $text; }
-.queue-time { display: block; font-size: 0.68rem; color: $text-muted; }
+.queue-name { font-size: 0.78rem; font-weight: 600; color: $text; }
 
-.queue-actions { display: flex; gap: 0.3rem; }
+.perm-badges { display: flex; gap: 4px; margin-top: 3px; }
+
+.perm-badge {
+  font-size: 0.65rem;
+  background: rgba($gold, 0.15);
+  color: $gold;
+  border: 1px solid rgba($gold, 0.3);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.queue-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
 
 .btn-approve {
-  width: 26px; height: 26px;
+  width: 28px; height: 28px;
   border-radius: 50%;
-  background: $green; color: $white;
-  border: none; font-size: 0.8rem;
+  background: rgba($green, 0.2);
+  color: $green;
+  border: 1px solid rgba($green, 0.5);
+  font-size: 0.8rem;
   cursor: pointer;
-  &:hover { background: darken($green, 6%); }
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  &:hover { background: $green; color: $white; }
 }
 
 .btn-deny {
-  width: 26px; height: 26px;
+  width: 28px; height: 28px;
   border-radius: 50%;
-  background: #450a0a; color: #f87171;
-  border: 1px solid #f87171; font-size: 0.8rem;
+  background: rgba($live, 0.15);
+  color: #f87171;
+  border: 1px solid rgba($live, 0.4);
+  font-size: 0.8rem;
   cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
   &:hover { background: $live; color: $white; }
 }
 
-// Participants
-.participant-section { margin-bottom: 0.75rem; &:last-child { margin-bottom: 0; } }
-
-.section-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: $text-muted;
-  margin: 0 0 0.5rem;
-}
-
+// Participants list
 .participant-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
 
 .participant-item {
@@ -378,9 +695,9 @@ $green:      #238636;
 }
 
 .p-avatar {
-  width: 24px; height: 24px;
+  width: 26px; height: 26px;
   border-radius: 50%;
-  background: $accent;
+  background: rgba($accent, 0.3);
   color: $white;
   font-size: 0.7rem;
   font-weight: 700;
@@ -389,8 +706,7 @@ $green:      #238636;
   justify-content: center;
   flex-shrink: 0;
 
-  &.viewer { background: $surface2; color: $text-muted; }
-  &.mod    { background: $accent; }
+  &.mod { background: $accent; }
 }
 
 .p-name {
@@ -403,17 +719,3 @@ $green:      #238636;
 }
 
 .p-muted { font-size: 0.75rem; color: $text-muted; }
-
-.btn-kick {
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: transparent;
-  border: 1px solid $border;
-  color: $text-muted;
-  font-size: 0.6rem;
-  cursor: pointer;
-  display: none;
-  &:hover { background: $live; border-color: $live; color: $white; }
-}
-
-.participant-item:hover .btn-kick { display: flex; align-items: center; justify-content: center; }

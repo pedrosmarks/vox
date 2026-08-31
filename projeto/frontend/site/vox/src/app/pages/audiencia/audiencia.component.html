@@ -8,71 +8,69 @@
       <p class="page-subtitle">Participe das discussões públicas da sua cidade em tempo real.</p>
     </div>
     <button *ngIf="isModerator" class="btn-create" (click)="showCreateForm = !showCreateForm">
-      {{ showCreateForm ? '✕ Cancelar' : '+ Nova Audiência' }}
+      {{ showCreateForm ? '✕ Cancelar' : '+ Nova Sala' }}
     </button>
   </div>
 
   <!-- Formulário de criação (moderador) -->
   <div *ngIf="showCreateForm" class="create-form-card">
-    <h3 class="form-title">Nova Audiência Pública</h3>
+    <h3 class="form-title">Nova Sala de Audiência</h3>
+    <div *ngIf="createError" class="alert alert-error">{{ createError }}</div>
     <div class="form-grid">
       <div class="form-group full">
-        <label class="form-label">Título *</label>
-        <input type="text" class="form-input" [(ngModel)]="novaAudiencia.titulo" placeholder="Ex: Audiência — Projeto de Lei nº 12/2026" />
+        <label class="form-label">Nome *</label>
+        <input type="text" class="form-input" [(ngModel)]="novaSala.name" placeholder="Ex: Audiência Pública 001" [disabled]="isCreating" />
       </div>
       <div class="form-group full">
         <label class="form-label">Descrição</label>
-        <textarea class="form-textarea" [(ngModel)]="novaAudiencia.descricao" rows="3" placeholder="Descreva a pauta da audiência..."></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Data *</label>
-        <input type="date" class="form-input" [(ngModel)]="novaAudiencia.dataInicio" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Horário *</label>
-        <input type="time" class="form-input" [(ngModel)]="novaAudiencia.horaInicio" />
-      </div>
-      <div class="form-group full">
-        <label class="form-label">Projeto relacionado (opcional)</label>
-        <input type="text" class="form-input" [(ngModel)]="novaAudiencia.projetoRelacionado" placeholder="Ex: Construção de Ciclovia Central" />
+        <textarea class="form-textarea" [(ngModel)]="novaSala.description" rows="3" placeholder="Descreva a pauta da audiência..." [disabled]="isCreating"></textarea>
       </div>
     </div>
     <div class="form-actions">
-      <button class="btn-submit" (click)="criarAudiencia()">Criar Audiência</button>
+      <button class="btn-submit" (click)="criarSala()" [disabled]="isCreating">
+        {{ isCreating ? 'Criando...' : 'Criar Sala' }}
+      </button>
     </div>
   </div>
 
-  <!-- Lista de audiências -->
-  <div class="cards-grid">
-    <div *ngFor="let a of audiencias" class="audiencia-card" [ngClass]="'card-' + a.status">
+  <div *ngIf="isLoading" class="state-message">
+    <div class="spinner"></div>
+    <p>Carregando salas de audiência...</p>
+  </div>
+
+  <div *ngIf="!isLoading && loadError" class="state-message error">{{ loadError }}</div>
+
+  <div *ngIf="!isLoading && !loadError && salas.length === 0" class="state-message">
+    <p>Nenhuma sala de audiência disponível no momento.</p>
+  </div>
+
+  <!-- Lista de salas -->
+  <div class="cards-grid" *ngIf="!isLoading">
+    <div *ngFor="let s of salas" class="audiencia-card" [ngClass]="s.status === 'OPEN' ? 'card-ao_vivo' : 'card-encerrada'">
 
       <div class="card-top">
-        <span class="status-badge" [ngClass]="'badge-' + a.status">{{ getStatusLabel(a.status) }}</span>
-        <span *ngIf="a.participantes > 0" class="participants-count">👥 {{ a.participantes }}</span>
+        <span class="status-badge" [ngClass]="s.status === 'OPEN' ? 'badge-ao_vivo' : 'badge-encerrada'">{{ getStatusLabel(s.status) }}</span>
       </div>
 
-      <h2 class="card-title">{{ a.titulo }}</h2>
-      <p class="card-description">{{ a.descricao }}</p>
-
-      <div class="card-meta">
-        <span>🕐 {{ formatDate(a.dataInicio) }}</span>
-        <span *ngIf="a.projetoRelacionado">📋 {{ a.projetoRelacionado }}</span>
-        <span>👤 {{ a.criadoPor }}</span>
-      </div>
+      <h2 class="card-title">{{ s.name }}</h2>
+      <p class="card-description">{{ s.description }}</p>
 
       <div class="card-footer">
         <button
-          *ngIf="a.status !== 'encerrada'"
-          class="btn-enter"
-          [class.btn-live]="a.status === 'ao_vivo'"
-          (click)="entrar(a.id)"
-        >
-          {{ a.status === 'ao_vivo' ? '🔴 Entrar ao vivo' : '📅 Ver detalhes' }}
-        </button>
-        <span *ngIf="a.status === 'encerrada'" class="encerrada-label">Audiência encerrada</span>
+          *ngIf="s.status === 'OPEN'"
+          class="btn-enter btn-live"
+          (click)="entrar(s.id)"
+        >🔴 Entrar na sala</button>
+        <span *ngIf="s.status !== 'OPEN'" class="encerrada-label">Sala encerrada</span>
+        <button
+          *ngIf="isModerator && s.status === 'OPEN'"
+          class="btn-reject-inline"
+          (click)="encerrarSala(s, $event)"
+        >Encerrar</button>
       </div>
 
     </div>
   </div>
 
 </main>
+

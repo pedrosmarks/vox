@@ -28,7 +28,11 @@ const _projectStatuses = [
 /// de projetos), equivalente a moderacao.component.ts. Acesso restrito a
 /// MODERATOR/ADMINISTRATOR.
 class ModeracaoScreen extends StatefulWidget {
-  const ModeracaoScreen({super.key});
+  /// Projeto sugerido a ser pré-preenchido na aba "Novo Projeto", usado
+  /// quando o moderador clica em "Tornar Oficial" na tela de detalhes.
+  final Project? initialPromote;
+
+  const ModeracaoScreen({super.key, this.initialPromote});
 
   @override
   State<ModeracaoScreen> createState() => _ModeracaoScreenState();
@@ -77,6 +81,11 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
     _tabController = TabController(length: 2, vsync: this);
     _loadPending();
     _loadCategories();
+    if (widget.initialPromote != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _promoteToOfficial(widget.initialPromote!);
+      });
+    }
   }
 
   @override

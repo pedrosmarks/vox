@@ -18,7 +18,31 @@ export interface UserProfile {
   birthDate?: string;
 }
 
-export type UserRole = 'ADMINISTRATOR' | 'MODERATOR' | 'CITIZEN';
+export type UserRole = 'ADMINISTRATOR' | 'MODERATOR' | 'COUNCILOR' | 'CITIZEN';
+
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  cpf: string;
+  phone?: string;
+  password: string;
+  birthDate?: string;
+  role: UserRole;
+  municipalityId: number;
+  acceptedTerms?: boolean;
+  acceptedPrivacyPolicy?: boolean;
+}
+
+export interface LogEntry {
+  id: number;
+  action: string;
+  userId?: number;
+  userName?: string;
+  entity?: string;
+  entityId?: number;
+  message?: string;
+  createdAt: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -147,5 +171,37 @@ export class AuthService {
 
   getCouncilorById(id: number): Observable<UserProfile> {
     return this.http.get<UserProfile>(`${this.API_URL}/api/users/councilors/${id}`);
+  }
+
+  // ── Administração de usuários (somente ADMINISTRATOR) ──────
+
+  getAllUsers(): Observable<UserProfile[]> {
+    return this.http.get<UserProfile[]>(`${this.API_URL}/api/user`);
+  }
+
+  getUsersByRole(role: UserRole): Observable<UserProfile[]> {
+    return this.http.get<UserProfile[]>(`${this.API_URL}/api/user/role/${role}`);
+  }
+
+  getUserById(id: number): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.API_URL}/api/user/${id}`);
+  }
+
+  createUser(payload: CreateUserPayload): Observable<UserProfile> {
+    return this.http.post<UserProfile>(`${this.API_URL}/api/user`, payload);
+  }
+
+  updateUser(id: number, payload: Partial<CreateUserPayload>): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, payload);
+  }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/api/user/${id}`);
+  }
+
+  // ── Logs (somente ADMINISTRATOR) ────────────────────────────
+
+  getLogs(): Observable<LogEntry[]> {
+    return this.http.get<LogEntry[]>(`${this.API_URL}/api/logs`);
   }
 }

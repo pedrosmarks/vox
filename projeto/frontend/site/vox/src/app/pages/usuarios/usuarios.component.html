@@ -1,0 +1,96 @@
+<app-navbar></app-navbar>
+
+<main class="moderacao-page usuarios-page">
+  <div class="page-header">
+    <h1 class="page-title">Gerenciar Usuários</h1>
+    <p class="page-subtitle">Crie, edite e remova moderadores e vereadores do município.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'MODERATOR'" (click)="selectTab('MODERATOR')">
+      Moderadores
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'COUNCILOR'" (click)="selectTab('COUNCILOR')">
+      Vereadores
+    </button>
+  </div>
+
+  <div class="tab-content">
+
+    <div class="list-header">
+      <button class="btn-promote" (click)="openCreateForm()">+ Novo {{ roleLabel }}</button>
+    </div>
+
+    <div *ngIf="showForm" class="form-card">
+      <h2 class="section-title">{{ editingId ? 'Editar' : 'Novo' }} {{ roleLabel }}</h2>
+
+      <div *ngIf="submitError" class="alert alert-error">{{ submitError }}</div>
+
+      <div class="form-row">
+        <div class="form-group full">
+          <label class="form-label">Nome <span class="required">*</span></label>
+          <input type="text" class="form-input" [(ngModel)]="form.name" [disabled]="isSubmitting" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">E-mail <span class="required">*</span></label>
+          <input type="email" class="form-input" [(ngModel)]="form.email" [disabled]="isSubmitting" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">CPF <span class="required">*</span></label>
+          <input type="text" class="form-input" [(ngModel)]="form.cpf" [disabled]="isSubmitting" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Telefone</label>
+          <input type="text" class="form-input" [(ngModel)]="form.phone" [disabled]="isSubmitting" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data de nascimento</label>
+          <input type="date" class="form-input" [(ngModel)]="form.birthDate" [disabled]="isSubmitting" />
+        </div>
+      </div>
+      <div class="form-row" *ngIf="!editingId">
+        <div class="form-group full">
+          <label class="form-label">Senha <span class="required">*</span></label>
+          <input type="password" class="form-input" [(ngModel)]="form.password" [disabled]="isSubmitting" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-reject" (click)="cancelForm()" [disabled]="isSubmitting">Cancelar</button>
+        <button class="btn-submit" (click)="saveUser()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="state-message">
+      <div class="spinner"></div>
+      <p>Carregando usuários...</p>
+    </div>
+
+    <div *ngIf="!isLoading && loadError" class="state-message error">{{ loadError }}</div>
+
+    <div *ngIf="!isLoading && !loadError && users.length === 0" class="state-message">
+      <p>Nenhum {{ roleLabel.toLowerCase() }} cadastrado.</p>
+    </div>
+
+    <div *ngFor="let u of users" class="pending-card">
+      <div class="pending-card-body">
+        <h2 class="pending-title">{{ u.name }}</h2>
+        <div class="pending-meta">
+          <span>{{ u.email }}</span>
+          <span *ngIf="u.phone">📞 {{ u.phone }}</span>
+        </div>
+      </div>
+      <div class="pending-card-actions">
+        <button class="btn-promote" (click)="openEditForm(u)">✎ Editar</button>
+        <button class="btn-reject" (click)="deleteUser(u)">✕ Remover</button>
+      </div>
+    </div>
+
+  </div>
+</main>

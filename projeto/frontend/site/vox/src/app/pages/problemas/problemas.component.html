@@ -1,0 +1,39 @@
+<app-navbar></app-navbar>
+
+<main class="relatar-page">
+  <div class="page-header">
+    <h1 class="page-title">Problemas Relatados</h1>
+    <p class="page-subtitle">Acompanhe as ocorrências relatadas pelos cidadãos do seu município.</p>
+  </div>
+
+  <div class="page-body">
+    <div class="issues-card full-width">
+      <h2 class="section-title">Ocorrências do Município</h2>
+
+      <div *ngIf="isLoading" class="state-message">
+        <div class="spinner"></div>
+        <p>Carregando problemas relatados...</p>
+      </div>
+
+      <div *ngIf="!isLoading && loadError" class="state-message error">
+        {{ loadError }}
+      </div>
+
+      <div *ngIf="!isLoading && !loadError && issues.length === 0" class="state-message">
+        Nenhum problema relatado até o momento.
+      </div>
+
+      <ul *ngIf="!isLoading && issues.length > 0" class="issues-list">
+        <li *ngFor="let i of issues" class="issue-item">
+          <div class="issue-meta">
+            <span class="issue-title">{{ i.title }}</span>
+            <span class="issue-date">{{ formatDate(i.createdAt) }}</span>
+          </div>
+          <span class="badge-status" [ngClass]="getStatusClass(i.status)">
+            {{ getStatusLabel(i.status) }}
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</main>
