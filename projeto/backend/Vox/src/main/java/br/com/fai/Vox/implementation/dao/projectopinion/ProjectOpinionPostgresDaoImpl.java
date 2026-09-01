@@ -104,6 +104,7 @@ public class ProjectOpinionPostgresDaoImpl implements ProjectOpinionDao {
             }
             rs.close();
             ps.close();
+            result.put("TOTAL", result.get("APPROVE") + result.get("DISAPPROVE") + result.get("NEUTRAL"));
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);

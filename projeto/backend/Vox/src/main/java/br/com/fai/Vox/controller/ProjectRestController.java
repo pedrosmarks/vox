@@ -4,14 +4,17 @@ import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.ProjectCouncilor;
 import br.com.fai.Vox.domain.ProjectImage;
 import br.com.fai.Vox.domain.ProjectOpinion;
+import br.com.fai.Vox.domain.ProjectSignature;
 import br.com.fai.Vox.domain.ProjectStatusHistory;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
 import br.com.fai.Vox.domain.dto.ProjectOpinionDto;
+import br.com.fai.Vox.domain.dto.ProjectOpinionStatsDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
 import br.com.fai.Vox.port.service.project.ProjectService;
 import br.com.fai.Vox.port.service.projectcouncilor.ProjectCouncilorService;
 import br.com.fai.Vox.port.service.projectimage.ProjectImageService;
 import br.com.fai.Vox.port.service.projectopinion.ProjectOpinionService;
+import br.com.fai.Vox.port.service.projectsignature.ProjectSignatureService;
 import br.com.fai.Vox.port.service.projectstatushistory.ProjectStatusHistoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +37,7 @@ public class ProjectRestController {
     private final ProjectOpinionService projectOpinionService;
     private final ProjectCouncilorService projectCouncilorService;
     private final ProjectStatusHistoryService projectStatusHistoryService;
+    private final ProjectSignatureService projectSignatureService;
     private final AuthenticatedUserHelper authHelper;
 
     public ProjectRestController(ProjectService projectService,
@@ -41,12 +45,14 @@ public class ProjectRestController {
                                   ProjectOpinionService projectOpinionService,
                                   ProjectCouncilorService projectCouncilorService,
                                   ProjectStatusHistoryService projectStatusHistoryService,
+                                  ProjectSignatureService projectSignatureService,
                                   AuthenticatedUserHelper authHelper) {
         this.projectService = projectService;
         this.projectImageService = projectImageService;
         this.projectOpinionService = projectOpinionService;
         this.projectCouncilorService = projectCouncilorService;
         this.projectStatusHistoryService = projectStatusHistoryService;
+        this.projectSignatureService = projectSignatureService;
         this.authHelper = authHelper;
     }
 
@@ -165,8 +171,8 @@ public class ProjectRestController {
     }
 
     @GetMapping("/{id}/opinion/stats")
-    public ResponseEntity<Map<String, Integer>> getOpinionStats(@PathVariable final int id) {
-        return ResponseEntity.ok(projectOpinionService.countByProjectId(id));
+    public ResponseEntity<ProjectOpinionStatsDto> getOpinionStats(@PathVariable final int id) {
+        return ResponseEntity.ok(projectOpinionService.getStats(id));
     }
 
     @GetMapping("/{id}/opinion/me")
@@ -196,5 +202,40 @@ public class ProjectRestController {
     @GetMapping("/{projectId}/councilor")
     public ResponseEntity<List<ProjectCouncilor>> getCouncilors(@PathVariable final int projectId) {
         return ResponseEntity.ok(projectCouncilorService.findByProjectId(projectId));
+    }
+
+    // --- ASSINATURAS (apenas projetos comunitários) ---
+
+    @PostMapping("/{id}/signature")
+    public ResponseEntity<Void> sign(@PathVariable final int id, HttpServletRequest request) {
+        int userId = authHelper.getUserId(request);
+        projectSignatureService.sign(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/signature")
+    public ResponseEntity<Void> unsign(@PathVariable final int id, HttpServletRequest request) {
+        int userId = authHelper.getUserId(request);
+        projectSignatureService.unsign(id, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/signature/count")
+    public ResponseEntity<Map<String, Long>> getSignatureCount(@PathVariable final int id) {
+        long total = projectSignatureService.countByProjectId(id);
+        return ResponseEntity.ok(Map.of("total", total));
+    }
+
+    @GetMapping("/{id}/signature/me")
+    public ResponseEntity<Map<String, Boolean>> getMySignature(@PathVariable final int id,
+                                                                HttpServletRequest request) {
+        int userId = authHelper.getUserId(request);
+        boolean signed = projectSignatureService.hasSignature(id, userId);
+        return ResponseEntity.ok(Map.of("signed", signed));
+    }
+
+    @GetMapping("/{id}/signature")
+    public ResponseEntity<List<ProjectSignature>> getSignatures(@PathVariable final int id) {
+        return ResponseEntity.ok(projectSignatureService.findByProjectId(id));
     }
 }

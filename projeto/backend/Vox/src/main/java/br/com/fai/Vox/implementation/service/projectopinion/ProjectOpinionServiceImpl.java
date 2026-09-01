@@ -1,6 +1,7 @@
 package br.com.fai.Vox.implementation.service.projectopinion;
 
 import br.com.fai.Vox.domain.ProjectOpinion;
+import br.com.fai.Vox.domain.dto.ProjectOpinionStatsDto;
 import br.com.fai.Vox.port.dao.projectopinion.ProjectOpinionDao;
 import br.com.fai.Vox.port.service.projectopinion.ProjectOpinionService;
 import org.springframework.stereotype.Service;
@@ -36,8 +37,19 @@ public class ProjectOpinionServiceImpl implements ProjectOpinionService {
 
     @Override
     public Map<String, Integer> countByProjectId(int projectId) {
-        if (projectId <= 0) return Map.of("APPROVE", 0, "DISAPPROVE", 0, "NEUTRAL", 0);
+        if (projectId <= 0) return Map.of("APPROVE", 0, "DISAPPROVE", 0, "NEUTRAL", 0, "TOTAL", 0);
         return projectOpinionDao.countByProjectId(projectId);
+    }
+
+    @Override
+    public ProjectOpinionStatsDto getStats(int projectId) {
+        if (projectId <= 0) return new ProjectOpinionStatsDto(0, 0, 0);
+        Map<String, Integer> counts = projectOpinionDao.countByProjectId(projectId);
+        return new ProjectOpinionStatsDto(
+                counts.getOrDefault("APPROVE", 0),
+                counts.getOrDefault("DISAPPROVE", 0),
+                counts.getOrDefault("NEUTRAL", 0)
+        );
     }
 
     @Override
