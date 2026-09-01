@@ -118,6 +118,12 @@
             <artifactId>livekit-server</artifactId>
             <version>0.15.0</version>
         </dependency>
+
+        <!-- E-mail -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
     </dependencies>
 
 	<build>
