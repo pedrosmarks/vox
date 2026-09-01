@@ -1,0 +1,5 @@
+- API para poder atualziar somente o status do projeto/sugestão.
+- Liberar a rota user para o cidadão.
+- Dashboard.
+- Limitar o usuário enviar no máximo 3 projetos/sugestão separado.
+- Logs no projeto.
