@@ -17,6 +17,8 @@ import br.com.fai.Vox.implementation.dao.projectimage.ProjectImagePostgresDaoImp
 import br.com.fai.Vox.implementation.dao.projectmoderation.ProjectModerationPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.projectopinion.ProjectOpinionPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.projectstatushistory.ProjectStatusHistoryPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.projectsignature.ProjectSignaturePostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.usersettings.UserSettingsPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.roomparticipant.RoomParticipantPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.subscription.SubscriptionPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.user.UserPostgresDaoImpl;
@@ -38,6 +40,8 @@ import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
 import br.com.fai.Vox.port.dao.projectmoderation.ProjectModerationDao;
 import br.com.fai.Vox.port.dao.projectopinion.ProjectOpinionDao;
 import br.com.fai.Vox.port.dao.projectstatushistory.ProjectStatusHistoryDao;
+import br.com.fai.Vox.port.dao.projectsignature.ProjectSignatureDao;
+import br.com.fai.Vox.port.dao.usersettings.UserSettingsDao;
 import br.com.fai.Vox.port.dao.roomparticipant.RoomParticipantDao;
 import br.com.fai.Vox.port.dao.subscription.SubscriptionDao;
 import br.com.fai.Vox.port.dao.user.UserDao;
@@ -207,6 +211,16 @@ public class AppConfiguration {
     @Bean
     public RoomParticipantDao getRoomParticipantDao(final Connection connection) {
         return new RoomParticipantPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public ProjectSignatureDao getProjectSignatureDao(final Connection connection) {
+        return new ProjectSignaturePostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public UserSettingsDao getUserSettingsDao(final Connection connection) {
+        return new UserSettingsPostgresDaoImpl(connection);
     }
 
     // --- Authentication ---
