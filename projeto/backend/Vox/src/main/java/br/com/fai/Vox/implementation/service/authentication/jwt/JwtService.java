@@ -3,11 +3,12 @@ package br.com.fai.Vox.implementation.service.authentication.jwt;
 import br.com.fai.Vox.domain.UserModel;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,9 @@ import java.util.function.Function;
 @Component
 public class JwtService {
 
-    private final String secret = "XUFAE3FQG1RLBlgQ93fDSUlj4HfbKi4a1kFl1gDloOg=";
+    private final SecretKey secretKey = Keys.hmacShaKeyFor(
+            java.util.Base64.getDecoder().decode("XUFAE3FQG1RLBlgQ93fDSUlj4HfbKi4a1kFl1gDloOg=")
+    );
 
     public String getEmailFromToken(String token){
         return getClaimFromToken(token, Claims::getSubject);
@@ -33,7 +36,7 @@ public class JwtService {
     }
 
     public Claims getAllClaimsFromToken(String token){
-        return Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
     }
 
     public boolean tokenExpired(String token){
@@ -70,6 +73,6 @@ public class JwtService {
         return Jwts.builder().setClaims(claims).setSubject(subjct).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(
                         new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 10)
-                ).signWith(SignatureAlgorithm.HS256, secret).compact();
+                ).signWith(secretKey).compact();
     }
 }

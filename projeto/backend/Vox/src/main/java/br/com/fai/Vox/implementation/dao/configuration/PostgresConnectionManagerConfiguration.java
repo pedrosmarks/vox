@@ -77,13 +77,19 @@ public class PostgresConnectionManagerConfiguration {
 
     @Bean
     @DependsOn("dataSource")
-    public Connection getConnection() throws SQLException {
+    public HikariDataSource hikariDataSource() {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(databaseUrl);
         hikariConfig.setUsername(databaseUsername);
         hikariConfig.setPassword(databasePassword);
 
-        return new HikariDataSource(hikariConfig).getConnection();
+        return new HikariDataSource(hikariConfig);
+    }
+
+    @Bean
+    @DependsOn("dataSource")
+    public Connection getConnection() throws SQLException {
+        return hikariDataSource().getConnection();
     }
 
     @Bean
