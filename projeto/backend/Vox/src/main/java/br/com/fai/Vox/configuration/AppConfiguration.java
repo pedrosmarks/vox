@@ -1,7 +1,10 @@
 package br.com.fai.Vox.configuration;
 
 import br.com.fai.Vox.implementation.service.drive.CloudinaryServiceImpl;
+import br.com.fai.Vox.implementation.service.email.EmailServiceImpl;
 import br.com.fai.Vox.port.service.drive.CloudinaryService;
+import br.com.fai.Vox.port.service.email.EmailService;
+import org.springframework.mail.javamail.JavaMailSender;
 import br.com.fai.Vox.implementation.dao.category.CategoryPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.conferenceroom.ConferenceRoomPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.issueimage.IssueImagePostgresDaoImpl;
@@ -109,6 +112,12 @@ public class AppConfiguration {
     @Value("${livekit.url}")
     private String livekitUrl;
 
+    @Value("${app.mail.from}")
+    private String mailFrom;
+
+    @Value("${app.frontend.reset-password-url}")
+    private String frontendResetPasswordUrl;
+
     @Bean
     public CloudinaryService getGoogleDriveService() {
         return new CloudinaryServiceImpl(cloudinaryCloudName, cloudinaryApiKey, cloudinaryApiSecret);
@@ -117,6 +126,11 @@ public class AppConfiguration {
     @Bean
     public LiveKitService getLiveKitService() {
         return new LiveKitServiceImpl(livekitApiKey, livekitApiSecret, livekitUrl);
+    }
+
+    @Bean
+    public EmailService getEmailService(JavaMailSender mailSender) {
+        return new EmailServiceImpl(mailSender, frontendResetPasswordUrl, mailFrom);
     }
 
     // --- Existing DAOs ---

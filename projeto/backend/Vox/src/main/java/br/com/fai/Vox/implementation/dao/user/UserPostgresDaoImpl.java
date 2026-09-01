@@ -218,15 +218,5 @@ public class UserPostgresDaoImpl implements UserDao {
         return user;
     }
 
-    // Criar o fluxo para poder resetar a senha do usuário
-
-    @Override
-    public Boolean forgotPassword(String email) {
-        return null;
-    }
-
-    @Override
-    public Boolean resetPassword(String token, String newPassword) {
-        return null;
-    }
 }
+
