@@ -1,5 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+DROP TABLE IF EXISTS user_settings CASCADE;
+DROP TABLE IF EXISTS project_signature CASCADE;
 DROP TABLE IF EXISTS notification CASCADE;
 DROP TABLE IF EXISTS project_status_history CASCADE;
 DROP TABLE IF EXISTS project_moderation CASCADE;
@@ -30,6 +32,7 @@ DROP TYPE IF EXISTS vote_type CASCADE;
 DROP TYPE IF EXISTS subscription_type CASCADE;
 DROP TYPE IF EXISTS room_status CASCADE;
 DROP TYPE IF EXISTS participant_status CASCADE;
+DROP TYPE IF EXISTS accessibility_mode CASCADE;
 
 CREATE TYPE user_role AS ENUM (
     'CITIZEN',
@@ -103,6 +106,15 @@ CREATE TYPE subscription_type AS ENUM (
     'ISSUE',
     'CATEGORY',
     'COUNCILOR'
+);
+
+CREATE TYPE accessibility_mode AS ENUM (
+    'NONE',
+    'DARK',
+    'HIGH_CONTRAST',
+    'PROTANOPIA',
+    'DEUTERANOPIA',
+    'TRITANOPIA'
 );
 
 CREATE TABLE municipality (
@@ -336,3 +348,30 @@ CREATE TABLE room_participant (
 --CREATE INDEX idx_conference_room_moderator ON conference_room(moderator_id);
 --CREATE INDEX idx_room_participant_room ON room_participant(room_id);
 --CREATE INDEX idx_room_participant_user ON room_participant(user_id);
+
+-- =============================================
+-- Assinaturas de projetos comunitários
+-- =============================================
+
+CREATE TABLE project_signature (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES project(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(project_id, user_id)
+);
+
+-- =============================================
+-- Personalização / Acessibilidade do usuário
+-- =============================================
+
+CREATE TABLE user_settings (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE UNIQUE,
+    font_size INTEGER NOT NULL DEFAULT 16
+        CHECK (font_size BETWEEN 15 AND 30),
+    accessibility_mode accessibility_mode NOT NULL DEFAULT 'NONE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
