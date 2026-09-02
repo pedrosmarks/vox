@@ -82,9 +82,9 @@ public class IssueReportRestController {
         return entity == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(entity);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> update(@PathVariable final int id,
-                                        @RequestBody final IssueReport data,
+                                        @ModelAttribute final IssueReport data,
                                         HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         issueReportService.update(id, data, userId);

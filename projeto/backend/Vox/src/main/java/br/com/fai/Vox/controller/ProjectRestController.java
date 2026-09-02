@@ -95,9 +95,9 @@ public class ProjectRestController {
         return entity == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(entity);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> update(@PathVariable final int id,
-                                        @RequestBody final Project data,
+                                        @ModelAttribute final Project data,
                                         HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         projectService.update(id, data, userId);
