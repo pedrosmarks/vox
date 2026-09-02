@@ -13,6 +13,7 @@ public interface IssueReportDao {
     List<IssueReport> findAll();
     List<IssueReport> findByMunicipalityId(int municipalityId);
     List<IssueReport> findByAuthorId(int authorId);
+    long countCreatedInLastWeek(int authorId);
     List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus);
     List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus, int limit, int offset);
     long countByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus);

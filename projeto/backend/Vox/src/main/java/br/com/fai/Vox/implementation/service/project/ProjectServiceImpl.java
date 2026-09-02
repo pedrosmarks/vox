@@ -35,9 +35,16 @@ public class ProjectServiceImpl implements ProjectService {
         this.projectStatusHistoryService = projectStatusHistoryService;
     }
 
+    private static final int CITIZEN_WEEKLY_LIMIT = 3;
+
     @Override
     public int create(CreateProjectDto dto) {
         if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) return -1;
+
+        final int authorId = dto.getAuthorId() != null ? dto.getAuthorId() : 0;
+        if (authorId > 0) {
+            validateCitizenWeeklyCreateLimit(authorId);
+        }
 
         final int projectId = projectDao.create(dto);
         logger.log(Level.INFO, "Projeto criado. ID: " + projectId);
@@ -58,6 +65,17 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         return projectId;
+    }
+
+    @Override
+    public void validateCitizenWeeklyCreateLimit(int authorId) {
+        if (authorId <= 0) return;
+
+        long createdThisWeek = projectDao.countCreatedInLastWeek(authorId);
+        if (createdThisWeek >= CITIZEN_WEEKLY_LIMIT) {
+            throw new IllegalArgumentException(
+                    "Você atingiu o limite de 3 projetos por semana. Aguarde até a próxima semana para criar mais.");
+        }
     }
 
     @Override

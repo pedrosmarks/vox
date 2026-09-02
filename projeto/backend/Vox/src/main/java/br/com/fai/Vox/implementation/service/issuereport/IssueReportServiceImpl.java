@@ -47,9 +47,16 @@ public class IssueReportServiceImpl implements IssueReportService {
         this.subscriptionService = subscriptionService;
     }
 
+    private static final int CITIZEN_WEEKLY_LIMIT = 3;
+
     @Override
     public int create(CreateIssueReportDto dto) {
         if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) return -1;
+
+        final int authorId = dto.getAuthorId() != null ? dto.getAuthorId() : 0;
+        if (authorId > 0) {
+            validateCitizenWeeklyCreateLimit(authorId);
+        }
 
         final int issueId = issueReportDao.create(dto);
         logger.log(Level.INFO, "IssueReport criada. ID: " + issueId);
@@ -69,6 +76,17 @@ public class IssueReportServiceImpl implements IssueReportService {
         }
 
         return issueId;
+    }
+
+    @Override
+    public void validateCitizenWeeklyCreateLimit(int authorId) {
+        if (authorId <= 0) return;
+
+        long createdThisWeek = issueReportDao.countCreatedInLastWeek(authorId);
+        if (createdThisWeek >= CITIZEN_WEEKLY_LIMIT) {
+            throw new IllegalArgumentException(
+                    "Você atingiu o limite de 3 sugestões por semana. Aguarde até a próxima semana para criar mais.");
+        }
     }
 
     @Override

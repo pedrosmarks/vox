@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface IssueReportService {
     int create(CreateIssueReportDto dto);
+    void validateCitizenWeeklyCreateLimit(int authorId);
     void delete(int id);
     IssueReport findByid(int id);
     List<IssueReport> findByMunicipalityId(int municipalityId);

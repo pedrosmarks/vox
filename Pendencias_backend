@@ -1,5 +1,6 @@
-- API para poder atualziar somente o status do projeto/sugestão.
-- Liberar a rota user para o cidadão.
+- API para poder atualizar somente o status do projeto/sugestão. OK
+- Liberar a rota user para o cidadão. OK
+- Mudar o put do project e de sugestão de json para form-data. OK
+- Limitar o usuário enviar no máximo 3 projetos/sugestão separado. OK
 - Dashboard.
-- Limitar o usuário enviar no máximo 3 projetos/sugestão separado.
 - Logs no projeto.

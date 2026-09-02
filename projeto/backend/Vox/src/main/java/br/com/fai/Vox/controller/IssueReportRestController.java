@@ -44,11 +44,16 @@ public class IssueReportRestController {
             MultipartHttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         int municipalityId = authHelper.getMunicipalityId(request);
+        String role = authHelper.getRole(request);
         data.setAuthorId(userId);
         data.setMunicipalityId(municipalityId);
 
         MultipartFile file = request.getFile("file");
         data.setFile(file);
+
+        if ("CITIZEN".equalsIgnoreCase(role)) {
+            issueReportService.validateCitizenWeeklyCreateLimit(userId);
+        }
 
         final int id = issueReportService.create(data);
         if (id < 0) return ResponseEntity.badRequest().build();

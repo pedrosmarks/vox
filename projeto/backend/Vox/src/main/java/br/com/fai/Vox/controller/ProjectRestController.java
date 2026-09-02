@@ -73,11 +73,16 @@ public class ProjectRestController {
             MultipartHttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         int municipalityId = authHelper.getMunicipalityId(request);
+        String role = authHelper.getRole(request);
         data.setAuthorId(userId);
         data.setMunicipalityId(municipalityId);
 
         MultipartFile file = request.getFile("file");
         data.setFile(file);
+
+        if ("CITIZEN".equalsIgnoreCase(role)) {
+            projectService.validateCitizenWeeklyCreateLimit(userId);
+        }
 
         final int id = projectService.create(data);
 
