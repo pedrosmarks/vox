@@ -64,8 +64,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void update(int id, UserModel entity) {
-        if (id != entity.getId()) return;
+        if (id <= 0 || entity == null) return;
         if (findByid(id) == null) return;
+
+        // O ID da URL define o usuário atualizado; o body não precisa informá-lo.
+        entity.setId(id);
         userDao.update(id, entity);
     }
 
