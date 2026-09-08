@@ -73,7 +73,7 @@ CREATE TYPE moderation_status AS ENUM (
 CREATE TYPE issue_status AS ENUM (
     'OPEN',
     'UNDER_REVIEW',
-    'IN_PROGRESS'
+    'IN_PROGRESS',
     'FORWARDED',
     'RESOLVED',
     'REJECTED',
@@ -320,6 +320,13 @@ CREATE TYPE participant_status AS ENUM (
     'REMOVED'
 );
 
+CREATE TYPE speech_request_status AS ENUM (
+    'NOT_REQUESTED',
+    'PENDING',
+    'APPROVED',
+    'REJECTED'
+);
+
 CREATE TABLE conference_room (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -336,10 +343,13 @@ CREATE TABLE room_participant (
     room_id INTEGER NOT NULL REFERENCES conference_room(id) ON DELETE CASCADE,
     user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
     status participant_status NOT NULL DEFAULT 'PENDING',
+    speech_request_status speech_request_status NOT NULL DEFAULT 'NOT_REQUESTED',
     can_publish_audio BOOLEAN NOT NULL DEFAULT FALSE,
     can_publish_video BOOLEAN NOT NULL DEFAULT FALSE,
     requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     decided_at TIMESTAMP,
+    speech_requested_at TIMESTAMP,
+    speech_decided_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -1,7 +1,5 @@
 package br.com.fai.Vox.service;
 
-import br.com.fai.Vox.domain.Project;
-import br.com.fai.Vox.domain.dto.CreateProjectDto;
 import br.com.fai.Vox.implementation.service.project.ProjectServiceImpl;
 import br.com.fai.Vox.implementation.service.issuereport.IssueReportServiceImpl;
 import br.com.fai.Vox.port.dao.issueimage.IssueImageDao;

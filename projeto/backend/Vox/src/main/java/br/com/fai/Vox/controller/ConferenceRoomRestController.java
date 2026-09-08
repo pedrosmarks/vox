@@ -140,6 +140,43 @@ public class ConferenceRoomRestController {
         return ResponseEntity.ok().build();
     }
 
+    // --- Solicitações para falar ---
+
+    @PostMapping("/{id}/solicitacoes-fala")
+    public ResponseEntity<Void> requestToSpeak(@PathVariable final int id,
+                                                HttpServletRequest request) {
+        conferenceRoomService.requestToSpeak(id, authHelper.getUserId(request));
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/solicitacoes-fala")
+    public ResponseEntity<List<RoomParticipant>> findSpeechRequests(@PathVariable final int id,
+                                                                     HttpServletRequest request) {
+        int moderatorId = authHelper.getUserId(request);
+        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        return ResponseEntity.ok(conferenceRoomService.findSpeechRequests(id));
+    }
+
+    @PostMapping("/{id}/solicitacoes-fala/{participanteId}/aprovar")
+    public ResponseEntity<Void> approveSpeech(@PathVariable final int id,
+                                               @PathVariable final int participanteId,
+                                               HttpServletRequest request) {
+        int moderatorId = authHelper.getUserId(request);
+        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        conferenceRoomService.approveSpeech(id, participanteId, moderatorId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/solicitacoes-fala/{participanteId}/rejeitar")
+    public ResponseEntity<Void> rejectSpeech(@PathVariable final int id,
+                                              @PathVariable final int participanteId,
+                                              HttpServletRequest request) {
+        int moderatorId = authHelper.getUserId(request);
+        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        conferenceRoomService.rejectSpeech(id, participanteId, moderatorId);
+        return ResponseEntity.ok().build();
+    }
+
     // --- Controle de microfone ---
 
     /**
