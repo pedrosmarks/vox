@@ -241,6 +241,23 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     }
 
     @Override
+    public boolean assignCouncilor(int issueId, int councilorId, int municipalityId) {
+        final String sql = "UPDATE issue_report SET councilor_id = ?, updated_at = CURRENT_TIMESTAMP " +
+                "WHERE id = ? AND municipality_id = ? AND councilor_id IS NULL";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, councilorId);
+            ps.setInt(2, issueId);
+            ps.setInt(3, municipalityId);
+            boolean assigned = ps.executeUpdate() == 1;
+            ps.close();
+            return assigned;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void updateModerationStatus(int id, ModerationStatus status) {
         final String sql = "UPDATE issue_report SET moderation_status = CAST(? AS moderation_status), updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {

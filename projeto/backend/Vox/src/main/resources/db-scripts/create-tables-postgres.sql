@@ -165,7 +165,7 @@ CREATE TABLE issue_report (
     id SERIAL PRIMARY KEY,
     municipality_id INTEGER NOT NULL REFERENCES municipality(id),
     author_id INTEGER NOT NULL REFERENCES user_model(id),
-    councilor_id INTEGER NOT NULL REFERENCES user_model(id),
+    councilor_id INTEGER REFERENCES user_model(id),
     title VARCHAR(255) NOT NULL,
     description TEXT,
     neighborhood VARCHAR(255),

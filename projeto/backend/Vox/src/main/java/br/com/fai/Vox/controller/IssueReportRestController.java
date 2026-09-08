@@ -87,6 +87,20 @@ public class IssueReportRestController {
         return entity == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(entity);
     }
 
+    @PostMapping("/{id}/associar")
+    public ResponseEntity<Void> assignToCouncilor(@PathVariable final int id,
+                                                    HttpServletRequest request) {
+        if (!"COUNCILOR".equalsIgnoreCase(authHelper.getRole(request))) {
+            throw new SecurityException("Acesso negado: apenas vereadores podem se associar a denúncias");
+        }
+
+        issueReportService.assignCouncilor(
+                id,
+                authHelper.getUserId(request),
+                authHelper.getMunicipalityId(request));
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> update(@PathVariable final int id,
                                         @ModelAttribute final IssueReport data,

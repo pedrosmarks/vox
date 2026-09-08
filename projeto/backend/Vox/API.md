@@ -625,7 +625,7 @@ Content-Type: multipart/form-data
 **Form fields:**
 | Campo | Tipo | Obrigatório |
 |---|---|---|
-| `councilorId` | number | ✅ |
+| `councilorId` | number | ❌ |
 | `title` | string | ✅ |
 | `description` | string | ✅ |
 | `neighborhood` | string | ❌ |
@@ -636,6 +636,21 @@ Content-Type: multipart/form-data
 | `file` | imagem | ❌ |
 
 **Resposta `201`**
+
+---
+
+### Associar ocorrência ao vereador autenticado
+> 🔒 Acesso exclusivo para usuários com role `COUNCILOR`. O vereador só pode
+> associar ocorrências do próprio município que ainda não possuem vereador.
+
+```
+POST /api/issues/{id}/associar
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+Se a ocorrência já possuir vereador, não existir ou pertencer a outro município,
+a API retorna `400`.
 
 ---
 
