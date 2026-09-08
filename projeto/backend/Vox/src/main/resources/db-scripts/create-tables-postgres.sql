@@ -73,7 +73,7 @@ CREATE TYPE moderation_status AS ENUM (
 CREATE TYPE issue_status AS ENUM (
     'OPEN',
     'UNDER_REVIEW',
-    'IN_PROGRESS'
+    'IN_PROGRESS',
     'FORWARDED',
     'RESOLVED',
     'REJECTED',
