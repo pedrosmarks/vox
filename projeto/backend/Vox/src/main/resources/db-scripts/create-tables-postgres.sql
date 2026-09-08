@@ -33,6 +33,7 @@ DROP TYPE IF EXISTS subscription_type CASCADE;
 DROP TYPE IF EXISTS room_status CASCADE;
 DROP TYPE IF EXISTS participant_status CASCADE;
 DROP TYPE IF EXISTS accessibility_mode CASCADE;
+DROP TYPE IF EXISTS speech_request_status CASCADE;
 
 CREATE TYPE user_role AS ENUM (
     'CITIZEN',
