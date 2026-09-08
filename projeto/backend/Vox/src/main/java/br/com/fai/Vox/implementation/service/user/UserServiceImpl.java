@@ -65,10 +65,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public void update(int id, UserModel entity) {
         if (id <= 0 || entity == null) return;
-        if (findByid(id) == null) return;
+
+        UserModel current = findByid(id);
+        if (current == null) return;
 
         // O ID da URL define o usuário atualizado; o body não precisa informá-lo.
         entity.setId(id);
+
+        // Update parcial: campos ausentes no body mantêm o valor atual do banco,
+        // evitando sobrescrever com null (municipality_id é NOT NULL).
+        if (entity.getName() == null) entity.setName(current.getName());
+        if (entity.getCpf() == null) entity.setCpf(current.getCpf());
+        if (entity.getEmail() == null) entity.setEmail(current.getEmail());
+        if (entity.getPhone() == null) entity.setPhone(current.getPhone());
+        if (entity.getMunicipalityId() == null) entity.setMunicipalityId(current.getMunicipalityId());
+        if (entity.getBirthDate() == null) entity.setBirthDate(current.getBirthDate());
+        if (entity.getAcceptedTerms() == null) entity.setAcceptedTerms(current.getAcceptedTerms());
+        if (entity.getAcceptedPrivacyPolicy() == null) entity.setAcceptedPrivacyPolicy(current.getAcceptedPrivacyPolicy());
+
         userDao.update(id, entity);
     }
 

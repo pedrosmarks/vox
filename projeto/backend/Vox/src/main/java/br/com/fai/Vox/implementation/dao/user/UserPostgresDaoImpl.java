@@ -129,7 +129,11 @@ public class UserPostgresDaoImpl implements UserDao {
             ps.setString(2, entity.getCpf());
             ps.setString(3, entity.getEmail());
             ps.setString(4, entity.getPhone());
-            ps.setInt(5, entity.getMunicipalityId());
+            if (entity.getMunicipalityId() != null) {
+                ps.setInt(5, entity.getMunicipalityId());
+            } else {
+                ps.setNull(5, Types.INTEGER);
+            }
             ps.setBoolean(6, entity.getAcceptedTerms() != null && entity.getAcceptedTerms());
             ps.setBoolean(7, entity.getAcceptedPrivacyPolicy() != null && entity.getAcceptedPrivacyPolicy());
             ps.setObject(8, entity.getBirthDate());
