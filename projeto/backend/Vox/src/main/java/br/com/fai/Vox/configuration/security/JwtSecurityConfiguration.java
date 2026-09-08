@@ -5,6 +5,7 @@ import br.com.fai.Vox.implementation.service.authentication.jwt.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -44,6 +45,7 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                 .requestMatchers("/api/moderation/**").hasAnyAuthority("ADMINISTRATOR", "MODERATOR")
                                 .requestMatchers("/api/councilor/**").hasAuthority("ADMINISTRATOR")
                                 .requestMatchers("/api/salas/**").authenticated()
+                                .requestMatchers(HttpMethod.POST, "/api/user/").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
