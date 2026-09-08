@@ -205,6 +205,22 @@ class ConferenceRoomServiceTest {
                 () -> service.requestEntry(ROOM_ID, CITIZEN_ID));
     }
 
+    @Test
+    @DisplayName("Participante aprovado pode solicitar para falar")
+    void requestToSpeak_approvedParticipant_succeeds() {
+        RoomParticipant approved = new RoomParticipant();
+        approved.setId(50);
+        approved.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        approved.setSpeechRequestStatus(RoomParticipant.SpeechRequestStatus.NOT_REQUESTED);
+
+        when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
+        when(roomParticipantDao.findByRoomAndUser(ROOM_ID, CITIZEN_ID)).thenReturn(approved);
+
+        assertDoesNotThrow(() -> service.requestToSpeak(ROOM_ID, CITIZEN_ID));
+        verify(roomParticipantDao).updateSpeechRequestStatus(
+                50, RoomParticipant.SpeechRequestStatus.PENDING);
+    }
+
     // =============================
     // Aprovação / Rejeição
     // =============================
@@ -250,6 +266,46 @@ class ConferenceRoomServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.approveEntry(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
     }
+
+        @Test
+        @DisplayName("Moderador pode aprovar solicitação de fala e liberar áudio")
+        void approveSpeech_pendingRequest_succeeds() {
+        RoomParticipant participant = new RoomParticipant();
+        participant.setId(50);
+        participant.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        participant.setSpeechRequestStatus(RoomParticipant.SpeechRequestStatus.PENDING);
+        participant.setCanPublishAudio(false);
+        participant.setCanPublishVideo(false);
+
+        when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
+        when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
+        when(roomParticipantDao.findByRoomAndUser(ROOM_ID, CITIZEN_ID)).thenReturn(participant);
+        doNothing().when(liveKitService).updateParticipantPermissions(anyString(), anyString(), anyBoolean(), anyBoolean());
+
+        assertDoesNotThrow(() -> service.approveSpeech(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
+        verify(roomParticipantDao).updateSpeechRequestStatus(
+            50, RoomParticipant.SpeechRequestStatus.APPROVED);
+        verify(roomParticipantDao).updatePermissions(50, true, false);
+        verify(liveKitService).updateParticipantPermissions(
+            "room_" + ROOM_ID, String.valueOf(CITIZEN_ID), true, false);
+        }
+
+        @Test
+        @DisplayName("Moderador pode rejeitar solicitação de fala")
+        void rejectSpeech_pendingRequest_succeeds() {
+        RoomParticipant participant = new RoomParticipant();
+        participant.setId(50);
+        participant.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        participant.setSpeechRequestStatus(RoomParticipant.SpeechRequestStatus.PENDING);
+
+        when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
+        when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
+        when(roomParticipantDao.findByRoomAndUser(ROOM_ID, CITIZEN_ID)).thenReturn(participant);
+
+        assertDoesNotThrow(() -> service.rejectSpeech(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
+        verify(roomParticipantDao).updateSpeechRequestStatus(
+            50, RoomParticipant.SpeechRequestStatus.REJECTED);
+        }
 
     // =============================
     // Controle de microfone

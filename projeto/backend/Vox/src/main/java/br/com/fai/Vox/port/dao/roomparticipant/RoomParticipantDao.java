@@ -14,5 +14,9 @@ public interface RoomParticipantDao {
 
     void updateStatus(int id, RoomParticipant.ParticipantStatus status);
 
+    List<RoomParticipant> findPendingSpeechRequests(int roomId);
+
+    void updateSpeechRequestStatus(int id, RoomParticipant.SpeechRequestStatus status);
+
     void updatePermissions(int id, boolean canPublishAudio, boolean canPublishVideo);
 }

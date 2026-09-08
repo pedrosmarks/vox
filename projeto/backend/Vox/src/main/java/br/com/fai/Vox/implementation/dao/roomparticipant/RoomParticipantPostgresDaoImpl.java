@@ -111,6 +111,45 @@ public class RoomParticipantPostgresDaoImpl implements RoomParticipantDao {
     }
 
     @Override
+    public List<RoomParticipant> findPendingSpeechRequests(int roomId) {
+        final List<RoomParticipant> participants = new ArrayList<>();
+        final String sql = "SELECT * FROM room_participant " +
+                "WHERE room_id = ? AND speech_request_status = 'PENDING' ORDER BY speech_requested_at ASC";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, roomId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                participants.add(mapResultSet(rs));
+            }
+            rs.close();
+            ps.close();
+            return participants;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void updateSpeechRequestStatus(int id, RoomParticipant.SpeechRequestStatus status) {
+        final String sql = "UPDATE room_participant SET speech_request_status = CAST(? AS speech_request_status), " +
+                "speech_requested_at = CASE WHEN ? = 'PENDING' THEN CURRENT_TIMESTAMP ELSE speech_requested_at END, " +
+                "speech_decided_at = CASE WHEN ? IN ('APPROVED', 'REJECTED') THEN CURRENT_TIMESTAMP ELSE NULL END, " +
+                "updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, status.name());
+            ps.setString(2, status.name());
+            ps.setString(3, status.name());
+            ps.setInt(4, id);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void updatePermissions(int id, boolean canPublishAudio, boolean canPublishVideo) {
         final String sql = "UPDATE room_participant SET can_publish_audio = ?, can_publish_video = ?, " +
                 "updated_at = CURRENT_TIMESTAMP WHERE id = ?";
@@ -132,6 +171,8 @@ public class RoomParticipantPostgresDaoImpl implements RoomParticipantDao {
         participant.setRoomId(rs.getInt("room_id"));
         participant.setUserId(rs.getInt("user_id"));
         participant.setStatus(RoomParticipant.ParticipantStatus.valueOf(rs.getString("status").toUpperCase()));
+        participant.setSpeechRequestStatus(RoomParticipant.SpeechRequestStatus.valueOf(
+            rs.getString("speech_request_status").toUpperCase()));
         participant.setCanPublishAudio(rs.getBoolean("can_publish_audio"));
         participant.setCanPublishVideo(rs.getBoolean("can_publish_video"));
 
@@ -140,6 +181,12 @@ public class RoomParticipantPostgresDaoImpl implements RoomParticipantDao {
 
         Timestamp decidedAt = rs.getTimestamp("decided_at");
         if (decidedAt != null) participant.setDecidedAt(decidedAt.toLocalDateTime());
+
+        Timestamp speechRequestedAt = rs.getTimestamp("speech_requested_at");
+        if (speechRequestedAt != null) participant.setSpeechRequestedAt(speechRequestedAt.toLocalDateTime());
+
+        Timestamp speechDecidedAt = rs.getTimestamp("speech_decided_at");
+        if (speechDecidedAt != null) participant.setSpeechDecidedAt(speechDecidedAt.toLocalDateTime());
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) participant.setCreatedAt(createdAt.toLocalDateTime());

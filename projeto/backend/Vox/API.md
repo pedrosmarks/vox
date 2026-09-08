@@ -1003,6 +1003,10 @@ Content-Type: application/json
 7. Moderador encerra a sala
 ```
 
+Depois de entrar na sala, o cidadão pode solicitar a palavra. O moderador da
+sala ou um administrador pode aprovar ou rejeitar essa solicitação. Quando
+aprovada, a permissão de publicação de áudio é aplicada no LiveKit.
+
 ---
 
 ### Criar sala
@@ -1098,6 +1102,45 @@ Authorization: Bearer <token>
 ]
 ```
 **Status possíveis:** `PENDING`, `APPROVED`, `REJECTED`, `REMOVED`
+
+---
+
+### Solicitar para falar
+> O usuário precisa estar aprovado na sala.
+
+```
+POST /api/salas/{id}/solicitacoes-fala
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+### Listar solicitações de fala
+> Requer role `MODERATOR` ou `ADMINISTRATOR`. Retorna apenas solicitações pendentes.
+
+```
+GET /api/salas/{id}/solicitacoes-fala
+Authorization: Bearer <token>
+```
+
+### Aceitar solicitação de fala
+> Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+
+```
+POST /api/salas/{id}/solicitacoes-fala/{participanteId}/aprovar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+### Recusar solicitação de fala
+> Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+
+```
+POST /api/salas/{id}/solicitacoes-fala/{participanteId}/rejeitar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+**Status de fala:** `NOT_REQUESTED`, `PENDING`, `APPROVED`, `REJECTED`
 
 ---
 

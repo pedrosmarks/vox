@@ -136,6 +136,72 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
     }
 
     @Override
+    public void requestToSpeak(int roomId, int userId) {
+        ConferenceRoom room = getExistingRoom(roomId);
+        if (room.getStatus() == ConferenceRoom.RoomStatus.CLOSED) {
+            throw new IllegalArgumentException("A sala está encerrada");
+        }
+
+        RoomParticipant participant = getApprovedParticipantInRoom(roomId, userId);
+        RoomParticipant.SpeechRequestStatus status = participant.getSpeechRequestStatus();
+        if (status == RoomParticipant.SpeechRequestStatus.PENDING) {
+            throw new IllegalArgumentException("Já existe uma solicitação de fala pendente");
+        }
+        if (status == RoomParticipant.SpeechRequestStatus.APPROVED) {
+            throw new IllegalArgumentException("Você já está autorizado a falar");
+        }
+
+        roomParticipantDao.updateSpeechRequestStatus(
+                participant.getId(), RoomParticipant.SpeechRequestStatus.PENDING);
+    }
+
+    @Override
+    public List<RoomParticipant> findSpeechRequests(int roomId) {
+        getExistingRoom(roomId);
+        return roomParticipantDao.findPendingSpeechRequests(roomId);
+    }
+
+    @Override
+    public void approveSpeech(int roomId, int participantId, int moderatorId) {
+        ConferenceRoom room = getExistingRoom(roomId);
+        requireModerator(room, moderatorId);
+
+        RoomParticipant participant = getApprovedParticipantInRoom(roomId, participantId);
+        if (participant.getSpeechRequestStatus() != RoomParticipant.SpeechRequestStatus.PENDING) {
+            throw new IllegalArgumentException("A solicitação de fala não está pendente");
+        }
+
+        boolean canPublishVideo = Boolean.TRUE.equals(participant.getCanPublishVideo());
+        roomParticipantDao.updateSpeechRequestStatus(
+                participant.getId(), RoomParticipant.SpeechRequestStatus.APPROVED);
+        roomParticipantDao.updatePermissions(participant.getId(), true, canPublishVideo);
+        try {
+            liveKitService.updateParticipantPermissions(
+                    buildRoomName(roomId), String.valueOf(participantId), true, canPublishVideo);
+        } catch (RuntimeException e) {
+            roomParticipantDao.updateSpeechRequestStatus(
+                    participant.getId(), RoomParticipant.SpeechRequestStatus.PENDING);
+            roomParticipantDao.updatePermissions(
+                    participant.getId(), Boolean.TRUE.equals(participant.getCanPublishAudio()), canPublishVideo);
+            throw new RuntimeException("Falha ao liberar fala no LiveKit: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void rejectSpeech(int roomId, int participantId, int moderatorId) {
+        ConferenceRoom room = getExistingRoom(roomId);
+        requireModerator(room, moderatorId);
+
+        RoomParticipant participant = getApprovedParticipantInRoom(roomId, participantId);
+        if (participant.getSpeechRequestStatus() != RoomParticipant.SpeechRequestStatus.PENDING) {
+            throw new IllegalArgumentException("A solicitação de fala não está pendente");
+        }
+
+        roomParticipantDao.updateSpeechRequestStatus(
+                participant.getId(), RoomParticipant.SpeechRequestStatus.REJECTED);
+    }
+
+    @Override
     public void enableMicrophone(int roomId, int participantId, int moderatorId) {
         ConferenceRoom room = getExistingRoom(roomId);
         requireModerator(room, moderatorId);
