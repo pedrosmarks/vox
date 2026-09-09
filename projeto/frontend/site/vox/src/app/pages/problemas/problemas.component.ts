@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { IssueService, IssueReport } from '../../services/issue.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { issueStatusLabel, statusClass } from '../../utils/status-labels';
 
 /** Tela do vereador para acompanhar problemas relatados pelos cidadãos do município. */
 @Component({
@@ -42,25 +43,11 @@ export class ProblemasComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'Em análise',
-      OPEN:              'Aberto',
-      IN_PROGRESS:       'Em andamento',
-      RESOLVED:          'Resolvido',
-      CLOSED:            'Encerrado'
-    };
-    return map[status] ?? status;
+    return issueStatusLabel(status);
   }
 
   getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'status-analise',
-      OPEN:              'status-analise',
-      IN_PROGRESS:       'status-aprovado',
-      RESOLVED:          'status-concluido',
-      CLOSED:            'status-concluido'
-    };
-    return map[status] ?? 'status-analise';
+    return statusClass(status);
   }
 
   formatDate(dateStr: string): string {

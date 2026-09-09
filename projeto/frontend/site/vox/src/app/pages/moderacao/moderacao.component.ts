@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { ProjectService, Project, Category } from '../../services/project.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { MapPickerComponent, LatLng, AddressResult } from '../../components/map-picker/map-picker.component';
+import { projectStatusLabel } from '../../utils/status-labels';
 
 const FALLBACK_CATEGORIES: Category[] = [
   { id: 1, name: 'Infraestrutura' },
@@ -309,14 +310,6 @@ export class ModeracaoComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'Aguardando aprovação',
-      IN_VOTING: 'Em votação',
-      APPROVED: 'Aprovado',
-      REJECTED: 'Rejeitado',
-      IN_ANALYSIS: 'Em análise',
-      COMPLETED: 'Concluído'
-    };
-    return map[status] ?? status;
+    return projectStatusLabel(status);
   }
 }

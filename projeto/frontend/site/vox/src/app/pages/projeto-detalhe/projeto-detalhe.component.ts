@@ -6,6 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { ProjectService, Project, ProjectImage } from '../../services/project.service';
 import { AuthService } from '../../services/auth.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { projectStatusLabel, statusClass } from '../../utils/status-labels';
 
 @Component({
   selector: 'app-projeto-detalhe',
@@ -269,27 +270,11 @@ export class ProjetoDetalheComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'Em análise',
-      IN_VOTING:        'Em votação',
-      APPROVED:         'Aprovado',
-      REJECTED:         'Rejeitado',
-      IN_ANALYSIS:      'Em análise',
-      COMPLETED:        'Concluído'
-    };
-    return map[status] ?? status;
+    return projectStatusLabel(status);
   }
 
   getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'status-analise',
-      IN_VOTING:        'status-votacao',
-      APPROVED:         'status-aprovado',
-      REJECTED:         'status-rejeitado',
-      IN_ANALYSIS:      'status-analise',
-      COMPLETED:        'status-concluido'
-    };
-    return map[status] ?? 'status-analise';
+    return statusClass(status);
   }
 
   getTypeLabel(project: Project): string {

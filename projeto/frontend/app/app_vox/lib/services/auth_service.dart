@@ -31,6 +31,45 @@ class AuthService {
     }
   }
 
+  /// Cadastro público de novo cidadão. O papel é sempre CITIZEN.
+  Future<void> register({
+    required String name,
+    required String email,
+    required String cpf,
+    required String password,
+    required int municipalityId,
+    String phone = '',
+    String? birthDate,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/user'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'cpf': cpf,
+        'phone': phone,
+        'password': password,
+        if (birthDate != null && birthDate.isNotEmpty) 'birthDate': birthDate,
+        'role': 'CITIZEN',
+        'municipalityId': municipalityId,
+        'acceptedTerms': true,
+        'acceptedPrivacyPolicy': true,
+      }),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String message = 'Não foi possível concluir o cadastro.';
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['message'] is String) message = data['message'] as String;
+      } catch (_) {}
+      if (response.statusCode == 409 || response.statusCode == 400) {
+        throw AuthException(message);
+      }
+      throw AuthException('Erro ao conectar ao servidor. Tente novamente.');
+    }
+  }
+
   Future<UserProfile> fetchCurrentUser() async {
     final response = await http.get(
       Uri.parse('$_baseUrl/api/auth/me'),

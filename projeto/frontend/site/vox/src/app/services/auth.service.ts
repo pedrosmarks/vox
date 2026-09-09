@@ -32,6 +32,18 @@ export interface LogEntry {
   createdAt: string;
 }
 
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  cpf: string;
+  phone?: string;
+  password: string;
+  birthDate?: string;
+  municipalityId: number;
+  acceptedTerms?: boolean;
+  acceptedPrivacyPolicy?: boolean;
+}
+
 export interface CreateUserPayload {
   name: string;
   email: string;
@@ -62,6 +74,26 @@ export class AuthService {
         localStorage.setItem(this.TOKEN_KEY, response.token);
       })
     );
+  }
+
+  /**
+   * Cadastro público de novo cidadão. O papel é sempre CITIZEN (não é
+   * escolhido pelo usuário). Retorna a resposta do POST /api/user.
+   */
+  register(payload: RegisterPayload): Observable<unknown> {
+    const body = {
+      name: payload.name,
+      email: payload.email,
+      cpf: payload.cpf,
+      phone: payload.phone ?? '',
+      password: payload.password,
+      birthDate: payload.birthDate ?? null,
+      role: 'CITIZEN',
+      municipalityId: payload.municipalityId,
+      acceptedTerms: payload.acceptedTerms ?? true,
+      acceptedPrivacyPolicy: payload.acceptedPrivacyPolicy ?? true
+    };
+    return this.http.post(`${this.API_URL}/api/user`, body);
   }
 
   fetchCurrentUser(): Observable<UserProfile> {

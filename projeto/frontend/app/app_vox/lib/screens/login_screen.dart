@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import '../theme/vox_colors.dart';
+import 'cadastro_screen.dart';
 import 'home_shell.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -245,7 +246,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    // TODO: navegar para cadastro
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CadastroScreen()),
+                    );
                   },
                   child: const Text(
                     'Cadastre-se',

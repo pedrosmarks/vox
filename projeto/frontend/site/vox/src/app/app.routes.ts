@@ -10,10 +10,12 @@ import { PerfilComponent } from './pages/perfil/perfil.component';
 import { AudienciaComponent } from './pages/audiencia/audiencia.component';
 import { AudienciaSalaComponent } from './pages/audiencia-sala/audiencia-sala.component';
 import { ConfiguracoesComponent } from './pages/configuracoes/configuracoes.component';
+import { CadastroComponent } from './pages/cadastro/cadastro.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'projetos', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'cadastro', component: CadastroComponent },
   { path: 'projetos', component: ProjetosComponent },
   { path: 'projetos/:id', component: ProjetoDetalheComponent },
   { path: 'sugestoes', component: SugestoesComponent },
