@@ -58,17 +58,19 @@ class AuthService {
     );
   }
 
-  Future<void> updatePassword(
-    String currentPassword,
-    String newPassword,
-  ) async {
+  Future<void> updatePassword(String oldPassword, String newPassword) async {
+    final id = await getUserId();
+    final payload = <String, dynamic>{
+      'oldPassword': oldPassword,
+      'newPassword': newPassword,
+    };
+    if (id != null) {
+      payload['id'] = id;
+    }
     final response = await http.put(
       Uri.parse('$_baseUrl/api/user/update-password'),
       headers: await ApiClient.authHeaders(),
-      body: jsonEncode({
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      }),
+      body: jsonEncode(payload),
     );
     ApiClient.checkResponse(response);
   }

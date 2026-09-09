@@ -44,8 +44,9 @@ class _AudienciaScreenState extends State<AudienciaScreen> {
       final salas = await _salaService.getSalas();
       if (mounted) setState(() => _salas = salas);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = 'Erro ao carregar salas de audiência.');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

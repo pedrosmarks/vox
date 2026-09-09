@@ -189,4 +189,46 @@ class ProjectService {
         .map((e) => UserSummary.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  // ── Assinaturas de apoio ao projeto (petição) ───────────────
+
+  /// Assina (apoia) o projeto.
+  Future<void> signProject(int id) async {
+    final response = await http.post(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$id/signature'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  /// Remove a assinatura de apoio do projeto.
+  Future<void> unsignProject(int id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$id/signature'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  /// Verifica se o usuário atual já assinou o projeto.
+  Future<bool> hasSignedProject(int id) async {
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$id/signature/me'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return data['signed'] as bool? ?? false;
+  }
+
+  /// Contagem total de assinaturas do projeto.
+  Future<int> getSignatureCount(int id) async {
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$id/signature/count'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return data['total'] as int? ?? 0;
+  }
 }

@@ -78,6 +78,24 @@ export class SalaService {
     return this.http.get<SolicitacaoEntrada[]>(`${this.API_URL}/api/salas/${id}/solicitacoes-entrada`);
   }
 
+  // ----- Solicitações de fala -----
+
+  solicitarFala(id: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/salas/${id}/solicitacoes-fala`, null);
+  }
+
+  getSolicitacoesFala(id: number): Observable<SolicitacaoEntrada[]> {
+    return this.http.get<SolicitacaoEntrada[]>(`${this.API_URL}/api/salas/${id}/solicitacoes-fala`);
+  }
+
+  aprovarFala(id: number, participanteId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/salas/${id}/solicitacoes-fala/${participanteId}/aprovar`, null);
+  }
+
+  rejeitarFala(id: number, participanteId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/salas/${id}/solicitacoes-fala/${participanteId}/rejeitar`, null);
+  }
+
   aprovarSolicitacao(id: number, participanteId: number): Observable<void> {
     return this.http.post<void>(`${this.API_URL}/api/salas/${id}/solicitacoes-entrada/${participanteId}/aprovar`, null);
   }

@@ -20,6 +20,7 @@
 - [Moderação](#moderação)
 - [Notificações](#notificações)
 - [Assinaturas](#assinaturas)
+- [Configurações do Usuário](#configurações-do-usuário)
 - [Salas de Conferência (LiveKit)](#salas-de-conferência-livekit)
 
 ---
@@ -520,6 +521,53 @@ Authorization: Bearer <token>
 
 ---
 
+### Assinaturas de apoio ao projeto
+
+> Assinaturas de apoio a projetos comunitários (petição de apoio). Diferente das [Assinaturas](#assinaturas) de acompanhamento/notificação.
+
+**Assinar (apoiar) projeto:**
+```
+POST /api/project/{id}/signature
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+**Remover assinatura:**
+```
+DELETE /api/project/{id}/signature
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+**Contagem de assinaturas:**
+```
+GET /api/project/{id}/signature/count
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{ "total": 42 }
+```
+
+**Verificar se eu assinei:**
+```
+GET /api/project/{id}/signature/me
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{ "signed": true }
+```
+
+**Listar assinaturas do projeto:**
+```
+GET /api/project/{id}/signature
+Authorization: Bearer <token>
+```
+**Resposta `200`:** array de `ProjectSignature`
+
+---
+
 ## Imagens de Projetos
 
 > Endpoint alternativo ao sub-recurso em `/api/project/{id}/image`.
@@ -783,7 +831,7 @@ Content-Type: application/json
   "note": "Equipe de campo acionada."
 }
 ```
-**Status disponíveis:** `OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`  
+**Status disponíveis:** `OPEN`, `UNDER_REVIEW`, `IN_PROGRESS`, `FORWARDED`, `RESOLVED`, `REJECTED`, `CLOSED`  
 **Resposta `204`**
 
 ---
@@ -893,6 +941,52 @@ Authorization: Bearer <token>
 
 ---
 
+## Configurações do Usuário
+
+> Preferências de acessibilidade e personalização do usuário autenticado.
+
+### Obter minhas configurações
+```
+GET /api/settings
+Authorization: Bearer <token>
+```
+Se ainda não existirem configurações salvas, retorna os valores padrão (`fontSize=16`, `accessibilityMode=NONE`).
+
+**Resposta `200`:**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "fontSize": 16,
+  "accessibilityMode": "NONE"
+}
+```
+
+---
+
+### Atualizar minhas configurações
+```
+PUT /api/settings
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "fontSize": 18,
+  "accessibilityMode": "DARK"
+}
+```
+**Regras:**
+- `fontSize`: inteiro entre `15` e `30` (obrigatório).
+- `accessibilityMode`: apenas um modo ativo por vez (`NONE` desativa todos).
+
+**Valores de `accessibilityMode`:** `NONE`, `DARK`, `HIGH_CONTRAST`, `PROTANOPIA`, `DEUTERANOPIA`, `TRITANOPIA`
+
+**Resposta `204`**
+
+---
+
 ## Salas de Conferência (LiveKit)
 
 > Audiências públicas e sessões de conferência com controle de permissões via LiveKit.
@@ -908,6 +1002,10 @@ Authorization: Bearer <token>
 6. Moderador controla microfone/câmera conforme necessário
 7. Moderador encerra a sala
 ```
+
+Depois de entrar na sala, o cidadão pode solicitar a palavra. O moderador da
+sala ou um administrador pode aprovar ou rejeitar essa solicitação. Quando
+aprovada, a permissão de publicação de áudio é aplicada no LiveKit.
 
 ---
 
@@ -1004,6 +1102,45 @@ Authorization: Bearer <token>
 ]
 ```
 **Status possíveis:** `PENDING`, `APPROVED`, `REJECTED`, `REMOVED`
+
+---
+
+### Solicitar para falar
+> O usuário precisa estar aprovado na sala.
+
+```
+POST /api/salas/{id}/solicitacoes-fala
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+### Listar solicitações de fala
+> Requer role `MODERATOR` ou `ADMINISTRATOR`. Retorna apenas solicitações pendentes.
+
+```
+GET /api/salas/{id}/solicitacoes-fala
+Authorization: Bearer <token>
+```
+
+### Aceitar solicitação de fala
+> Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+
+```
+POST /api/salas/{id}/solicitacoes-fala/{participanteId}/aprovar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+### Recusar solicitação de fala
+> Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+
+```
+POST /api/salas/{id}/solicitacoes-fala/{participanteId}/rejeitar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+**Status de fala:** `NOT_REQUESTED`, `PENDING`, `APPROVED`, `REJECTED`
 
 ---
 

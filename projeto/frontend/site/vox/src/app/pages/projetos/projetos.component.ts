@@ -25,6 +25,7 @@ export class ProjetosComponent implements OnInit {
   errorMessage = '';
   isModerator = false;
   private signedProjects: Set<number> = new Set();
+  private signingProjects: Set<number> = new Set();
 
   filters: { key: FilterKey; label: string }[] = [
     { key: 'todos',     label: 'Todos os projetos' },
@@ -62,12 +63,27 @@ export class ProjetosComponent implements OnInit {
         this.allProjects = projects.filter(p => this.isVisible(p));
         this.applyFilter();
         this.loadAuthorNames(this.allProjects);
+        this.loadSignedStates(this.allProjects);
         this.isLoading = false;
       },
       error: () => {
         this.errorMessage = 'Erro ao carregar projetos. Tente novamente.';
         this.isLoading = false;
       }
+    });
+  }
+
+  /** Carrega, para cada projeto, se o cidadão atual já assinou. */
+  private loadSignedStates(projects: Project[]): void {
+    if (this.isModerator) return; // botão de assinar só aparece p/ cidadão
+    projects.forEach(p => {
+      this.projectService
+        .hasSignedProject(p.id)
+        .pipe(catchError(() => of({ signed: false })))
+        .subscribe(res => {
+          if (res.signed) this.signedProjects.add(p.id);
+          else this.signedProjects.delete(p.id);
+        });
     });
   }
 
@@ -154,15 +170,34 @@ export class ProjetosComponent implements OnInit {
   }
 
   toggleSign(id: number): void {
-    // TODO: POST /api/project/{id}/sign quando backend suportar
-    if (this.signedProjects.has(id)) {
-      this.signedProjects.delete(id);
-    } else {
-      this.signedProjects.add(id);
-    }
+    if (this.signingProjects.has(id)) return; // evita duplo clique
+    const wasSigned = this.signedProjects.has(id);
+    this.signingProjects.add(id);
+
+    // Atualização otimista da UI.
+    if (wasSigned) this.signedProjects.delete(id);
+    else this.signedProjects.add(id);
+
+    const request$ = wasSigned
+      ? this.projectService.unsignProject(id)
+      : this.projectService.signProject(id);
+
+    request$.subscribe({
+      next: () => this.signingProjects.delete(id),
+      error: () => {
+        // Reverte em caso de falha.
+        if (wasSigned) this.signedProjects.add(id);
+        else this.signedProjects.delete(id);
+        this.signingProjects.delete(id);
+      }
+    });
   }
 
   hasSigned(id: number): boolean {
     return this.signedProjects.has(id);
+  }
+
+  isSigning(id: number): boolean {
+    return this.signingProjects.has(id);
   }
 }

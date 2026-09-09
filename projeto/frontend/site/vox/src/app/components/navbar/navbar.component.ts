@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService, UserRole } from '../../services/auth.service';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-navbar',
@@ -13,23 +14,17 @@ import { AuthService, UserRole } from '../../services/auth.service';
 })
 export class NavbarComponent implements OnInit {
   isModerator = false;
-  isAdmin = false;
-  isCouncilor = false;
-  isCitizen = false;
   menuOpen = false;
 
   constructor(
     private authService: AuthService,
+    private settingsService: SettingsService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     const role: UserRole | null = this.authService.getUserRole();
-    this.isAdmin = role === 'ADMINISTRATOR';
-    // Admin não navega por Projetos/Audiência/Comunidade/Moderação — só Usuários/Logs/Perfil.
-    this.isModerator = role === 'MODERATOR';
-    this.isCouncilor = role === 'COUNCILOR';
-    this.isCitizen = role === 'CITIZEN';
+    this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
   }
 
   toggleMenu(): void {
@@ -46,6 +41,7 @@ export class NavbarComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+    this.settingsService.reset();
     this.router.navigate(['/login']);
   }
 }

@@ -51,3 +51,100 @@ button:hover, .btn:hover {
   background: $primary-color;
   color: $white;
 }
+
+/* ============================================================
+   Acessibilidade — controlado por SettingsService
+   (define data-a11y e --vox-font-scale em <html>)
+   ============================================================ */
+
+:root {
+  --vox-font-scale: 1;
+}
+
+/* Escala de fonte global: html recebe font-size em px (SettingsService),
+   e componentes que usam rem acompanham. Para os que usam px fixo,
+   aplicamos um zoom tipográfico suave no body. */
+html { font-size: 16px; }
+
+/* --- Modo escuro --- */
+html[data-a11y='DARK'] {
+  background: #000;
+
+  body {
+    background: #000 !important;
+    color: #e6e8ec;
+  }
+
+  // Containers de página (fundo claro por padrão) → preto
+  .config-page, .audiencia-page, .detalhe-page, .projetos-page,
+  .moderacao-page, .comunidade-page, .perfil-page, .sugestoes-page,
+  main {
+    background: #000 !important;
+  }
+
+  // Cartões, painéis e superfícies claras → cinza bem escuro
+  .navbar, header, .header,
+  .card, .aside-card, .info-card, .sidebar-card,
+  .create-form-card, .audiencia-card, .detalhe-content,
+  .config-card, .config-content,
+  .form-input, .form-textarea, .export-menu, .mode-option {
+    background: #121212 !important;
+    color: #e6e8ec !important;
+    border-color: #2a2a2a !important;
+  }
+
+  .page-title, .card-title, .detalhe-title, .sidebar-title,
+  .config-title, h1, h2, h3, h4 { color: #f5f6f8 !important; }
+
+  .page-subtitle, .card-description, .card-meta, .info-label,
+  .fin-label, .encerrada-label, .config-hint, .mode-desc, p {
+    color: #9aa0aa !important;
+  }
+
+  .font-preview { background: #1a1a1a !important; }
+
+  input, textarea, select {
+    background: #0a0a0a !important;
+    color: #e6e8ec !important;
+    border-color: #2a2a2a !important;
+  }
+}
+
+/* --- Alto contraste --- */
+html[data-a11y='HIGH_CONTRAST'] {
+  background: #000;
+
+  body { background: #000; color: #fff; }
+
+  .navbar, header, .header,
+  .card, .aside-card, .info-card, .sidebar-card,
+  .create-form-card, .audiencia-card, .detalhe-content,
+  .export-menu {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+  }
+
+  h1, h2, h3, h4, p, span, label, .card-description, .info-label,
+  .page-subtitle, .card-meta { color: #fff !important; }
+
+  a { color: #ffff00 !important; text-decoration: underline; }
+
+  button, .btn, .btn-action, .btn-enter, .btn-create, .btn-submit {
+    background: #ffff00 !important;
+    color: #000 !important;
+    border: 2px solid #fff !important;
+    font-weight: 800 !important;
+  }
+
+  input, textarea, select {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+  }
+}
+
+/* --- Filtros de daltonismo (aplicados na página inteira) --- */
+html[data-a11y='PROTANOPIA']   body { filter: url('#vox-protanopia'); }
+html[data-a11y='DEUTERANOPIA'] body { filter: url('#vox-deuteranopia'); }
+html[data-a11y='TRITANOPIA']   body { filter: url('#vox-tritanopia'); }

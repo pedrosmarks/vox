@@ -18,7 +18,19 @@ export interface UserProfile {
   birthDate?: string;
 }
 
-export type UserRole = 'ADMINISTRATOR' | 'MODERATOR' | 'COUNCILOR' | 'CITIZEN';
+export type UserRole = 'ADMINISTRATOR' | 'MODERATOR' | 'CITIZEN' | 'COUNCILOR';
+
+export interface LogEntry {
+  id: number;
+  action: string;
+  entity?: string;
+  entityId?: number;
+  message?: string;
+  description?: string;
+  userId?: number;
+  userName?: string;
+  createdAt: string;
+}
 
 export interface CreateUserPayload {
   name: string;
@@ -27,21 +39,10 @@ export interface CreateUserPayload {
   phone?: string;
   password: string;
   birthDate?: string;
-  role: UserRole;
+  role: UserRole | string;
   municipalityId: number;
   acceptedTerms?: boolean;
   acceptedPrivacyPolicy?: boolean;
-}
-
-export interface LogEntry {
-  id: number;
-  action: string;
-  userId?: number;
-  userName?: string;
-  entity?: string;
-  entityId?: number;
-  message?: string;
-  createdAt: string;
 }
 
 @Injectable({
@@ -150,9 +151,11 @@ export class AuthService {
     return this.http.put<UserProfile>(`${this.API_URL}/api/user/${id}`, data);
   }
 
-  updatePassword(currentPassword: string, newPassword: string): Observable<void> {
+  updatePassword(oldPassword: string, newPassword: string): Observable<void> {
+    const id = this.getUserId();
     return this.http.put<void>(`${this.API_URL}/api/user/update-password`, {
-      currentPassword,
+      ...(id != null ? { id } : {}),
+      oldPassword,
       newPassword
     });
   }
@@ -173,33 +176,27 @@ export class AuthService {
     return this.http.get<UserProfile>(`${this.API_URL}/api/users/councilors/${id}`);
   }
 
-  // ── Administração de usuários (somente ADMINISTRATOR) ──────
+  // ----- Administração de usuários -----
 
-  getAllUsers(): Observable<UserProfile[]> {
-    return this.http.get<UserProfile[]>(`${this.API_URL}/api/user`);
-  }
-
-  getUsersByRole(role: UserRole): Observable<UserProfile[]> {
-    return this.http.get<UserProfile[]>(`${this.API_URL}/api/user/role/${role}`);
-  }
-
-  getUserById(id: number): Observable<UserProfile> {
-    return this.http.get<UserProfile>(`${this.API_URL}/api/user/${id}`);
+  getUsersByRole(role: UserRole | string): Observable<UserProfile[]> {
+    return this.http.get<UserProfile[]>(`${this.API_URL}/api/users`, {
+      params: { role: String(role) }
+    });
   }
 
   createUser(payload: CreateUserPayload): Observable<UserProfile> {
-    return this.http.post<UserProfile>(`${this.API_URL}/api/user`, payload);
+    return this.http.post<UserProfile>(`${this.API_URL}/api/users`, payload);
   }
 
-  updateUser(id: number, payload: Partial<CreateUserPayload>): Observable<void> {
-    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, payload);
+  updateUser(id: number, data: Partial<UserProfile>): Observable<UserProfile> {
+    return this.http.put<UserProfile>(`${this.API_URL}/api/users/${id}`, data);
   }
 
   deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/api/user/${id}`);
+    return this.http.delete<void>(`${this.API_URL}/api/users/${id}`);
   }
 
-  // ── Logs (somente ADMINISTRATOR) ────────────────────────────
+  // ----- Auditoria / logs -----
 
   getLogs(): Observable<LogEntry[]> {
     return this.http.get<LogEntry[]>(`${this.API_URL}/api/logs`);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/settings_service.dart';
 import '../theme/vox_colors.dart';
 import 'home_shell.dart';
 
@@ -51,6 +52,8 @@ class _LoginScreenState extends State<LoginScreen> {
       } catch (_) {
         // segue mesmo se a busca do perfil falhar
       }
+      // Carrega as preferências de acessibilidade do usuário.
+      await SettingsController.instance.load();
       if (!mounted) return;
       Navigator.of(
         context,

@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/project.dart';
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
 import '../services/project_service.dart';
-import '../services/subscription_service.dart';
 import '../theme/vox_app_bar.dart';
 import '../theme/vox_badges.dart';
 import '../utils/status_labels.dart';
@@ -20,7 +25,6 @@ class ProjetoDetalheScreen extends StatefulWidget {
 class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   final _projectService = ProjectService();
   final _authService = AuthService();
-  final _subscriptionService = SubscriptionService();
 
   Project? _project;
   List<ProjectImage> _images = [];
@@ -37,9 +41,11 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
 
   bool _signed = false;
   bool _isSigning = false;
+  int _signatureCount = 0;
   List<UserSummary> _councilors = [];
   bool _isCouncilorLinked = false;
   bool _isLinkingCouncilor = false;
+  bool _isExporting = false;
 
   @override
   void initState() {
@@ -60,7 +66,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
         _loadImages(project.id),
         _loadCategory(project.categoryId),
         _loadAuthor(project.authorId),
-        _loadSubscriptionState(project.id),
+        _loadSignatureState(project.id),
         if (_isCouncilor || _isModerator) _loadCouncilors(project.id),
       ]);
     } catch (_) {
@@ -100,12 +106,16 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     }
   }
 
-  Future<void> _loadSubscriptionState(int projectId) async {
+  Future<void> _loadSignatureState(int projectId) async {
     try {
-      final subs = await _subscriptionService.getSubscriptions();
-      _signed = subs.any((s) => s.type == 'PROJECT' && s.targetId == projectId);
+      _signed = await _projectService.hasSignedProject(projectId);
     } catch (_) {
       _signed = false;
+    }
+    try {
+      _signatureCount = await _projectService.getSignatureCount(projectId);
+    } catch (_) {
+      _signatureCount = 0;
     }
   }
 
@@ -130,11 +140,22 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     setState(() => _isSigning = true);
     try {
       if (_signed) {
-        await _subscriptionService.unsubscribeProject(_project!.id);
+        await _projectService.unsignProject(_project!.id);
+        if (mounted) {
+          setState(() {
+            _signed = false;
+            if (_signatureCount > 0) _signatureCount--;
+          });
+        }
       } else {
-        await _subscriptionService.subscribeProject(_project!.id);
+        await _projectService.signProject(_project!.id);
+        if (mounted) {
+          setState(() {
+            _signed = true;
+            _signatureCount++;
+          });
+        }
       }
-      if (mounted) setState(() => _signed = !_signed);
     } catch (_) {
       // ignora falha na ação
     } finally {
@@ -174,10 +195,241 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
       ? 'Projeto Oficial'
       : 'Projeto Sugerido';
 
+  // ── Exportação ─────────────────────────────────────────────
+
+  String _fmtDate(String? d) {
+    if (d == null || d.isEmpty) return '—';
+    final parsed = DateTime.tryParse(d);
+    if (parsed == null) return d;
+    final dd = parsed.day.toString().padLeft(2, '0');
+    final mm = parsed.month.toString().padLeft(2, '0');
+    return '$dd/$mm/${parsed.year}';
+  }
+
+  String _fmtMoney(double v) => v > 0 ? 'R\$ ${v.toStringAsFixed(2)}' : '—';
+
+  /// Pares rótulo/valor usados nos dois formatos de exportação.
+  List<MapEntry<String, String>> _buildExportRows() {
+    final p = _project;
+    if (p == null) return [];
+    final endereco = [
+      if (p.street.isNotEmpty) p.street,
+      if (p.number.isNotEmpty) p.number,
+      if (p.neighborhood.isNotEmpty) p.neighborhood,
+    ].join(', ');
+
+    return [
+      MapEntry('ID', p.id.toString()),
+      MapEntry('Título', p.title),
+      MapEntry('Descrição', p.description),
+      MapEntry('Status', StatusLabels.project(p.status)),
+      MapEntry('Tipo', _typeLabel(p)),
+      MapEntry('Categoria', _categoryName.isNotEmpty ? _categoryName : '—'),
+      MapEntry(
+        'Autor',
+        _authorName.isNotEmpty ? _authorName : 'Usuário #${p.authorId}',
+      ),
+      MapEntry('Endereço', endereco.isNotEmpty ? endereco : '—'),
+      MapEntry('Data de início', _fmtDate(p.startDate)),
+      MapEntry('Previsão de término', _fmtDate(p.expectedEndDate)),
+      MapEntry('Data de conclusão', _fmtDate(p.endDate)),
+      MapEntry('Custo estimado', _fmtMoney(p.estimatedCost)),
+      MapEntry('Orçamento aprovado', _fmtMoney(p.approvedBudget)),
+      MapEntry('Assinaturas de apoio', _signatureCount.toString()),
+      if (_councilors.isNotEmpty)
+        MapEntry(
+          'Vereadores responsáveis',
+          _councilors.map((c) => c.fullname ?? c.name).join(', '),
+        ),
+    ];
+  }
+
+  String _safeFileName() {
+    final p = _project;
+    final base = (p?.title ?? 'projeto')
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    return 'projeto_${p?.id ?? ''}_$base'.replaceAll(RegExp(r'_+$'), '');
+  }
+
+  Future<void> _exportCsv() async {
+    if (_project == null || _isExporting) return;
+    setState(() => _isExporting = true);
+    try {
+      final rows = _buildExportRows();
+      String escape(String v) => '"${v.replaceAll('"', '""')}"';
+      final buffer = StringBuffer();
+      buffer.writeln('${escape('Campo')},${escape('Valor')}');
+      for (final row in rows) {
+        buffer.writeln('${escape(row.key)},${escape(row.value)}');
+      }
+      // BOM UTF-8 para acentuação correta no Excel.
+      final csv = '\uFEFF${buffer.toString()}';
+
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/${_safeFileName()}.csv');
+      await file.writeAsString(csv);
+
+      await Share.shareXFiles([
+        XFile(file.path, mimeType: 'text/csv'),
+      ], subject: _project!.title);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Falha ao exportar CSV.')));
+      }
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
+  Future<void> _exportPdf() async {
+    final p = _project;
+    if (p == null || _isExporting) return;
+    setState(() => _isExporting = true);
+    try {
+      final rows = _buildExportRows();
+      final doc = pw.Document();
+
+      doc.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (context) => [
+            pw.Text(
+              p.title,
+              style: pw.TextStyle(
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColor.fromInt(0xFF1B3F8B),
+              ),
+            ),
+            pw.SizedBox(height: 4),
+            pw.Text(
+              'VOX — Detalhes do Projeto',
+              style: pw.TextStyle(
+                fontSize: 11,
+                color: PdfColor.fromInt(0xFF6B7280),
+              ),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Table(
+              border: pw.TableBorder.symmetric(
+                inside: pw.BorderSide(
+                  color: PdfColor.fromInt(0xFFE5E7EB),
+                  width: 0.5,
+                ),
+              ),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(150),
+                1: pw.FlexColumnWidth(),
+              },
+              children: rows.map((row) {
+                return pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(6),
+                      child: pw.Text(
+                        row.key,
+                        style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold,
+                          fontSize: 11,
+                          color: PdfColor.fromInt(0xFF1B3F8B),
+                        ),
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(6),
+                      child: pw.Text(
+                        row.value,
+                        style: const pw.TextStyle(fontSize: 11),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+            pw.SizedBox(height: 24),
+            pw.Text(
+              'Exportado em ${_fmtDate(DateTime.now().toIso8601String())}',
+              style: pw.TextStyle(
+                fontSize: 9,
+                color: PdfColor.fromInt(0xFF9CA3AF),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      await Printing.sharePdf(
+        bytes: await doc.save(),
+        filename: '${_safeFileName()}.pdf',
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Falha ao exportar PDF.')));
+      }
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: VoxAppBar(title: _project?.title ?? 'Projeto'),
+      appBar: VoxAppBar(
+        title: _project?.title ?? 'Projeto',
+        actions: [
+          if (_project != null && !_isExporting)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.ios_share),
+              tooltip: 'Exportar para',
+              onSelected: (value) {
+                if (value == 'csv') {
+                  _exportCsv();
+                } else if (value == 'pdf') {
+                  _exportPdf();
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'csv',
+                  child: ListTile(
+                    leading: Icon(Icons.description_outlined),
+                    title: Text('Exportar CSV'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'pdf',
+                  child: ListTile(
+                    leading: Icon(Icons.picture_as_pdf_outlined),
+                    title: Text('Exportar PDF'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          if (_isExporting)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -304,10 +556,11 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
       );
     }
     if (_isCitizen) {
+      final countSuffix = _signatureCount > 0 ? ' ($_signatureCount)' : '';
       return OutlinedButton.icon(
         onPressed: _isSigning ? null : _toggleSign,
         icon: Icon(_signed ? Icons.check_circle : Icons.edit_outlined),
-        label: Text(_signed ? 'Assinado' : 'Assinar'),
+        label: Text((_signed ? 'Assinado' : 'Assinar') + countSuffix),
       );
     }
     return const SizedBox.shrink();

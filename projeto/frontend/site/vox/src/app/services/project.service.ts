@@ -102,17 +102,25 @@ export class ProjectService {
     return this.http.put<Project>(`${this.API_URL}/api/project/${id}`, formData);
   }
 
-  // ── Vereadores vinculados ao projeto ────────────────────────
+  // ----- Assinaturas de apoio ao projeto (petição) -----
 
-  linkCouncilor(projectId: number, councilorId: number): Observable<void> {
-    return this.http.post<void>(`${this.API_URL}/api/project/${projectId}/councilor/${councilorId}`, null);
+  /** Assina (apoia) o projeto. */
+  signProject(id: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/project/${id}/signature`, null);
   }
 
-  unlinkCouncilor(projectId: number, councilorId: number): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/api/project/${projectId}/councilor/${councilorId}`);
+  /** Remove a assinatura de apoio do projeto. */
+  unsignProject(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/api/project/${id}/signature`);
   }
 
-  getProjectCouncilors(projectId: number): Observable<UserSummary[]> {
-    return this.http.get<UserSummary[]>(`${this.API_URL}/api/project/${projectId}/councilor`);
+  /** Verifica se o usuário atual já assinou o projeto. */
+  hasSignedProject(id: number): Observable<{ signed: boolean }> {
+    return this.http.get<{ signed: boolean }>(`${this.API_URL}/api/project/${id}/signature/me`);
+  }
+
+  /** Contagem total de assinaturas do projeto. */
+  getSignatureCount(id: number): Observable<{ total: number }> {
+    return this.http.get<{ total: number }>(`${this.API_URL}/api/project/${id}/signature/count`);
   }
 }

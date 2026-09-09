@@ -66,6 +66,31 @@ class SalaService {
         .toList();
   }
 
+  // ── Solicitações de fala ──────────────────────────────────
+
+  Future<void> solicitarFala(int id) =>
+      _post('/api/salas/$id/solicitacoes-fala');
+
+  Future<List<SolicitacaoEntrada>> getSolicitacoesFala(int id) async {
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/api/salas/$id/solicitacoes-fala'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list
+        .map((e) => SolicitacaoEntrada.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> aprovarFala(int id, int participanteId) =>
+      _post('/api/salas/$id/solicitacoes-fala/$participanteId/aprovar');
+
+  Future<void> rejeitarFala(int id, int participanteId) =>
+      _post('/api/salas/$id/solicitacoes-fala/$participanteId/rejeitar');
+
+  // ── Solicitações de entrada ───────────────────────────────
+
   Future<void> aprovarSolicitacao(int id, int participanteId) =>
       _post('/api/salas/$id/solicitacoes-entrada/$participanteId/aprovar');
 

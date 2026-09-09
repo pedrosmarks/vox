@@ -40,6 +40,9 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
   List<SolicitacaoEntrada> _pendingRequests = [];
   final Map<int, String> _requestNames = {};
 
+  /// userIds que pediram para falar (via backend /solicitacoes-fala)
+  List<int> _speakRequestIds = [];
+
   /// Flags locais de mídia
   bool _micOn = false;
   bool _camOn = false;
@@ -123,11 +126,12 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
       if (_isModerator) {
         _connectToRoom();
         _loadPendingRequests();
+        _loadSpeakRequests();
         // Moderador: recarrega solicitações a cada 5 s para ver novos pedidos
-        _pendingPollTimer = Timer.periodic(
-          const Duration(seconds: 5),
-          (_) => _loadPendingRequests(),
-        );
+        _pendingPollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+          _loadPendingRequests();
+          _loadSpeakRequests();
+        });
       } else {
         _requestEntry();
       }
@@ -284,10 +288,17 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
   /// usando atributos do LiveKit (sem precisar de endpoint de backend).
   Future<void> _requestSpeakPermission() async {
     final room = _room;
-    if (room == null || _requestingPermission) return;
+    if (_requestingPermission) return;
     setState(() => _requestingPermission = true);
+
+    // 1) Registra a solicitação de fala no backend (persistente).
     try {
-      await room.localParticipant?.setAttributes({
+      await _salaService.solicitarFala(widget.salaId);
+    } catch (_) {}
+
+    // 2) Sinaliza em tempo real via atributos do LiveKit (redundância).
+    try {
+      await room?.localParticipant?.setAttributes({
         'requestMic': (!_canPublishAudio).toString(),
         'requestCam': (!_canPublishVideo).toString(),
       });
@@ -319,6 +330,53 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
         });
       }
     } catch (_) {}
+  }
+
+  Future<void> _loadSpeakRequests() async {
+    try {
+      final reqs = await _salaService.getSolicitacoesFala(widget.salaId);
+      final pending = reqs.where((r) => r.status == 'PENDING').toList();
+      final names = <int, String>{};
+      for (final req in pending) {
+        if (_requestNames.containsKey(req.userId)) continue;
+        try {
+          final user = await _projectService.getUserById(req.userId);
+          final name = (user.fullname?.isNotEmpty ?? false)
+              ? user.fullname!
+              : user.name;
+          if (name.isNotEmpty) names[req.userId] = name;
+        } catch (_) {}
+      }
+      if (mounted) {
+        setState(() {
+          _speakRequestIds = pending.map((r) => r.userId).toList();
+          _requestNames.addAll(names);
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _aprovarFala(int userId) async {
+    try {
+      await _salaService.aprovarFala(widget.salaId, userId);
+    } catch (_) {
+      // fallback: libera o microfone diretamente
+      try {
+        await _salaService.liberarMicrofone(widget.salaId, userId);
+      } catch (_) {}
+    }
+    if (mounted) {
+      setState(() => _speakRequestIds.remove(userId));
+    }
+  }
+
+  Future<void> _rejeitarFala(int userId) async {
+    try {
+      await _salaService.rejeitarFala(widget.salaId, userId);
+    } catch (_) {}
+    if (mounted) {
+      setState(() => _speakRequestIds.remove(userId));
+    }
   }
 
   Future<void> _approve(SolicitacaoEntrada req) async {
@@ -354,6 +412,49 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     } catch (_) {}
   }
 
+  Future<void> _liberarCam(livekit.Participant p) async {
+    try {
+      await _salaService.liberarCamera(widget.salaId, int.parse(p.identity));
+    } catch (_) {}
+  }
+
+  Future<void> _bloquearCam(livekit.Participant p) async {
+    try {
+      await _salaService.bloquearCamera(widget.salaId, int.parse(p.identity));
+    } catch (_) {}
+  }
+
+  /// Expulsa o cidadão da sala. Ele precisará solicitar entrada novamente.
+  Future<void> _expulsar(livekit.Participant p) async {
+    final name = p.name.isNotEmpty ? p.name : p.identity;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Expulsar participante'),
+        content: Text(
+          'Remover $name da sala? Ele precisará solicitar entrada novamente.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Expulsar'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await _salaService.expulsarParticipante(
+        widget.salaId,
+        int.parse(p.identity),
+      );
+    } catch (_) {}
+  }
+
   Future<void> _encerrarSala() async {
     final ok = await showDialog<bool>(
       context: context,
@@ -380,6 +481,14 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     } catch (_) {}
   }
 
+  /// Cidadão sai da sala. Como não foi expulso, pode reentrar depois
+  /// (o backend mantém a aprovação e gera novo token na reentrada).
+  Future<void> _sairDaSala() async {
+    _pollTimer?.cancel();
+    await _room?.disconnect();
+    if (mounted) Navigator.of(context).pop();
+  }
+
   // ── Build ──────────────────────────────────────────────────
 
   @override
@@ -397,6 +506,12 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
               ),
               tooltip: 'Encerrar sala',
               onPressed: _encerrarSala,
+            ),
+          if (!_isModerator)
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white70),
+              tooltip: 'Sair da sala',
+              onPressed: _sairDaSala,
             ),
         ],
       ),
@@ -873,6 +988,44 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
                 _bloquearMic(p);
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.videocam, color: Colors.greenAccent),
+              title: const Text(
+                'Liberar câmera',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _liberarCam(p);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam_off, color: Colors.redAccent),
+              title: const Text(
+                'Bloquear câmera',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _bloquearCam(p);
+              },
+            ),
+            const Divider(color: Colors.white12),
+            ListTile(
+              leading: const Icon(Icons.person_remove, color: Colors.redAccent),
+              title: const Text(
+                'Expulsar da sala',
+                style: TextStyle(color: Colors.redAccent),
+              ),
+              subtitle: const Text(
+                'Precisará pedir entrada novamente',
+                style: TextStyle(color: Colors.white38, fontSize: 11),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _expulsar(p);
+              },
+            ),
           ],
         ),
       ),
@@ -973,8 +1126,11 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
 
     final hasPending = _pendingRequests.isNotEmpty;
     final hasRequesters = requesters.isNotEmpty;
+    final hasSpeakRequests = _speakRequestIds.isNotEmpty;
 
-    if (!hasPending && !hasRequesters) return const SizedBox.shrink();
+    if (!hasPending && !hasRequesters && !hasSpeakRequests) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       constraints: const BoxConstraints(maxHeight: 220),
@@ -1030,6 +1186,56 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
                       label: 'Negar',
                       color: Colors.redAccent,
                       onTap: () => _deny(req),
+                    ),
+                  ],
+                ),
+              );
+            })),
+          ],
+
+          // Pedidos de fala registrados no backend
+          if (hasSpeakRequests) ...[
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 10, 16, 4),
+              child: Text(
+                'Pedidos de fala',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ...(_speakRequestIds.map((userId) {
+              final name = _requestNames[userId] ?? 'Usuário #$userId';
+              return ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                leading: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.orangeAccent.withValues(alpha: 0.2),
+                  child: Text(
+                    name.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+                title: Text(
+                  name,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ActionChip(
+                      label: 'Aprovar',
+                      color: Colors.greenAccent,
+                      onTap: () => _aprovarFala(userId),
+                    ),
+                    const SizedBox(width: 8),
+                    _ActionChip(
+                      label: 'Recusar',
+                      color: Colors.redAccent,
+                      onTap: () => _rejeitarFala(userId),
                     ),
                   ],
                 ),

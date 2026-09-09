@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
+    private settingsService: SettingsService,
     private router: Router
   ) {}
 
@@ -36,6 +38,8 @@ export class LoginComponent {
         // Fetch user profile to store numeric ID (needed for API calls)
         this.authService.fetchCurrentUser().subscribe({
           next: () => {
+            // Carrega as preferências de acessibilidade do usuário.
+            this.settingsService.load().subscribe({ error: () => {} });
             this.isLoading = false;
             this.router.navigate(['/projetos']);
           },

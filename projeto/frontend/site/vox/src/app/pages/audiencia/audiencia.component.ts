@@ -2,9 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { catchError, of } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-import { SalaService, Sala, CreateSalaPayload } from '../../services/sala.service';
+import { SalaService, Sala } from '../../services/sala.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 
 @Component({
@@ -16,14 +15,13 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 })
 export class AudienciaComponent implements OnInit {
   salas: Sala[] = [];
-  isLoading = true;
-  loadError = '';
   isModerator = false;
-  showCreateForm = false;
-  isCreating = false;
-  createError = '';
+  isLoading = true;
+  error = '';
 
-  novaSala: CreateSalaPayload = { name: '', description: '' };
+  showCreateForm = false;
+  creating = false;
+  novaSala = { name: '', description: '' };
 
   constructor(
     private authService: AuthService,
@@ -38,59 +36,79 @@ export class AudienciaComponent implements OnInit {
     }
     const role = this.authService.getUserRole();
     this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
-    this.loadSalas();
+    this.load();
   }
 
-  loadSalas(): void {
+  load(): void {
     this.isLoading = true;
-    this.loadError = '';
-    this.salaService.getSalas().pipe(
-      catchError(() => {
-        this.loadError = 'Erro ao carregar salas de audiência.';
-        return of([] as Sala[]);
-      })
-    ).subscribe(salas => {
-      this.salas = salas;
-      this.isLoading = false;
-    });
-  }
-
-  entrar(id: number): void {
-    this.router.navigate(['/audiencia', id]);
-  }
-
-  criarSala(): void {
-    if (!this.novaSala.name.trim()) return;
-    this.isCreating = true;
-    this.createError = '';
-    this.salaService.createSala({
-      name: this.novaSala.name.trim(),
-      description: this.novaSala.description.trim()
-    }).subscribe({
-      next: (sala) => {
-        this.isCreating = false;
-        this.showCreateForm = false;
-        this.novaSala = { name: '', description: '' };
-        this.salas = [sala, ...this.salas];
+    this.error = '';
+    this.salaService.getSalas().subscribe({
+      next: salas => {
+        // Salas abertas primeiro, depois as encerradas.
+        this.salas = salas.sort((a, b) => {
+          if (a.status === b.status) return b.id - a.id;
+          return a.status === 'OPEN' ? -1 : 1;
+        });
+        this.isLoading = false;
       },
       error: () => {
-        this.isCreating = false;
-        this.createError = 'Erro ao criar sala. Tente novamente.';
+        this.error = 'Erro ao carregar as salas de audiência.';
+        this.isLoading = false;
       }
     });
   }
 
+  entrar(sala: Sala): void {
+    if (sala.status !== 'OPEN') return;
+    this.router.navigate(['/audiencia', sala.id]);
+  }
+
+  criarSala(): void {
+    if (this.creating) return;
+    if (!this.novaSala.name.trim()) return;
+    this.creating = true;
+    this.salaService
+      .createSala({
+        name: this.novaSala.name.trim(),
+        description: this.novaSala.description.trim()
+      })
+      .subscribe({
+        next: () => {
+          this.creating = false;
+          this.showCreateForm = false;
+          this.novaSala = { name: '', description: '' };
+          this.load();
+        },
+        error: () => {
+          this.creating = false;
+          this.error = 'Não foi possível criar a sala. Verifique suas permissões.';
+        }
+      });
+  }
+
   encerrarSala(sala: Sala, event: Event): void {
     event.stopPropagation();
-    if (!confirm(`Encerrar a sala "${sala.name}"?`)) return;
+    if (!confirm(`Encerrar a sala "${sala.name}" para todos os participantes?`)) return;
     this.salaService.encerrarSala(sala.id).subscribe({
-      next: () => { this.salas = this.salas.filter(s => s.id !== sala.id); },
-      error: () => {}
+      next: () => this.load(),
+      error: () => (this.error = 'Não foi possível encerrar a sala.')
     });
   }
 
-  getStatusLabel(status: string): string {
-    return status === 'OPEN' ? '🔴 Aberta' : '⏹ Encerrada';
+  statusLabel(status: string): string {
+    return status === 'OPEN' ? '🔴 Ao vivo' : '⏹ Encerrada';
+  }
+
+  formatDate(iso: string): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 }
-

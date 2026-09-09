@@ -2,228 +2,211 @@
 
 <main class="sala-page">
 
-  <!-- Carregando -->
-  <div *ngIf="isLoading" class="state-center">
+  <!-- Barra superior -->
+  <div class="sala-topbar">
+    <button class="btn-back" (click)="sairDaSala()">← Sair</button>
+    <div class="sala-info">
+      <span class="sala-badge live" *ngIf="connState === 'connected'">🔴 Ao vivo</span>
+      <h1 class="sala-title">{{ sala?.name || 'Sala de audiência' }}</h1>
+    </div>
+    <div class="sala-topbar-actions">
+      <button *ngIf="isModerator && connState === 'connected'" class="btn-encerrar" (click)="encerrarSala()">
+        Encerrar sala
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Estados ── -->
+  <div *ngIf="connState === 'loading' || connState === 'requesting' || connState === 'connecting'" class="state-screen">
     <div class="spinner"></div>
-    <p>Carregando sala...</p>
+    <p>{{ connState === 'connecting' ? 'Conectando à sala...' : 'Carregando...' }}</p>
   </div>
 
-  <!-- Erro -->
-  <div *ngIf="!isLoading && loadError" class="state-center error">
-    <p>{{ loadError }}</p>
-    <button class="btn-back" (click)="goBack()">← Voltar</button>
+  <div *ngIf="connState === 'waiting'" class="state-screen">
+    <div class="state-icon waiting">⏳</div>
+    <h2>Aguardando aprovação</h2>
+    <p>O moderador precisa aprovar sua entrada na sala.<br />Você será conectado automaticamente.</p>
+    <div class="spinner small"></div>
   </div>
 
-  <ng-container *ngIf="!isLoading && !loadError && sala">
+  <div *ngIf="connState === 'denied'" class="state-screen">
+    <div class="state-icon denied">🚫</div>
+    <h2>Entrada negada</h2>
+    <p>Não foi possível entrar na sala. Se você foi removido, poderá solicitar entrada novamente.</p>
+    <button class="btn-primary" (click)="sairDaSala()">Voltar às audiências</button>
+  </div>
 
-    <!-- ── Topbar ──────────────────────────────────────────── -->
-    <div class="sala-topbar">
-      <button class="btn-back" (click)="goBack()">← Sair</button>
-      <div class="sala-info">
-        <span class="live-badge" *ngIf="sala.status === 'OPEN'">
-          <span class="live-dot"></span> Ao vivo
-        </span>
-        <h1 class="sala-title">{{ sala.name }}</h1>
-      </div>
-      <div class="topbar-right">
-        <span class="participants-count">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-          {{ participants.length }}
-        </span>
-        <button *ngIf="isModerator" class="btn-encerrar" (click)="encerrarSala()">Encerrar sala</button>
-      </div>
-    </div>
+  <div *ngIf="connState === 'closed'" class="state-screen">
+    <div class="state-icon closed">⏹</div>
+    <h2>Sala encerrada</h2>
+    <p>Esta sala de audiência não está mais ativa.</p>
+    <button class="btn-primary" (click)="sairDaSala()">Voltar às audiências</button>
+  </div>
 
-    <!-- ── Aguardando aprovação ────────────────────────────── -->
-    <div *ngIf="connectionState === 'requesting' || connectionState === 'waiting'" class="state-center">
-      <div class="waiting-card">
-        <div class="waiting-icon">⏳</div>
-        <h2>Aguardando aprovação</h2>
-        <p>O moderador precisa aprovar sua entrada na sala.<br>Você será conectado automaticamente.</p>
-        <div class="spinner amber"></div>
-      </div>
-    </div>
+  <div *ngIf="connState === 'error'" class="state-screen">
+    <div class="state-icon denied">⚠️</div>
+    <h2>Erro</h2>
+    <p>{{ loadError || 'Ocorreu um erro.' }}</p>
+    <button class="btn-primary" (click)="sairDaSala()">Voltar</button>
+  </div>
 
-    <!-- ── Negado ──────────────────────────────────────────── -->
-    <div *ngIf="connectionState === 'denied'" class="state-center error">
-      <div class="waiting-card">
-        <div class="waiting-icon">🚫</div>
-        <h2>Entrada negada</h2>
-        <p>Não foi possível entrar na sala.</p>
-        <button class="btn-back" (click)="goBack()">← Voltar</button>
-      </div>
-    </div>
+  <!-- Áudio bloqueado pelo navegador (política de autoplay) -->
+  <div *ngIf="connState === 'connected' && audioBlocked" class="audio-unblock" (click)="enableAudio()">
+    🔊 Clique aqui para ativar o áudio da audiência
+  </div>
 
-    <!-- ── Layout principal (conectado) ───────────────────── -->
-    <div class="sala-body" *ngIf="connectionState === 'connected'">
+  <!-- ── Layout conectado ── -->
+  <div *ngIf="connState === 'connected'" class="sala-body">
 
-      <!-- Coluna de vídeos -->
-      <div class="sala-main">
+    <div class="sala-main">
 
-        <!-- Tile do moderador — destaque principal (câmara municipal) -->
-        <div class="moderator-stage">
-          <div *ngIf="moderatorParticipant as mod; else noMod" class="mod-tile">
-            <!-- Container separado só para o <video> — o Angular nunca toca aqui -->
-            <div #tileContainer [attr.data-identity]="mod.identity" class="video-layer"></div>
-            <!-- Placeholder sobreposto, some quando há vídeo -->
-            <div *ngIf="!mod.cameraOn" class="video-placeholder mod-placeholder">
-              <span class="avatar-xl">{{ getInitial(mod.name) }}</span>
-              <span class="placeholder-label">Câmara Municipal</span>
-            </div>
-            <div class="camara-badge">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7l9 5 9-5-9-5zM3 17l9 5 9-5M3 12l9 5 9-5"/></svg>
-              Câmara Municipal
-            </div>
-            <div class="tile-footer">
-              <span class="tile-name">
-                {{ mod.name }}<span *ngIf="mod.isLocal"> (você)</span>
-                <span class="tag-mod">MOD</span>
-              </span>
-              <span class="mic-icon" [class.muted]="mod.muted">{{ mod.muted ? '🔇' : '🎤' }}</span>
-            </div>
-          </div>
-          <ng-template #noMod>
-            <div class="mod-tile mod-tile-empty">
-              <div class="video-placeholder mod-placeholder">
-                <span class="avatar-xl">?</span>
-                <span class="placeholder-label">Aguardando moderador...</span>
-              </div>
-              <div class="camara-badge">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L3 7l9 5 9-5-9-5zM3 17l9 5 9-5M3 12l9 5 9-5"/></svg>
-                Câmara Municipal
-              </div>
-            </div>
-          </ng-template>
-        </div>
-
-        <!-- Faixa de cidadãos -->
-        <div class="citizens-strip" *ngIf="participants.length > 0">
-          <div class="strip-label">Participantes ({{ citizenParticipants.length }})</div>
-          <div class="strip-scroll">
-            <div *ngFor="let p of citizenParticipants" class="citizen-tile"
-                 [class.wants-permission]="p.wantsMic || p.wantsCam">
-              <!-- Container separado só para o <video> — o Angular nunca toca aqui -->
-              <div #tileContainer [attr.data-identity]="p.identity" class="video-layer"></div>
-              <!-- Placeholder sobreposto, some quando há vídeo -->
-              <div *ngIf="!p.cameraOn" class="video-placeholder citizen-placeholder">
-                <span class="avatar-sm">{{ getInitial(p.name) }}</span>
-              </div>
-              <div *ngIf="isModerator && (p.wantsMic || p.wantsCam)" class="wants-mic-badge" title="Quer falar">🙋</div>
-              <div class="citizen-footer">
-                <span class="citizen-name">{{ p.isLocal ? 'Você' : p.name }}</span>
-                <span class="citizen-mic" [class.muted]="p.muted">{{ p.muted ? '🔇' : '🎤' }}</span>
-              </div>
-              <div *ngIf="isModerator && !p.isLocal" class="tile-controls">
-                <button (click)="p.muted ? liberarMic(p) : bloquearMic(p)" [title]="p.muted ? 'Liberar microfone' : 'Bloquear microfone'">{{ p.muted ? '🔈' : '🔇' }}</button>
-                <button (click)="p.cameraOn ? bloquearCam(p) : liberarCam(p)" [title]="p.cameraOn ? 'Bloquear câmera' : 'Liberar câmera'">{{ p.cameraOn ? '📷' : '🚫' }}</button>
-                <button (click)="removeParticipant(p)" title="Remover participante">✕</button>
-              </div>
-            </div>
-            <div *ngIf="noCitizens" class="no-citizens">Nenhum cidadão conectado</div>
-          </div>
-        </div>
-
-        <!-- Controles do próprio usuário -->
-        <div class="controls-bar">
-
-          <!-- Cidadão bloqueado -->
-          <div *ngIf="!isModerator && !canPublishAudio && !canPublishVideo" class="blocked-notice">
-            <span class="blocked-icon">🔒</span>
-            <span class="blocked-text">Microfone e câmera bloqueados pelo moderador</span>
-            <button class="btn-request"
-                    [class.requested]="requestingPermission"
-                    [disabled]="requestingPermission"
-                    (click)="requestSpeakPermission()">
-              {{ requestingPermission ? '⏳ Pedido enviado' : '🙋 Pedir para falar' }}
-            </button>
+      <!-- Palco: câmera do moderador (grande) -->
+      <div class="moderator-stage">
+        <ng-container *ngIf="moderatorVM as mod; else noMod">
+          <video
+            *ngIf="mod.camEnabled"
+            [appLivekitVideo]="mod.ref"
+            autoplay
+            playsinline
+            [muted]="mod.isLocal"
+            class="stage-video"
+          ></video>
+          <div *ngIf="!mod.camEnabled" class="stage-placeholder">
+            <span class="avatar-xl">{{ getInitial(mod.name) }}</span>
           </div>
 
-          <!-- Controles normais -->
-          <ng-container *ngIf="isModerator || canPublishAudio || canPublishVideo">
-            <button class="ctrl-btn" [class.ctrl-off]="!micOn"
-                    [disabled]="!canPublishAudio && !isModerator"
-                    (click)="toggleMic()">
-              <span class="ctrl-icon">{{ micOn ? '🎤' : '🔇' }}</span>
-              <span>{{ micOn ? 'Mudo' : 'Ativar mic' }}</span>
-            </button>
-            <button class="ctrl-btn" [class.ctrl-off]="!camOn"
-                    [disabled]="!canPublishVideo && !isModerator"
-                    (click)="toggleCam()">
-              <span class="ctrl-icon">{{ camOn ? '📷' : '📷' }}</span>
-              <span>{{ camOn ? 'Câmera' : 'Ativar câmera' }}</span>
-            </button>
-          </ng-container>
+          <div class="stage-badge">🏛 Câmara Municipal</div>
+          <div class="stage-footer">
+            <span class="stage-name">{{ mod.isLocal ? 'Você (Moderador)' : mod.name }}</span>
+            <span class="mic-ind" [class.on]="mod.micEnabled">{{ mod.micEnabled ? '🎤' : '🔇' }}</span>
+          </div>
+        </ng-container>
+        <ng-template #noMod>
+          <div class="stage-placeholder">
+            <span class="avatar-xl">?</span>
+            <p>Aguardando moderador...</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Faixa de cidadãos (quadrados menores) -->
+      <div class="citizens-strip">
+        <div *ngIf="citizenVMs.length === 0" class="citizens-empty">Nenhum cidadão conectado</div>
+
+        <div
+          *ngFor="let c of citizenVMs"
+          class="citizen-tile"
+          [class.local]="c.isLocal"
+          [class.wants]="c.wantsMic || c.wantsCam"
+        >
+          <video
+            *ngIf="c.camEnabled"
+            [appLivekitVideo]="c.ref"
+            autoplay
+            playsinline
+            [muted]="c.isLocal"
+            class="citizen-video"
+          ></video>
+          <div *ngIf="!c.camEnabled" class="citizen-placeholder">
+            <span class="avatar-sm">{{ getInitial(c.name) }}</span>
+          </div>
+
+          <!-- Sinal de "quer falar" -->
+          <span *ngIf="(c.wantsMic || c.wantsCam) && isModerator" class="wants-badge">🖐</span>
+
+          <div class="citizen-footer">
+            <span class="citizen-name">{{ c.isLocal ? 'Você' : c.name }}</span>
+            <span class="mic-ind small" [class.on]="c.micEnabled">{{ c.micEnabled ? '🎤' : '🔇' }}</span>
+          </div>
+
+          <!-- Controles do moderador sobre o cidadão -->
+          <div *ngIf="isModerator && !c.isLocal" class="citizen-controls">
+            <button title="Liberar microfone" (click)="liberarMic(c)">🎤</button>
+            <button title="Bloquear microfone" (click)="bloquearMic(c)">🔇</button>
+            <button title="Liberar câmera" (click)="liberarCam(c)">📷</button>
+            <button title="Bloquear câmera" (click)="bloquearCam(c)">🚫</button>
+            <button class="kick" title="Expulsar" (click)="expulsar(c)">✕</button>
+          </div>
         </div>
       </div>
 
-      <!-- ── Sidebar ──────────────────────────────────────── -->
-      <aside class="sala-sidebar">
+      <!-- Barra de controles do próprio usuário -->
+      <div class="controls-bar">
+        <ng-container *ngIf="isModerator || canPublishAudio || canPublishVideo">
+          <button class="ctrl-btn" [class.off]="!micOn" [disabled]="!canPublishAudio" (click)="toggleMic()">
+            {{ micOn ? '🎤 Microfone' : '🔇 Mudo' }}
+          </button>
+          <button class="ctrl-btn" [class.off]="!camOn" [disabled]="!canPublishVideo" (click)="toggleCam()">
+            {{ camOn ? '📷 Câmera' : '📷 Câmera off' }}
+          </button>
+        </ng-container>
 
-        <!-- Pedidos de entrada (moderador) -->
-        <div *ngIf="isModerator && pendingRequests.length > 0" class="sidebar-card queue-card">
-          <h3 class="sidebar-title">
-            🙋 Pedidos de entrada
-            <span class="count-badge">{{ pendingRequests.length }}</span>
-          </h3>
-          <ul class="queue-list">
-            <li *ngFor="let req of pendingRequests" class="queue-item">
-              <div class="queue-info">
-                <span class="queue-avatar">{{ getInitial(getRequestDisplayName(req)) }}</span>
-                <span class="queue-name">{{ getRequestDisplayName(req) }}</span>
-              </div>
-              <div class="queue-actions">
-                <button class="btn-approve" (click)="approveRequest(req)" title="Aprovar">✓</button>
-                <button class="btn-deny"    (click)="denyRequest(req)"    title="Negar">✕</button>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Pedidos de mic/câmera (moderador) -->
-        <div *ngIf="isModerator && hasPermissionRequests"
-             class="sidebar-card perm-card">
-          <h3 class="sidebar-title">
-            🎙️ Pedidos de microfone / câmera
-            <span class="count-badge amber">{{ permissionRequesters.length }}</span>
-          </h3>
-          <ul class="queue-list">
-            <li *ngFor="let p of permissionRequesters" class="queue-item perm-item">
-              <div class="queue-info">
-                <span class="queue-avatar amber">{{ getInitial(p.name) }}</span>
-                <div>
-                  <span class="queue-name">{{ p.name }}</span>
-                  <div class="perm-badges">
-                    <span *ngIf="p.wantsMic" class="perm-badge">🎤 Mic</span>
-                    <span *ngIf="p.wantsCam" class="perm-badge">📷 Câmera</span>
-                  </div>
-                </div>
-              </div>
-              <div class="queue-actions">
-                <button *ngIf="p.wantsMic" class="btn-approve" (click)="liberarMic(p)" title="Liberar microfone">🔈</button>
-                <button *ngIf="p.wantsCam" class="btn-approve" (click)="liberarCam(p)" title="Liberar câmera">📷</button>
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Lista de participantes -->
-        <div class="sidebar-card">
-          <h3 class="sidebar-title">
-            Participantes
-            <span class="count-badge">{{ participants.length }}</span>
-          </h3>
-          <ul class="participant-list">
-            <li *ngFor="let p of participants" class="participant-item">
-              <span class="p-avatar" [class.mod]="p.role === 'moderator'">{{ getInitial(p.name) }}</span>
-              <span class="p-name">{{ p.name }}<span *ngIf="p.isLocal"> (você)</span></span>
-              <span *ngIf="p.role === 'moderator'" class="tag-mod small">MOD</span>
-              <span *ngIf="p.muted" class="p-muted">🔇</span>
-            </li>
-          </ul>
-        </div>
-
-      </aside>
+        <!-- Cidadão sem permissão: pedir para falar -->
+        <ng-container *ngIf="!isModerator && !canPublishAudio && !canPublishVideo">
+          <span class="blocked-label">🔒 Microfone e câmera bloqueados pelo moderador</span>
+          <button class="ctrl-btn raise" [disabled]="requestingPermission" (click)="requestToSpeak()">
+            {{ requestingPermission ? '✋ Pedido enviado' : '✋ Pedir para falar' }}
+          </button>
+        </ng-container>
+      </div>
     </div>
 
-  </ng-container>
+    <!-- ── Sidebar do moderador ── -->
+    <aside *ngIf="isModerator" class="sala-sidebar">
+
+      <!-- Pedidos de entrada -->
+      <div class="sidebar-card" *ngIf="pendingRequests.length > 0">
+        <h3 class="sidebar-title">🚪 Pedidos de entrada <span class="count-badge">{{ pendingRequests.length }}</span></h3>
+        <ul class="queue-list">
+          <li *ngFor="let req of pendingRequests" class="queue-item">
+            <div class="queue-info">
+              <span class="queue-avatar">{{ getInitial(requestNames[req.userId] || 'U') }}</span>
+              <span class="queue-name">{{ requestNames[req.userId] || ('Usuário #' + req.userId) }}</span>
+            </div>
+            <div class="queue-actions">
+              <button class="btn-approve" (click)="approveRequest(req)">✓</button>
+              <button class="btn-deny" (click)="denyRequest(req)">✕</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Pedidos de fala -->
+      <div class="sidebar-card" *ngIf="speakRequests.length > 0">
+        <h3 class="sidebar-title">🖐 Pedidos de fala <span class="count-badge">{{ speakRequests.length }}</span></h3>
+        <ul class="queue-list">
+          <li *ngFor="let r of speakRequests" class="queue-item">
+            <div class="queue-info">
+              <span class="queue-avatar">{{ getInitial(r.name) }}</span>
+              <span class="queue-name">{{ r.name }}</span>
+            </div>
+            <div class="queue-actions">
+              <button class="btn-approve" title="Aprovar (liberar microfone)" (click)="aprovarFala(r.userId)">✓</button>
+              <button class="btn-deny" title="Recusar" (click)="rejeitarFala(r.userId)">✕</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Lista de conectados -->
+      <div class="sidebar-card">
+        <h3 class="sidebar-title">Participantes <span class="count-badge">{{ citizenVMs.length + (moderatorVM ? 1 : 0) }}</span></h3>
+        <ul class="participant-list">
+          <li *ngIf="moderatorVM as mod" class="participant-item">
+            <span class="p-avatar mod">{{ getInitial(mod.name) }}</span>
+            <span class="p-name">{{ mod.isLocal ? 'Você' : mod.name }}</span>
+            <span class="tag-mod">MOD</span>
+          </li>
+          <li *ngFor="let c of citizenVMs" class="participant-item">
+            <span class="p-avatar">{{ getInitial(c.name) }}</span>
+            <span class="p-name">{{ c.isLocal ? 'Você' : c.name }}</span>
+            <span class="mic-ind small" [class.on]="c.micEnabled">{{ c.micEnabled ? '🎤' : '🔇' }}</span>
+            <button *ngIf="!c.isLocal" class="btn-kick" title="Expulsar" (click)="expulsar(c)">✕</button>
+          </li>
+        </ul>
+      </div>
+
+    </aside>
+  </div>
+
 </main>

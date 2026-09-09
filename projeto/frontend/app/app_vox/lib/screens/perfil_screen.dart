@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
-import '../theme/vox_app_bar.dart';
+import '../services/settings_service.dart';
 import '../theme/vox_badges.dart';
+import 'configuracoes_screen.dart';
 import 'login_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
@@ -139,6 +140,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   Future<void> _logout() async {
     await _authService.logout();
+    SettingsController.instance.reset();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -147,21 +149,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
   }
 
   void _openSettings() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Configurações'),
-        content: const Text(
-          'Em breve. Assim como no site, esta área ainda está em construção.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Fechar'),
-          ),
-        ],
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ConfiguracoesScreen()));
   }
 
   @override

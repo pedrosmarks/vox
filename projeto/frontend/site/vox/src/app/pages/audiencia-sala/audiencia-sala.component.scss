@@ -1,129 +1,57 @@
 $primary:    #1b3f8b;
 $accent:     #2d6fcc;
+$dark:       #0f0f1a;
+$panel:      #1a1a2e;
+$panel-2:    #12121f;
 $gold:       #e8a838;
-$bg:         #0f0f1a;
-$surface:    #1a1a2e;
-$surface2:   #12121f;
-$white:      #ffffff;
-$text:       #e6edf3;
-$text-muted: #8b949e;
-$border:     #2a2a3e;
 $live:       #dc2626;
-$green:      #22c55e;
-$orange:     #f59e0b;
-
-* { box-sizing: border-box; }
+$muted:      rgba(255,255,255,0.55);
 
 .sala-page {
   min-height: calc(100vh - 64px);
-  background: $bg;
+  background: $dark;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
-  font-family: 'Inter', sans-serif;
-  color: $text;
 }
-
-// ── Estado central (loading / waiting / denied) ───────────
-.state-center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-
-  &.error { color: #f87171; }
-
-  p { color: $text-muted; font-size: 0.9rem; text-align: center; }
-}
-
-.waiting-card {
-  background: $surface;
-  border: 1px solid $border;
-  border-radius: 16px;
-  padding: 2.5rem 3rem;
-  text-align: center;
-  max-width: 420px;
-
-  h2 { margin: 0.75rem 0 0.5rem; font-size: 1.25rem; font-weight: 700; color: $text; }
-  p  { color: $text-muted; font-size: 0.88rem; line-height: 1.6; margin: 0 0 1.5rem; }
-}
-
-.waiting-icon { font-size: 3rem; line-height: 1; }
-
-.spinner {
-  width: 28px; height: 28px;
-  border: 3px solid $border;
-  border-top-color: $accent;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  margin: 0 auto;
-
-  &.amber { border-top-color: $gold; }
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
 
 // ── Topbar ────────────────────────────────────────────────
 .sala-topbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
-  padding: 0.65rem 1.5rem;
-  background: $surface;
-  border-bottom: 1px solid $border;
-  flex-wrap: wrap;
+  padding: 0.85rem 1.25rem;
+  background: $panel-2;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .btn-back {
-  padding: 0.4rem 0.9rem;
-  border: 1px solid $border;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: none;
   border-radius: 8px;
-  background: transparent;
-  color: $text-muted;
-  font-size: 0.82rem;
-  font-weight: 600;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s;
-  &:hover { border-color: $accent; color: $text; }
+  &:hover { background: rgba(255,255,255,0.16); }
 }
 
-.sala-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-  min-width: 0;
-}
+.sala-info { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; }
 
-.live-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: rgba(220, 38, 38, 0.15);
-  color: #f87171;
+.sala-badge.live {
+  background: #fee2e2;
+  color: $live;
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.25rem 0.65rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 20px;
-  border: 1px solid rgba(220,38,38,0.4);
-  flex-shrink: 0;
-}
-
-.live-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #f87171;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+  white-space: nowrap;
 }
 
 .sala-title {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 700;
   margin: 0;
   white-space: nowrap;
@@ -131,492 +59,302 @@ $orange:     #f59e0b;
   text-overflow: ellipsis;
 }
 
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-left: auto;
-}
-
-.participants-count {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.82rem;
-  color: $text-muted;
-  font-weight: 600;
-}
-
 .btn-encerrar {
-  padding: 0.4rem 1rem;
-  background: rgba(220,38,38,0.15);
-  color: #f87171;
-  border: 1px solid rgba(220,38,38,0.5);
+  background: $live;
+  color: #fff;
+  border: none;
   border-radius: 8px;
-  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s;
-  &:hover { background: $live; color: $white; border-color: $live; }
+  &:hover { filter: brightness(1.08); }
 }
 
-// ── Body ──────────────────────────────────────────────────
+// ── Estados ───────────────────────────────────────────────
+.state-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+
+  h2 { margin: 0; font-size: 1.3rem; }
+  p  { margin: 0; color: $muted; line-height: 1.5; }
+}
+
+.state-icon { font-size: 3rem; }
+
+.btn-primary {
+  margin-top: 0.75rem;
+  background: $accent;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover { filter: brightness(1.08); }
+}
+
+.spinner {
+  width: 34px; height: 34px;
+  border: 3px solid rgba(255,255,255,0.15);
+  border-top-color: $gold;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  &.small { width: 24px; height: 24px; border-width: 2px; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Aviso de áudio bloqueado ──────────────────────────────
+.audio-unblock {
+  margin: 0.6rem 1rem 0;
+  padding: 0.65rem 1rem;
+  background: $gold;
+  color: #000;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  &:hover { filter: brightness(1.05); }
+}
+
+// ── Corpo conectado ───────────────────────────────────────
 .sala-body {
   flex: 1;
   display: flex;
-  overflow: hidden;
+  gap: 1rem;
+  padding: 1rem;
   min-height: 0;
-  height: 100%;
 }
 
 .sala-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1rem 1.25rem;
   gap: 0.75rem;
   min-width: 0;
-  overflow-y: auto;
 }
 
-// ── Tile do moderador ─────────────────────────────────────
+// Palco do moderador (grande)
 .moderator-stage {
-  flex-shrink: 0;
-}
-
-.mod-tile {
   position: relative;
-  border-radius: 12px;
+  flex: 1;
+  min-height: 320px;
+  background: $panel;
+  border: 1.5px solid rgba(232,168,56,0.6);
+  border-radius: 14px;
   overflow: hidden;
-  border: 1.5px solid rgba($gold, 0.6);
-  background: $surface;
-  width: 100%;
-
-  // Força proporção 16:9 via padding-top trick
-  &::before {
-    content: '';
-    display: block;
-    padding-top: 56.25%; // 9/16 = 56.25%
-  }
-
-  // Conteúdo sobre o pseudo-elemento
-  > * {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-  }
-
-  &.mod-tile-empty { opacity: 0.6; }
-}
-
-.camara-badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: $gold;
-  color: #000;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  z-index: 3;
-  pointer-events: none;
-
-  svg { flex-shrink: 0; }
+  justify-content: center;
 }
 
-.mod-placeholder {
+.stage-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+.stage-placeholder {
+  display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.75rem;
-}
-
-.placeholder-label {
-  font-size: 0.8rem;
-  color: $text-muted;
+  color: $muted;
 }
 
 .avatar-xl {
-  width: 80px; height: 80px;
+  width: 96px; height: 96px;
   border-radius: 50%;
-  background: rgba($gold, 0.2);
+  background: rgba(232,168,56,0.2);
   color: $gold;
-  font-size: 2rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem; font-weight: 700;
 }
 
-// ── Faixa de cidadãos ─────────────────────────────────────
-.citizens-strip {
-  flex-shrink: 0;
-}
-
-.strip-label {
+.stage-badge {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: $gold;
+  color: #000;
   font-size: 0.72rem;
   font-weight: 700;
-  color: $text-muted;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
 }
 
-.strip-scroll {
+.stage-footer {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.9rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+}
+.stage-name { font-size: 0.9rem; font-weight: 600; }
+
+.mic-ind { opacity: 0.85; &.on { opacity: 1; } &.small { font-size: 0.8rem; } }
+
+// Faixa de cidadãos (quadrados menores)
+.citizens-strip {
   display: flex;
   gap: 0.6rem;
   overflow-x: auto;
-  padding-bottom: 6px;
-  // altura mínima para acomodar os tiles 16:9 de 160px de largura ≈ 90px + footer
-  min-height: 100px;
+  padding: 0.25rem 0.1rem;
+  min-height: 130px;
+}
 
-  &::-webkit-scrollbar { height: 4px; }
-  &::-webkit-scrollbar-track { background: transparent; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+.citizens-empty {
+  color: rgba(255,255,255,0.35);
+  font-size: 0.82rem;
+  align-self: center;
+  padding: 0 0.5rem;
 }
 
 .citizen-tile {
-  flex-shrink: 0;
-  width: 160px;
-  border-radius: 10px;
-  border: 1px solid $border;
-  background: $surface;
-  overflow: hidden;
   position: relative;
-  cursor: pointer;
-  transition: border-color 0.15s;
+  width: 150px;
+  height: 120px;
+  flex-shrink: 0;
+  background: $panel;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  overflow: hidden;
 
-  // Mantém 16:9 nos tiles de cidadão também
-  &::before {
-    content: '';
-    display: block;
-    padding-top: 56.25%;
-  }
+  &.local { border-color: rgba(45,111,204,0.7); }
+  &.wants { border-color: #f59e0b; border-width: 2px; }
+}
 
-  > * {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-  }
-
-  // O footer fica no rodapé, não ocupa o espaço todo
-  > .citizen-footer {
-    top: auto;
-    bottom: 0;
-    height: auto;
-  }
-
-  // badge de "quer falar" não cobre tudo
-  > .wants-mic-badge {
-    top: 6px; right: 6px;
-    bottom: auto; left: auto;
-    width: 24px; height: 24px;
-  }
-
-  // tile-controls no canto
-  > .tile-controls {
-    top: 6px; right: 6px;
-    bottom: auto; left: auto;
-    width: auto; height: auto;
-  }
-
-  &:hover { border-color: $accent; }
-
-  &.wants-permission {
-    border-color: $orange;
-    box-shadow: 0 0 0 1px rgba($orange, 0.3);
-  }
+.citizen-video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  background: #000;
 }
 
 .citizen-placeholder {
-  // herda position absolute do .video-placeholder
-  z-index: 2;
-  background: $surface2;
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
 
 .avatar-sm {
-  width: 40px; height: 40px;
+  width: 48px; height: 48px;
   border-radius: 50%;
-  background: rgba($accent, 0.25);
-  color: $white;
-  font-size: 1rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 700;
 }
 
-.wants-mic-badge {
+.wants-badge {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  font-size: 0.8rem;
-  background: $orange;
-  width: 22px; height: 22px;
+  top: 5px; right: 5px;
+  background: #f59e0b;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  line-height: 1;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem;
 }
 
 .citizen-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 6px;
-  background: rgba(#000, 0.55);
-}
-
-.citizen-name {
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: $white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 70px;
-}
-
-.citizen-mic {
-  font-size: 0.65rem;
-  &.muted { filter: grayscale(1) opacity(0.5); }
-}
-
-.no-citizens {
-  font-size: 0.8rem;
-  color: $text-muted;
-  align-self: center;
-  padding: 0 1rem;
-}
-
-// ── Tile footer (moderador) ────────────────────────────────
-.tile-footer {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  background: linear-gradient(transparent, rgba(#000, 0.75));
-  padding: 1.5rem 1rem 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 3;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.3rem 0.45rem;
+  background: rgba(0,0,0,0.6);
+  font-size: 0.72rem;
 }
+.citizen-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.tile-name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: $white;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.tag-mod {
-  background: $accent;
-  color: $white;
-  font-size: 0.6rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  font-weight: 700;
-  &.small { font-size: 0.55rem; }
-}
-
-.mic-icon {
-  font-size: 0.9rem;
-  &.muted { filter: grayscale(1); }
-}
-
-// ── Tile controls (hover) ─────────────────────────────────
-.tile-controls {
+.citizen-controls {
   position: absolute;
-  top: 8px; right: 8px;
+  top: 0; left: 0; right: 0;
   display: none;
-  gap: 4px;
-  z-index: 3;
-
+  gap: 0.2rem;
+  padding: 0.3rem;
+  background: rgba(0,0,0,0.65);
   button {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(#000, 0.65);
-    border: 1px solid rgba($white, 0.2);
-    color: $text;
-    font-size: 0.75rem;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.35rem;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s;
-    &:hover { background: rgba(#000, 0.9); }
+    &:hover { background: rgba(255,255,255,0.3); }
+    &.kick { background: rgba(220,38,38,0.5); &:hover { background: $live; } }
   }
 }
+.citizen-tile:hover .citizen-controls { display: flex; }
 
-.mod-tile:hover .tile-controls,
-.citizen-tile:hover .tile-controls { display: flex; }
-
-// ── Placeholders ──────────────────────────────────────────
-.video-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%; height: 100%;
-  background: $surface2;
-  // Fica sobre o video-layer (z-index 1) quando câmera está off
-  position: absolute;
-  top: 0; left: 0;
-  z-index: 2;
-}
-
-// Camada isolada onde o LiveKit injeta o <video>.
-// Fica absolutamente posicionada dentro do tile — o Angular nunca mexe aqui.
-.video-layer {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 1;
-
-  video {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-}
-
-.video-container {
-  width: 100%; height: 100%;
-  position: absolute;
-  top: 0; left: 0;
-
-  ::ng-deep video {
-    width: 100%; height: 100%;
-    object-fit: cover;
-  }
-}
-
-// ── Controls bar ──────────────────────────────────────────
+// Barra de controles
 .controls-bar {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  background: $surface;
+  padding: 0.75rem;
+  background: $panel-2;
   border-radius: 12px;
-  border: 1px solid $border;
-  flex-wrap: wrap;
 }
 
-// Aviso de bloqueio
-.blocked-notice {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: center;
-}
-
-.blocked-icon { font-size: 1.1rem; }
-
-.blocked-text {
-  font-size: 0.85rem;
-  color: $text-muted;
-}
-
-.btn-request {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1.1rem;
-  border-radius: 8px;
-  border: 1px solid rgba($gold, 0.5);
-  background: rgba($gold, 0.12);
-  color: $gold;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) { background: rgba($gold, 0.25); }
-  &:disabled, &.requested {
-    opacity: 0.65;
-    cursor: default;
-    border-color: $border;
-    color: $text-muted;
-    background: transparent;
-  }
-}
-
-// Controles normais
 .ctrl-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 1.25rem;
-  border-radius: 8px;
-  border: 1px solid $border;
-  background: $surface2;
-  color: $text;
-  font-size: 0.875rem;
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 0.55rem 1.2rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover:not(:disabled) { border-color: $accent; background: lighten($surface2, 3%); }
-  &.ctrl-off { opacity: 0.5; }
-  &:disabled { cursor: default; opacity: 0.35; }
+  &:hover:not(:disabled) { background: rgba(255,255,255,0.24); }
+  &.off { background: rgba(220,38,38,0.25); color: #fca5a5; }
+  &.raise { background: rgba(232,168,56,0.22); color: $gold; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
-.ctrl-icon { font-size: 1rem; }
+.blocked-label { color: $muted; font-size: 0.82rem; }
 
 // ── Sidebar ───────────────────────────────────────────────
 .sala-sidebar {
-  width: 280px;
+  width: 300px;
   flex-shrink: 0;
-  border-left: 1px solid $border;
-  background: $surface;
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
   overflow-y: auto;
-  min-height: 0;
-  // Garante que a sidebar ocupa a altura total do body
-  align-self: stretch;
 }
 
 .sidebar-card {
-  padding: 1rem;
-  border-bottom: 1px solid $border;
+  background: $panel;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 0.9rem;
 }
 
 .sidebar-title {
-  font-size: 0.82rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: $text;
-  margin: 0 0 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  margin: 0 0 0.75rem;
 }
 
 .count-badge {
   background: $accent;
-  color: $white;
-  font-size: 0.65rem;
-  padding: 0.1rem 0.45rem;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.5rem;
   border-radius: 20px;
-  font-weight: 700;
-
-  &.amber { background: $orange; }
 }
 
-// Queue
-.queue-card  { border-left: 3px solid $orange; }
-.perm-card   { border-left: 3px solid $gold; }
-
-.queue-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.queue-list, .participant-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
 
 .queue-item {
   display: flex;
@@ -625,97 +363,60 @@ $orange:     #f59e0b;
   gap: 0.5rem;
 }
 
-.perm-item { align-items: flex-start; }
-
-.queue-info { display: flex; align-items: center; gap: 0.5rem; }
-
+.queue-info { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.queue-detail { display: flex; flex-direction: column; }
 .queue-avatar {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: $orange;
-  color: $white;
-  font-size: 0.8rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  &.amber { background: $gold; }
-}
-
-.queue-name { font-size: 0.78rem; font-weight: 600; color: $text; }
-
-.perm-badges { display: flex; gap: 4px; margin-top: 3px; }
-
-.perm-badge {
-  font-size: 0.65rem;
-  background: rgba($gold, 0.15);
-  color: $gold;
-  border: 1px solid rgba($gold, 0.3);
-  padding: 1px 6px;
-  border-radius: 10px;
-}
-
-.queue-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
-
-.btn-approve {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: rgba($green, 0.2);
-  color: $green;
-  border: 1px solid rgba($green, 0.5);
-  font-size: 0.8rem;
-  cursor: pointer;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(45,111,204,0.25);
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-  &:hover { background: $green; color: $white; }
+  font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
 }
+.queue-name { font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue-tags { font-size: 0.68rem; color: $muted; display: flex; gap: 0.4rem; }
 
-.btn-deny {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: rgba($live, 0.15);
-  color: #f87171;
-  border: 1px solid rgba($live, 0.4);
-  font-size: 0.8rem;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-  &:hover { background: $live; color: $white; }
+.queue-actions { display: flex; gap: 0.35rem; }
+.btn-approve, .btn-deny {
+  border: none; border-radius: 6px; cursor: pointer;
+  width: 30px; height: 30px; font-size: 0.85rem;
 }
-
-// Participants list
-.participant-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.btn-approve { background: rgba(34,197,94,0.25); color: #4ade80; &:hover { background: rgba(34,197,94,0.45); } }
+.btn-deny    { background: rgba(220,38,38,0.25); color: #fca5a5; &:hover { background: rgba(220,38,38,0.45); } }
 
 .participant-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.82rem;
 }
-
 .p-avatar {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: rgba($accent, 0.3);
-  color: $white;
-  font-size: 0.7rem;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+  &.mod { background: rgba(232,168,56,0.25); color: $gold; }
+}
+.p-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag-mod {
+  background: rgba(232,168,56,0.25);
+  color: $gold;
+  font-size: 0.62rem;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  &.mod { background: $accent; }
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+}
+.btn-kick {
+  background: rgba(220,38,38,0.2);
+  color: #fca5a5;
+  border: none;
+  border-radius: 5px;
+  width: 24px; height: 24px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  &:hover { background: $live; color: #fff; }
 }
 
-.p-name {
-  flex: 1;
-  font-size: 0.78rem;
-  color: $text;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+@media (max-width: 880px) {
+  .sala-body { flex-direction: column; }
+  .sala-sidebar { width: 100%; }
+  .moderator-stage { min-height: 240px; }
 }
-
-.p-muted { font-size: 0.75rem; color: $text-muted; }

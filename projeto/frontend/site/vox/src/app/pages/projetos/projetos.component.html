@@ -81,6 +81,7 @@
             *ngIf="!isModerator"
             class="btn-sign-card"
             [class.signed]="hasSigned(project.id)"
+            [disabled]="isSigning(project.id)"
             (click)="$event.stopPropagation(); toggleSign(project.id)"
           >
             {{ hasSigned(project.id) ? '✓ Assinado' : '✏️ Assinar' }}

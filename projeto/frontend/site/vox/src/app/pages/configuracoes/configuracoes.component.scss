@@ -1,0 +1,167 @@
+$primary:    #1b3f8b;
+$accent:     #2d6fcc;
+$bg:         #f0f4ff;
+$white:      #ffffff;
+$text:       #1b3f8b;
+$text-muted: #6b7280;
+$border:     #e5e7eb;
+
+.config-page {
+  min-height: calc(100vh - 64px);
+  background: $bg;
+  padding: 2rem 1.5rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.page-header {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.25rem;
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: $text-muted;
+  margin: 0;
+}
+
+.state-msg {
+  max-width: 780px;
+  margin: 3rem auto;
+  text-align: center;
+  color: $text-muted;
+}
+
+.config-content {
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.config-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(27, 63, 139, 0.08);
+}
+
+.config-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.25rem;
+}
+
+.config-hint {
+  font-size: 0.82rem;
+  color: $text-muted;
+  margin: 0 0 1.25rem;
+}
+
+/* --- Slider de fonte --- */
+.font-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.font-small { font-size: 0.85rem; color: $text-muted; font-weight: 700; }
+.font-large { font-size: 1.4rem; color: $text-muted; font-weight: 700; }
+
+.font-slider {
+  flex: 1;
+  accent-color: $accent;
+  cursor: pointer;
+}
+
+.font-value {
+  min-width: 44px;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: $accent;
+}
+
+.font-preview {
+  margin: 1.25rem 0 0;
+  padding: 1rem;
+  background: $bg;
+  border-radius: 10px;
+  color: $text;
+  line-height: 1.5;
+}
+
+/* --- Modos --- */
+.modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  background: $white;
+  border: 1.5px solid $border;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover { border-color: $accent; }
+  &.active {
+    border-color: $accent;
+    background: rgba(45, 111, 204, 0.08);
+  }
+}
+
+.mode-icon { font-size: 1.4rem; flex-shrink: 0; }
+
+.mode-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.mode-label { font-size: 0.9rem; font-weight: 700; color: $text; }
+.mode-desc { font-size: 0.75rem; color: $text-muted; }
+
+.mode-check {
+  color: $accent;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+/* --- Ações --- */
+.config-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-save {
+  padding: 0.65rem 1.6rem;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover:not(:disabled) { filter: brightness(1.08); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.save-msg {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b45309;
+  &.ok { color: #15803d; }
+}
