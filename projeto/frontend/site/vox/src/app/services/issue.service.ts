@@ -10,6 +10,7 @@ export interface IssueReport {
   categoryId: number;
   status: string;
   authorId: number;
+  councilorId?: number | null;
   createdAt: string;
   updatedAt: string;
   neighborhood: string;
@@ -60,6 +61,24 @@ export class IssueService {
 
   updateIssue(id: number, formData: FormData): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/api/issues/${id}`, formData);
+  }
+
+  /** Atualiza a ocorrência enviando o objeto completo (JSON), conforme API.md. */
+  updateIssueJson(id: number, issue: IssueReport): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/api/issues/${id}`, issue);
+  }
+
+  /** Vincula/atribui a ocorrência a um vereador (ou remove com null). */
+  assignCouncilor(issue: IssueReport, councilorId: number | null): Observable<void> {
+    return this.updateIssueJson(issue.id, { ...issue, councilorId });
+  }
+
+  /** Atualiza apenas o status via endpoint de moderação. */
+  updateIssueStatus(id: number, status: string, note?: string): Observable<void> {
+    return this.http.patch<void>(`${this.API_URL}/api/moderation/issues/${id}/status`, {
+      status,
+      ...(note ? { note } : {})
+    });
   }
 
   deleteIssue(id: number): Observable<void> {

@@ -53,15 +53,26 @@ class VoxBadgeColors {
   };
 
   static const Map<String, _Palette> _issueStatus = {
+    'OPEN': _Palette(Color(0xFFFFF7ED), Color(0xFFC2410C)),
     'PENDING_APPROVAL': _Palette(Color(0xFFFFF7ED), Color(0xFFC2410C)),
     'IN_ANALYSIS': _Palette(Color(0xFFFFF7ED), Color(0xFFC2410C)),
+    'UNDER_REVIEW': _Palette(Color(0xFFFFF7ED), Color(0xFFC2410C)),
+    'IN_PROGRESS': _Palette(Color(0xFFEDE9FE), Color(0xFF4F46E5)),
+    'FORWARDED': _Palette(Color(0xFFEDE9FE), Color(0xFF4F46E5)),
     'APPROVED': _Palette(Color(0xFFDCFCE7), Color(0xFF15803D)),
+    'RESOLVED': _Palette(Color(0xFFDCFCE7), Color(0xFF15803D)),
     'REJECTED': _Palette(Color(0xFFFEE2E2), Color(0xFFDC2626)),
-    'RESOLVED': _Palette(Color(0xFFF1F5F9), Color(0xFF475569)),
+    'CLOSED': _Palette(Color(0xFFF1F5F9), Color(0xFF475569)),
   };
 
-  static const _Palette _typeOfficial = _Palette(Color(0xFFF1F5F9), Color(0xFF475569));
-  static const _Palette _typeSuggested = _Palette(Color(0xFFF0F9FF), Color(0xFF0369A1));
+  static const _Palette _typeOfficial = _Palette(
+    Color(0xFFF1F5F9),
+    Color(0xFF475569),
+  );
+  static const _Palette _typeSuggested = _Palette(
+    Color(0xFFF0F9FF),
+    Color(0xFF0369A1),
+  );
 
   static const Map<String, _Palette> _role = {
     'ADMINISTRATOR': _Palette(Color(0xFFFEF3C7), Color(0xFF92400E)),
@@ -69,7 +80,10 @@ class VoxBadgeColors {
     'CITIZEN': _Palette(Color(0xFFDCFCE7), Color(0xFF15803D)),
   };
 
-  static const _Palette _fallback = _Palette(Color(0xFFF1F5F9), Color(0xFF475569));
+  static const _Palette _fallback = _Palette(
+    Color(0xFFF1F5F9),
+    Color(0xFF475569),
+  );
 
   static Widget projectStatus(String status, String label) {
     final p = _projectStatus[status] ?? _fallback;

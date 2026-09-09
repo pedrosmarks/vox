@@ -1,0 +1,95 @@
+<app-navbar></app-navbar>
+
+<main class="detalhe-page">
+
+  <div *ngIf="isLoading" class="state-message">
+    <div class="spinner"></div>
+    <p>Carregando ocorrência...</p>
+  </div>
+
+  <div *ngIf="!isLoading && errorMessage" class="state-message error">
+    <p>{{ errorMessage }}</p>
+    <button class="btn-back" (click)="goBack()">← Voltar</button>
+  </div>
+
+  <div *ngIf="!isLoading && issue" class="detalhe-content">
+
+    <!-- Header -->
+    <div class="detalhe-header">
+      <button class="btn-back" (click)="goBack()">← Voltar</button>
+      <div class="header-badges">
+        <span class="badge-status" [ngClass]="statusClass(issue.status)">{{ statusLabel(issue.status) }}</span>
+        <span *ngIf="isMine" class="badge-mine">Minha ocorrência</span>
+      </div>
+      <div class="header-actions" *ngIf="isCouncilor">
+        <button class="btn-action btn-link" [class.linked]="isMine" [disabled]="linking" (click)="toggleLink()">
+          {{ linking ? '...' : (isMine ? '✓ Vinculada a mim' : '+ Assumir ocorrência') }}
+        </button>
+      </div>
+    </div>
+
+    <div class="detalhe-grid">
+      <div class="col-main">
+
+        <!-- Galeria -->
+        <div *ngIf="images.length > 0" class="gallery">
+          <img class="gallery-main" [src]="selectedImage" alt="Imagem da ocorrência" />
+          <div *ngIf="images.length > 1" class="gallery-thumbs">
+            <img *ngFor="let img of images" class="gallery-thumb" [class.active]="img.url === selectedImage"
+              [src]="img.url" (click)="selectImage(img.url)" alt="Miniatura" />
+          </div>
+        </div>
+
+        <h1 class="detalhe-title">{{ issue.title }}</h1>
+        <p class="detalhe-description">{{ issue.description }}</p>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <span class="info-label">Status</span>
+            <span class="info-value status-value" [ngClass]="statusClass(issue.status)">{{ statusLabel(issue.status) }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Categoria</span>
+            <span class="info-value">{{ categoryName || '—' }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Relatado por</span>
+            <span class="info-value">{{ authorName || ('Usuário #' + issue.authorId) }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Vereador responsável</span>
+            <span class="info-value">{{ councilorName || 'Nenhum' }}</span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Bairro</span>
+            <span class="info-value">{{ issue.neighborhood || '—' }}</span>
+          </div>
+          <div class="info-card" *ngIf="issue.street">
+            <span class="info-label">Endereço</span>
+            <span class="info-value">{{ issue.street }}<span *ngIf="issue.number">, {{ issue.number }}</span></span>
+          </div>
+          <div class="info-card">
+            <span class="info-label">Relatado em</span>
+            <span class="info-value">{{ issue.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar: atualizar status -->
+      <aside class="col-aside" *ngIf="isCouncilor || isModerator">
+        <div class="aside-card">
+          <h3 class="aside-title">Atualizar status</h3>
+          <p class="aside-hint">Altere a situação da ocorrência para acompanhar o andamento.</p>
+          <select class="status-select" [(ngModel)]="selectedStatus">
+            <option *ngFor="let s of statuses" [value]="s">{{ statusLabel(s) }}</option>
+          </select>
+          <button class="btn-save-status" [disabled]="savingStatus || selectedStatus === issue.status" (click)="updateStatus()">
+            {{ savingStatus ? 'Salvando...' : 'Salvar status' }}
+          </button>
+          <span *ngIf="statusMessage" class="status-msg">{{ statusMessage }}</span>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+</main>

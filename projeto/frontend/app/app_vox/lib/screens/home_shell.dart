@@ -9,6 +9,7 @@ import 'audiencia_screen.dart';
 import 'moderacao_screen.dart';
 import 'usuarios_screen.dart';
 import 'logs_screen.dart';
+import 'dashboard_screen.dart';
 import 'perfil_screen.dart';
 
 /// Shell com navegação por abas, equivalente ao navbar do site Angular —
@@ -50,7 +51,12 @@ class _HomeShellState extends State<HomeShell> {
 
   List<Widget> get _screens {
     if (_isAdmin) {
-      return const [UsuariosScreen(), LogsScreen(), PerfilScreen()];
+      return const [
+        DashboardScreen(),
+        LogsScreen(),
+        UsuariosScreen(),
+        PerfilScreen(),
+      ];
     }
     if (_isModerator) {
       return const [
@@ -66,7 +72,6 @@ class _HomeShellState extends State<HomeShell> {
         ProjetosScreen(),
         ProblemasScreen(),
         ComunidadeScreen(),
-        AudienciaScreen(),
         PerfilScreen(),
       ];
     }
@@ -105,14 +110,19 @@ class _HomeShellState extends State<HomeShell> {
     if (_isAdmin) {
       return [
         const NavigationDestination(
-          icon: Icon(Icons.badge_outlined),
-          selectedIcon: Icon(Icons.badge),
-          label: 'Usuários',
+          icon: Icon(Icons.dashboard_outlined),
+          selectedIcon: Icon(Icons.dashboard),
+          label: 'Dashboard',
         ),
         const NavigationDestination(
           icon: Icon(Icons.receipt_long_outlined),
           selectedIcon: Icon(Icons.receipt_long),
           label: 'Logs',
+        ),
+        const NavigationDestination(
+          icon: Icon(Icons.badge_outlined),
+          selectedIcon: Icon(Icons.badge),
+          label: 'Usuários',
         ),
         perfil,
       ];
@@ -139,7 +149,6 @@ class _HomeShellState extends State<HomeShell> {
           label: 'Problemas',
         ),
         comunidade,
-        audiencia,
         perfil,
       ];
     }
@@ -166,12 +175,33 @@ class _HomeShellState extends State<HomeShell> {
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    // Impede que a escala de fonte (acessibilidade) faça os rótulos da
+    // barra inferior quebrarem em duas linhas — mantém tudo em uma linha.
+    final mq = MediaQuery.of(context);
+    final navScaler = mq.textScaler.clamp(maxScaleFactor: 1.0);
+
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: _destinations,
+      bottomNavigationBar: MediaQuery(
+        data: mq.copyWith(textScaler: navScaler),
+        child: NavigationBarTheme(
+          data: NavigationBarThemeData(
+            // Garante rótulo em uma linha só, cortando com reticências.
+            labelTextStyle: WidgetStateProperty.resolveWith((states) {
+              final base =
+                  Theme.of(
+                    context,
+                  ).navigationBarTheme.labelTextStyle?.resolve(states) ??
+                  const TextStyle(fontSize: 11, fontWeight: FontWeight.w500);
+              return base.copyWith(overflow: TextOverflow.ellipsis);
+            }),
+          ),
+          child: NavigationBar(
+            selectedIndex: _index,
+            onDestinationSelected: (i) => setState(() => _index = i),
+            destinations: _destinations,
+          ),
+        ),
       ),
     );
   }

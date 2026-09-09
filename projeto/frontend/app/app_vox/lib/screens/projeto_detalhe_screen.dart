@@ -43,8 +43,6 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   bool _isSigning = false;
   int _signatureCount = 0;
   List<UserSummary> _councilors = [];
-  bool _isCouncilorLinked = false;
-  bool _isLinkingCouncilor = false;
   bool _isExporting = false;
 
   @override
@@ -122,14 +120,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   Future<void> _loadCouncilors(int projectId) async {
     try {
       final councilors = await _projectService.getProjectCouncilors(projectId);
-      final myId = await _authService.getUserId();
-      if (mounted) {
-        setState(() {
-          _councilors = councilors;
-          _isCouncilorLinked =
-              myId != null && councilors.any((c) => c.id == myId);
-        });
-      }
+      if (mounted) setState(() => _councilors = councilors);
     } catch (_) {
       _councilors = [];
     }
@@ -160,25 +151,6 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
       // ignora falha na ação
     } finally {
       if (mounted) setState(() => _isSigning = false);
-    }
-  }
-
-  Future<void> _toggleCouncilorLink() async {
-    if (_project == null || _isLinkingCouncilor) return;
-    final myId = await _authService.getUserId();
-    if (myId == null) return;
-    setState(() => _isLinkingCouncilor = true);
-    try {
-      if (_isCouncilorLinked) {
-        await _projectService.unlinkCouncilor(_project!.id, myId);
-      } else {
-        await _projectService.linkCouncilor(_project!.id, myId);
-      }
-      await _loadCouncilors(_project!.id);
-    } catch (_) {
-      // ignora falha na ação
-    } finally {
-      if (mounted) setState(() => _isLinkingCouncilor = false);
     }
   }
 
@@ -455,7 +427,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => Container(
                   height: 200,
-                  color: Colors.grey.shade200,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   child: const Icon(Icons.image_not_supported),
                 ),
               ),
@@ -542,19 +514,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
         label: const Text('Tornar Oficial'),
       );
     }
-    if (_isCouncilor) {
-      return OutlinedButton.icon(
-        onPressed: _isLinkingCouncilor ? null : _toggleCouncilorLink,
-        icon: Icon(
-          _isCouncilorLinked ? Icons.check_circle : Icons.how_to_vote_outlined,
-        ),
-        label: Text(
-          _isCouncilorLinked
-              ? 'Vinculado como responsável'
-              : 'Adotar este projeto',
-        ),
-      );
-    }
+    // Vereador: apenas visualização de projetos (sem adotar/assinar).
     if (_isCitizen) {
       final countSuffix = _signatureCount > 0 ? ' ($_signatureCount)' : '';
       return OutlinedButton.icon(

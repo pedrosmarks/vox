@@ -27,6 +27,21 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.1
+
+# Ícone do app (logo VOX) — gerado com `dart run flutter_launcher_icons`
+flutter_launcher_icons:
+  image_path: "assets/images/logo2.jpeg"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  # Ícone adaptativo (Android 8+): fundo branco (o logo tem fundo claro)
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo2.jpeg"
+  web:
+    generate: true
+  windows:
+    generate: true
 
 flutter:
   uses-material-design: true

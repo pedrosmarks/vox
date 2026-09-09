@@ -25,6 +25,7 @@ export class ProjetosComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   isModerator = false;
+  isCitizen = false;
   private signedProjects: Set<number> = new Set();
   private signingProjects: Set<number> = new Set();
 
@@ -48,6 +49,7 @@ export class ProjetosComponent implements OnInit {
     }
     const role = this.authService.getUserRole();
     this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
+    this.isCitizen = role === 'CITIZEN';
     this.loadProjects();
   }
 
@@ -76,7 +78,7 @@ export class ProjetosComponent implements OnInit {
 
   /** Carrega, para cada projeto, se o cidadão atual já assinou. */
   private loadSignedStates(projects: Project[]): void {
-    if (this.isModerator) return; // botão de assinar só aparece p/ cidadão
+    if (!this.isCitizen) return; // botão de assinar só aparece p/ cidadão
     projects.forEach(p => {
       this.projectService
         .hasSignedProject(p.id)

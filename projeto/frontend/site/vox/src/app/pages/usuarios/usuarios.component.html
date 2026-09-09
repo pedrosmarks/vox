@@ -3,15 +3,15 @@
 <main class="moderacao-page usuarios-page">
   <div class="page-header">
     <h1 class="page-title">Gerenciar Usuários</h1>
-    <p class="page-subtitle">Crie, edite e remova moderadores e vereadores do município.</p>
+    <p class="page-subtitle">Crie, edite e remova vereadores e administradores do município.</p>
   </div>
 
   <div class="tabs">
-    <button class="tab-btn" [class.active]="activeTab === 'MODERATOR'" (click)="selectTab('MODERATOR')">
-      Moderadores
-    </button>
     <button class="tab-btn" [class.active]="activeTab === 'COUNCILOR'" (click)="selectTab('COUNCILOR')">
       Vereadores
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'ADMINISTRATOR'" (click)="selectTab('ADMINISTRATOR')">
+      Administradores
     </button>
   </div>
 

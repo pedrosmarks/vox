@@ -1,39 +1,58 @@
 <app-navbar></app-navbar>
 
-<main class="relatar-page">
+<main class="problemas-page">
   <div class="page-header">
     <h1 class="page-title">Problemas Relatados</h1>
-    <p class="page-subtitle">Acompanhe as ocorrências relatadas pelos cidadãos do seu município.</p>
+    <p class="page-subtitle">Acompanhe e assuma as ocorrências relatadas pelos cidadãos do seu município.</p>
   </div>
 
-  <div class="page-body">
-    <div class="issues-card full-width">
-      <h2 class="section-title">Ocorrências do Município</h2>
+  <!-- Abas -->
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab === 'minhas'" (click)="setTab('minhas')">
+      Minhas ocorrências <span class="tab-count">{{ myIssues.length }}</span>
+    </button>
+    <button class="tab" [class.active]="activeTab === 'disponiveis'" (click)="setTab('disponiveis')">
+      Disponíveis <span class="tab-count">{{ availableIssues.length }}</span>
+    </button>
+  </div>
 
-      <div *ngIf="isLoading" class="state-message">
-        <div class="spinner"></div>
-        <p>Carregando problemas relatados...</p>
+  <div *ngIf="loadError" class="error-banner">{{ loadError }}</div>
+
+  <div *ngIf="isLoading" class="state-message">
+    <div class="spinner"></div>
+    <p>Carregando ocorrências...</p>
+  </div>
+
+  <div *ngIf="!isLoading && visibleIssues.length === 0" class="state-message">
+    {{ activeTab === 'minhas' ? 'Você ainda não assumiu nenhuma ocorrência.' : 'Nenhuma ocorrência disponível no momento.' }}
+  </div>
+
+  <div *ngIf="!isLoading" class="cards-grid">
+    <div *ngFor="let i of visibleIssues" class="issue-card" (click)="openIssue(i)">
+      <div class="card-top">
+        <span class="badge-status" [ngClass]="getStatusClass(i.status)">{{ getStatusLabel(i.status) }}</span>
+        <span class="issue-date">{{ formatDate(i.createdAt) }}</span>
       </div>
 
-      <div *ngIf="!isLoading && loadError" class="state-message error">
-        {{ loadError }}
+      <h2 class="card-title">{{ i.title }}</h2>
+      <p class="card-description">{{ i.description }}</p>
+
+      <div class="card-meta">
+        <span>📁 {{ categoryName(i.categoryId) }}</span>
+        <span *ngIf="i.neighborhood">📍 {{ i.neighborhood }}</span>
       </div>
 
-      <div *ngIf="!isLoading && !loadError && issues.length === 0" class="state-message">
-        Nenhum problema relatado até o momento.
+      <div class="card-footer">
+        <button
+          class="btn-link"
+          [class.linked]="isMine(i)"
+          [disabled]="linkingId === i.id"
+          (click)="toggleLink(i, $event)"
+        >
+          {{ linkingId === i.id ? '...' : (isMine(i) ? '✓ Vinculada a mim' : '+ Assumir ocorrência') }}
+        </button>
+        <button class="btn-details" (click)="openIssue(i); $event.stopPropagation()">Ver detalhes →</button>
       </div>
-
-      <ul *ngIf="!isLoading && issues.length > 0" class="issues-list">
-        <li *ngFor="let i of issues" class="issue-item">
-          <div class="issue-meta">
-            <span class="issue-title">{{ i.title }}</span>
-            <span class="issue-date">{{ formatDate(i.createdAt) }}</span>
-          </div>
-          <span class="badge-status" [ngClass]="getStatusClass(i.status)">
-            {{ getStatusLabel(i.status) }}
-          </span>
-        </li>
-      </ul>
     </div>
   </div>
 </main>

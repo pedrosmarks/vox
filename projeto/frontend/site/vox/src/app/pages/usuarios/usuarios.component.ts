@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService, CreateUserPayload, UserProfile, UserRole } from '../../services/auth.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 
-type ManagedRole = 'MODERATOR' | 'COUNCILOR';
+type ManagedRole = 'COUNCILOR' | 'ADMINISTRATOR';
 
 /** Tela do administrador para CRUD de moderadores e vereadores. */
 @Component({
@@ -16,7 +16,7 @@ type ManagedRole = 'MODERATOR' | 'COUNCILOR';
   styleUrls: ['./usuarios.component.scss']
 })
 export class UsuariosComponent implements OnInit {
-  activeTab: ManagedRole = 'MODERATOR';
+  activeTab: ManagedRole = 'COUNCILOR';
 
   users: UserProfile[] = [];
   isLoading = true;
@@ -168,6 +168,6 @@ export class UsuariosComponent implements OnInit {
   }
 
   get roleLabel(): string {
-    return this.activeTab === 'MODERATOR' ? 'Moderador' : 'Vereador';
+    return this.activeTab === 'COUNCILOR' ? 'Vereador' : 'Administrador';
   }
 }

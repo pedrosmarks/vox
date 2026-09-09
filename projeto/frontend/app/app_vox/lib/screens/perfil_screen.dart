@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
+import '../theme/vox_app_bar.dart';
 import '../theme/vox_badges.dart';
 import 'configuracoes_screen.dart';
 import 'login_screen.dart';
@@ -167,17 +168,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perfil'),
+      appBar: VoxAppBar(
+        title: 'Perfil',
         actions: [
           IconButton(
             onPressed: _openSettings,
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
             tooltip: 'Configurações',
           ),
           IconButton(
             onPressed: _logout,
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             tooltip: 'Sair',
           ),
         ],

@@ -36,7 +36,7 @@
           (click)="promoteProject()"
         >🏅 Tornar Oficial</button>
         <button
-          *ngIf="!isModerator"
+          *ngIf="isCitizen"
           class="btn-action btn-sign"
           [class.signed]="signed"
           [disabled]="signing"

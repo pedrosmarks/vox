@@ -22,9 +22,9 @@ class _UsuariosScreenState extends State<UsuariosScreen>
   String? _error;
 
   String get _activeRole =>
-      _tabController.index == 0 ? 'MODERATOR' : 'COUNCILOR';
+      _tabController.index == 0 ? 'COUNCILOR' : 'ADMINISTRATOR';
   String get _roleLabel =>
-      _activeRole == 'MODERATOR' ? 'Moderador' : 'Vereador';
+      _activeRole == 'COUNCILOR' ? 'Vereador' : 'Administrador';
 
   @override
   void initState() {
@@ -213,8 +213,8 @@ class _UsuariosScreenState extends State<UsuariosScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Moderadores'),
             Tab(text: 'Vereadores'),
+            Tab(text: 'Administradores'),
           ],
         ),
       ),

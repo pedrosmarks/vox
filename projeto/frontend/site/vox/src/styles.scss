@@ -75,31 +75,93 @@ html[data-a11y='DARK'] {
     color: #e6e8ec;
   }
 
-  // Containers de página (fundo claro por padrão) → preto
-  .config-page, .audiencia-page, .detalhe-page, .projetos-page,
-  .moderacao-page, .comunidade-page, .perfil-page, .sugestoes-page,
-  main {
+  // Containers de página (qualquer *-page) e <main> → preto
+  main,
+  [class$='-page'],
+  [class*='-page '],
+  .page-body {
     background: #000 !important;
   }
 
-  // Cartões, painéis e superfícies claras → cinza bem escuro
+  // Cartões, painéis e superfícies claras (qualquer *-card / sidebar) → cinza escuro
   .navbar, header, .header,
-  .card, .aside-card, .info-card, .sidebar-card,
-  .create-form-card, .audiencia-card, .detalhe-content,
-  .config-card, .config-content,
-  .form-input, .form-textarea, .export-menu, .mode-option {
+  [class*='card'],
+  [class*='sidebar'],
+  .detalhe-content, .config-content, .tab-content, .tab-panel,
+  .mode-option, .queue-item, .identity-info,
+  .form-input, .form-textarea, .export-menu {
     background: #121212 !important;
     color: #e6e8ec !important;
     border-color: #2a2a2a !important;
   }
 
-  .page-title, .card-title, .detalhe-title, .sidebar-title,
-  .config-title, h1, h2, h3, h4 { color: #f5f6f8 !important; }
-
-  .page-subtitle, .card-description, .card-meta, .info-label,
-  .fin-label, .encerrada-label, .config-hint, .mode-desc, p {
-    color: #9aa0aa !important;
+  // Campos desabilitados (perfil) — não deixar cinza-claro
+  .form-input.disabled, .form-input:disabled,
+  input:disabled, textarea:disabled {
+    background: #0a0a0a !important;
+    color: #8b929e !important;
+    border-color: #2a2a2a !important;
   }
+
+  // Botões de filtro / abas não selecionados
+  .filter-btn:not(.active), .tab-btn:not(.active), .tab:not(.active) {
+    background: #1a1a1a !important;
+    color: #cfd3da !important;
+    border-color: #2a2a2a !important;
+  }
+
+  // Títulos e textos
+  .page-title, .card-title, .detalhe-title, .sidebar-title,
+  .config-title, .filters-title, .aside-title, .section-title,
+  .identity-name,
+  h1, h2, h3, h4 { color: #f5f6f8 !important; }
+
+  .page-subtitle, .card-description, .card-meta, .card-author,
+  .info-label, .info-value, .fin-label, .encerrada-label,
+  .config-hint, .mode-desc, .issue-date, .queue-name,
+  .identity-email, .form-label {
+    color: #c3c8d0 !important;
+  }
+
+  // Links/realces mantêm cor de destaque
+  a, .footer-link { color: #6ea8fe !important; }
+
+  // Link de navegação selecionado (evita a "pílula branca")
+  .nav-link.active {
+    background: #2d6fcc !important;
+    color: #ffffff !important;
+  }
+  .nav-link:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+  }
+
+  // Botão de avatar do usuário
+  .user-avatar {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: #3a3a3a !important;
+    color: #e6e8ec !important;
+  }
+
+  // Menu suspenso do perfil (navbar)
+  .user-dropdown {
+    background: #121212 !important;
+    border-color: #2a2a2a !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+  }
+  .dropdown-item {
+    color: #e6e8ec !important;
+    background: transparent !important;
+    &:hover {
+      background: #1f2633 !important;
+      color: #ffffff !important;
+    }
+    &.danger {
+      color: #f87171 !important;
+      &:hover { background: #3a1414 !important; color: #fca5a5 !important; }
+    }
+  }
+  .dropdown-divider { background: #2a2a2a !important; }
 
   .font-preview { background: #1a1a1a !important; }
 

@@ -6,6 +6,7 @@ class IssueReport {
   final int categoryId;
   final String status;
   final int authorId;
+  final int? councilorId;
   final String createdAt;
   final String updatedAt;
   final String neighborhood;
@@ -22,6 +23,7 @@ class IssueReport {
     required this.categoryId,
     required this.status,
     required this.authorId,
+    this.councilorId,
     required this.createdAt,
     required this.updatedAt,
     required this.neighborhood,
@@ -32,21 +34,22 @@ class IssueReport {
   });
 
   factory IssueReport.fromJson(Map<String, dynamic> json) => IssueReport(
-        id: json['id'] as int,
-        title: json['title'] as String? ?? '',
-        description: json['description'] as String? ?? '',
-        municipalityId: json['municipalityId'] as int? ?? 0,
-        categoryId: json['categoryId'] as int? ?? 0,
-        status: json['status'] as String? ?? '',
-        authorId: json['authorId'] as int? ?? 0,
-        createdAt: json['createdAt'] as String? ?? '',
-        updatedAt: json['updatedAt'] as String? ?? '',
-        neighborhood: json['neighborhood'] as String? ?? '',
-        street: json['street'] as String? ?? '',
-        number: json['number'] as String? ?? '',
-        latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
-        longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
-      );
+    id: json['id'] as int,
+    title: json['title'] as String? ?? '',
+    description: json['description'] as String? ?? '',
+    municipalityId: json['municipalityId'] as int? ?? 0,
+    categoryId: json['categoryId'] as int? ?? 0,
+    status: json['status'] as String? ?? '',
+    authorId: json['authorId'] as int? ?? 0,
+    councilorId: json['councilorId'] as int?,
+    createdAt: json['createdAt'] as String? ?? '',
+    updatedAt: json['updatedAt'] as String? ?? '',
+    neighborhood: json['neighborhood'] as String? ?? '',
+    street: json['street'] as String? ?? '',
+    number: json['number'] as String? ?? '',
+    latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+    longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+  );
 }
 
 class IssueImage {
@@ -57,10 +60,10 @@ class IssueImage {
   IssueImage({required this.id, required this.issueId, required this.url});
 
   factory IssueImage.fromJson(Map<String, dynamic> json) => IssueImage(
-        id: json['id'] as int,
-        issueId: json['issueId'] as int,
-        url: json['url'] as String,
-      );
+    id: json['id'] as int,
+    issueId: json['issueId'] as int,
+    url: json['url'] as String,
+  );
 }
 
 class IssueStatusHistory {

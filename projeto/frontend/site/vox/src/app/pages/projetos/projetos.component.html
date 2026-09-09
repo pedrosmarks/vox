@@ -78,7 +78,7 @@
             (click)="$event.stopPropagation(); promoteProject(project.id)"
           >🏅 Tornar Oficial</button>
           <button
-            *ngIf="!isModerator"
+            *ngIf="isCitizen"
             class="btn-sign-card"
             [class.signed]="hasSigned(project.id)"
             [disabled]="isSigning(project.id)"

@@ -24,6 +24,7 @@ export class ProjetoDetalheComponent implements OnInit {
   errorMessage = '';
   selectedImage = '';
   isModerator = false;
+  isCitizen = false;
   signed = false;
   signing = false;
   signatureCount = 0;
@@ -48,6 +49,7 @@ export class ProjetoDetalheComponent implements OnInit {
   ngOnInit(): void {
     const role = this.authService.getUserRole();
     this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
+    this.isCitizen = role === 'CITIZEN';
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
       this.router.navigate(['/projetos']);
