@@ -103,8 +103,9 @@ public class UserServiceImpl implements UserService {
             return false;
         }
 
-        // Encode antes de persistir
-        userDao.updatePassword(id, passwordEncoder.encode(newPassword));
+        // O DAO já faz o hash da senha via crypt(?, gen_salt('bf')),
+        // então passamos a senha em texto puro para evitar hash duplo.
+        userDao.updatePassword(id, newPassword);
         return true;
     }
 
@@ -149,7 +150,9 @@ public class UserServiceImpl implements UserService {
         Integer userId = passwordResetTokenDao.findUserIdByToken(token);
         if (userId == null) return false;
 
-        userDao.updatePassword(userId, passwordEncoder.encode(newPassword));
+        // O DAO já faz o hash da senha via crypt(?, gen_salt('bf')),
+        // então passamos a senha em texto puro para evitar hash duplo.
+        userDao.updatePassword(userId, newPassword);
         passwordResetTokenDao.markAsUsed(token);
 
         logger.log(Level.INFO, "Senha resetada com sucesso para userId: " + userId);
