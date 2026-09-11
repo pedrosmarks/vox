@@ -17,7 +17,9 @@ import br.com.fai.Vox.port.service.subscription.SubscriptionService;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -157,8 +159,14 @@ public class IssueReportServiceImpl implements IssueReportService {
 
         issueReportDao.update(id, entity);
 
-        // Notificar assinantes da ocorrência
-        List<Integer> subscribers = subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.ISSUE, id);
+        // Notificar assinantes da ocorrência e da sua categoria
+        Set<Integer> subscribers = new HashSet<>(
+                subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.ISSUE, id));
+        Integer categoryId = existing.getCategoryId();
+        if (categoryId != null) {
+            subscribers.addAll(
+                    subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.CATEGORY, categoryId));
+        }
         for (int userId : subscribers) {
             if (userId != changedBy) {
                 notificationService.send(userId,
@@ -198,5 +206,22 @@ public class IssueReportServiceImpl implements IssueReportService {
                 "Status da ocorrência atualizado",
                 "O status da sua ocorrência \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
                 Notification.NotificationType.ISSUE_STATUS_CHANGED);
+
+        // Notificar assinantes da ocorrência e da sua categoria
+        Set<Integer> subscribers = new HashSet<>(
+                subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.ISSUE, id));
+        Integer categoryId = existing.getCategoryId();
+        if (categoryId != null) {
+            subscribers.addAll(
+                    subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.CATEGORY, categoryId));
+        }
+        for (int userId : subscribers) {
+            if (userId != changedBy && userId != existing.getAuthorId()) {
+                notificationService.send(userId,
+                        "Status da ocorrência atualizado",
+                        "O status da ocorrência \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
+                        Notification.NotificationType.ISSUE_STATUS_CHANGED);
+            }
+        }
     }
 }

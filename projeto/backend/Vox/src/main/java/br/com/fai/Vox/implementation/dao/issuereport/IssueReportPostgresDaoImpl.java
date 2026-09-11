@@ -24,25 +24,26 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     @Override
     public int create(CreateIssueReportDto dto) {
         final String sql = "INSERT INTO issue_report " +
-                "(municipality_id, author_id, councilor_id, title, description, neighborhood, street, number, " +
+                "(municipality_id, category_id, author_id, councilor_id, title, description, neighborhood, street, number, " +
                 "latitude, longitude, status, moderation_status) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS issue_status), CAST(? AS moderation_status))";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS issue_status), CAST(? AS moderation_status))";
         try {
             connection.setAutoCommit(false);
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setInt(1, dto.getMunicipalityId());
-            ps.setInt(2, dto.getAuthorId());
-            if (dto.getCouncilorId() != null) ps.setInt(3, dto.getCouncilorId());
-            else ps.setNull(3, Types.INTEGER);
-            ps.setString(4, dto.getTitle());
-            ps.setString(5, dto.getDescription());
-            ps.setString(6, dto.getNeighborhood());
-            ps.setString(7, dto.getStreet());
-            ps.setString(8, dto.getNumber());
-            ps.setBigDecimal(9, dto.getLatitude());
-            ps.setBigDecimal(10, dto.getLongitude());
-            ps.setString(11, IssueReport.IssueStatus.OPEN.name());
-            ps.setString(12, ModerationStatus.PENDING.name());
+            ps.setInt(2, dto.getCategoryId());
+            ps.setInt(3, dto.getAuthorId());
+            if (dto.getCouncilorId() != null) ps.setInt(4, dto.getCouncilorId());
+            else ps.setNull(4, Types.INTEGER);
+            ps.setString(5, dto.getTitle());
+            ps.setString(6, dto.getDescription());
+            ps.setString(7, dto.getNeighborhood());
+            ps.setString(8, dto.getStreet());
+            ps.setString(9, dto.getNumber());
+            ps.setBigDecimal(10, dto.getLatitude());
+            ps.setBigDecimal(11, dto.getLongitude());
+            ps.setString(12, IssueReport.IssueStatus.OPEN.name());
+            ps.setString(13, ModerationStatus.PENDING.name());
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             int id = 0;
@@ -214,23 +215,27 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
 
     @Override
     public void update(int id, IssueReport entity) {
-        final String sql = "UPDATE issue_report SET councilor_id = ?, title = ?, description = ?, " +
+        // category_id só é atualizado quando informado (COALESCE preserva o valor atual se vier null)
+        final String sql = "UPDATE issue_report SET category_id = COALESCE(?, category_id), " +
+                "councilor_id = ?, title = ?, description = ?, " +
                 "neighborhood = ?, street = ?, number = ?, latitude = ?, longitude = ?, " +
                 "status = CAST(? AS issue_status), updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {
             connection.setAutoCommit(false);
             PreparedStatement ps = connection.prepareStatement(sql);
-            if (entity.getCouncilorId() != null) ps.setInt(1, entity.getCouncilorId());
+            if (entity.getCategoryId() != null) ps.setInt(1, entity.getCategoryId());
             else ps.setNull(1, Types.INTEGER);
-            ps.setString(2, entity.getTitle());
-            ps.setString(3, entity.getDescription());
-            ps.setString(4, entity.getNeighborhood());
-            ps.setString(5, entity.getStreet());
-            ps.setString(6, entity.getNumber());
-            ps.setBigDecimal(7, entity.getLatitude());
-            ps.setBigDecimal(8, entity.getLongitude());
-            ps.setString(9, entity.getStatus().name());
-            ps.setInt(10, id);
+            if (entity.getCouncilorId() != null) ps.setInt(2, entity.getCouncilorId());
+            else ps.setNull(2, Types.INTEGER);
+            ps.setString(3, entity.getTitle());
+            ps.setString(4, entity.getDescription());
+            ps.setString(5, entity.getNeighborhood());
+            ps.setString(6, entity.getStreet());
+            ps.setString(7, entity.getNumber());
+            ps.setBigDecimal(8, entity.getLatitude());
+            ps.setBigDecimal(9, entity.getLongitude());
+            ps.setString(10, entity.getStatus().name());
+            ps.setInt(11, id);
             ps.executeUpdate();
             ps.close();
             connection.commit();
@@ -289,6 +294,8 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
         IssueReport entity = new IssueReport();
         entity.setId(rs.getInt("id"));
         entity.setMunicipalityId(rs.getInt("municipality_id"));
+        int categoryId = rs.getInt("category_id");
+        if (!rs.wasNull()) entity.setCategoryId(categoryId);
         entity.setAuthorId(rs.getInt("author_id"));
         int councilorId = rs.getInt("councilor_id");
         if (!rs.wasNull()) entity.setCouncilorId(councilorId);

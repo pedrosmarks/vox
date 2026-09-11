@@ -279,18 +279,18 @@ VALUES
 -- Denúncias / reportes de problemas (issue_report)
 -- councilor_id é NOT NULL -> usar um vereador válido
 -- ---------------------------------------------------------------------
-INSERT INTO issue_report (municipality_id, author_id, councilor_id, title, description, neighborhood, street, number,
+INSERT INTO issue_report (municipality_id, category_id, author_id, councilor_id, title, description, neighborhood, street, number,
                           latitude, longitude, status, moderation_status)
 VALUES
-    (1, 1, 4, 'Buraco na via', 'Buraco grande na Rua Barão de Alfenas causando risco a motociclistas.',
+    (1, 1, 1, 4, 'Buraco na via', 'Buraco grande na Rua Barão de Alfenas causando risco a motociclistas.',
      'Centro', 'Rua Barão de Alfenas', '150', -22.25240000, -45.70290000, 'OPEN', 'PENDING'),
-    (1, 5, 4, 'Poste de luz queimado', 'Iluminação pública apagada há mais de duas semanas na Vila Rica.',
+    (1, 1, 5, 4, 'Poste de luz queimado', 'Iluminação pública apagada há mais de duas semanas na Vila Rica.',
      'Vila Rica', 'Avenida Cel. Joaquim', '460', -22.25520000, -45.70920000, 'UNDER_REVIEW', 'APPROVED'),
-    (1, 6, 9, 'Lixo acumulado', 'Acúmulo de lixo em terreno baldio atraindo insetos.',
+    (1, 4, 6, 9, 'Lixo acumulado', 'Acúmulo de lixo em terreno baldio atraindo insetos.',
      'Santana', 'Rua das Flores', '80', -22.24990000, -45.69960000, 'IN_PROGRESS', 'APPROVED'),
-    (2, 7, 10, 'Vazamento de água', 'Vazamento de água tratada na calçada há vários dias.',
+    (2, 1, 7, 10, 'Vazamento de água', 'Vazamento de água tratada na calçada há vários dias.',
      'Jardim Europa', 'Rua Sete de Setembro', '215', -22.23010000, -45.93010000, 'RESOLVED', 'APPROVED'),
-    (1, 8, 4, 'Sinalização apagada', 'Faixa de pedestres e placas de trânsito apagadas próximo à escola.',
+    (1, 1, 8, 4, 'Sinalização apagada', 'Faixa de pedestres e placas de trânsito apagadas próximo à escola.',
      'Zona Escolar', 'Avenida das Palmeiras', '905', -22.25810000, -45.71210000, 'OPEN', 'PENDING');
 -- IDs resultantes: 1..5
 

@@ -13,6 +13,7 @@ public class IssueReport {
 
     private Integer id;
     private Integer municipalityId;
+    private Integer categoryId;
     private Integer authorId;
     private Integer councilorId;
     private String title;
