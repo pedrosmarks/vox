@@ -29,8 +29,11 @@ public class IssueReport {
 
     public enum IssueStatus {
         OPEN,
+        UNDER_REVIEW,
         IN_PROGRESS,
+        FORWARDED,
         RESOLVED,
+        REJECTED,
         CLOSED
     }
 
