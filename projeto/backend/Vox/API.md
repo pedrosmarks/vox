@@ -625,6 +625,7 @@ Content-Type: multipart/form-data
 **Form fields:**
 | Campo | Tipo | Obrigatório |
 |---|---|---|
+| `categoryId` | number | ✅ |
 | `councilorId` | number | ❌ |
 | `title` | string | ✅ |
 | `description` | string | ✅ |
