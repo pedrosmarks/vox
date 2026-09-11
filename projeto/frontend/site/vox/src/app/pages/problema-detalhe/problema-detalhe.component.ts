@@ -126,11 +126,15 @@ export class ProblemaDetalheComponent implements OnInit {
   toggleLink(): void {
     if (!this.issue || this.myId == null || this.linking) return;
     this.linking = true;
-    const target = this.isMine ? null : this.myId;
-    this.issueService.assignCouncilor(this.issue, target).subscribe({
+    const linking = !this.isMine;
+    // Associar usa o endpoint dedicado; desassociar cai no update JSON.
+    const request$ = linking
+      ? this.issueService.associate(this.issue.id)
+      : this.issueService.unassignCouncilor(this.issue);
+    request$.subscribe({
       next: () => {
-        if (this.issue) this.issue.councilorId = target;
-        this.councilorName = target != null ? 'Você' : '';
+        if (this.issue) this.issue.councilorId = linking ? this.myId : null;
+        this.councilorName = linking ? 'Você' : '';
         this.linking = false;
       },
       error: () => {

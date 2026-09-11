@@ -68,9 +68,14 @@ export class IssueService {
     return this.http.put<void>(`${this.API_URL}/api/issues/${id}`, issue);
   }
 
-  /** Vincula/atribui a ocorrência a um vereador (ou remove com null). */
-  assignCouncilor(issue: IssueReport, councilorId: number | null): Observable<void> {
-    return this.updateIssueJson(issue.id, { ...issue, councilorId });
+  /** Vereador logado se associa à ocorrência (endpoint dedicado, deriva o vereador do token). */
+  associate(id: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/issues/${id}/associar`, null);
+  }
+
+  /** Remove o vínculo do vereador com a ocorrência (via update JSON, pois não há endpoint dedicado). */
+  unassignCouncilor(issue: IssueReport): Observable<void> {
+    return this.updateIssueJson(issue.id, { ...issue, councilorId: null });
   }
 
   /** Atualiza apenas o status via endpoint de moderação. */

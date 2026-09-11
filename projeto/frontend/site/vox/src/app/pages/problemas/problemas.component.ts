@@ -102,10 +102,14 @@ export class ProblemasComponent implements OnInit {
     event.stopPropagation();
     if (this.myId == null || this.linkingId === i.id) return;
     this.linkingId = i.id;
-    const target = this.isMine(i) ? null : this.myId;
-    this.issueService.assignCouncilor(i, target).subscribe({
+    const linking = !this.isMine(i);
+    // Associar usa o endpoint dedicado; desassociar cai no update JSON.
+    const request$ = linking
+      ? this.issueService.associate(i.id)
+      : this.issueService.unassignCouncilor(i);
+    request$.subscribe({
       next: () => {
-        i.councilorId = target;
+        i.councilorId = linking ? this.myId : null;
         this.linkingId = null;
       },
       error: () => {
