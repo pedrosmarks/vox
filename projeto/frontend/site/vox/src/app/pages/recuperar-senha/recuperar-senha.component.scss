@@ -1,13 +1,11 @@
 @use "sass:color";
 
-// Cores do logo VOX (logo2.jpeg)
-$primary:   #1b3f8b; // Azul marinho
-$secondary: #f5a800; // Amarelo dourado
-$accent:    #2d6fcc; // Azul claro
+$primary:   #1b3f8b;
+$secondary: #f5a800;
+$accent:    #2d6fcc;
 $bg-light:  #f0f4ff;
 $white:     #ffffff;
 
-// ── Page ─────────────────────────────────────────────────
 .login-page {
   min-height: 100vh;
   background: linear-gradient(to right, $primary 0%, $accent 60%, $secondary 100%);
@@ -18,21 +16,15 @@ $white:     #ffffff;
   font-family: 'Inter', sans-serif;
 }
 
-// ── Container ─────────────────────────────────────────────
 .login-container {
   width: 100%;
   max-width: 440px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
 }
 
-// ── Logo section ──────────────────────────────────────────
-.logo-section {
-  text-align: center;
-  margin-bottom: 2rem;
-}
+.logo-section { text-align: center; margin-bottom: 2rem; }
 
 .logo-wrapper {
   display: inline-flex;
@@ -46,11 +38,7 @@ $white:     #ffffff;
   margin-bottom: 1rem;
 }
 
-.logo-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-}
+.logo-img { width: 80px; height: 80px; object-fit: contain; }
 
 .brand-title {
   font-size: 2rem;
@@ -60,13 +48,8 @@ $white:     #ffffff;
   margin: 0 0 0.25rem;
 }
 
-.brand-subtitle {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 1rem;
-  margin: 0;
-}
+.brand-subtitle { color: rgba(255, 255, 255, 0.85); font-size: 1rem; margin: 0; }
 
-// ── Login card ────────────────────────────────────────────
 .login-card {
   width: 100%;
   background: $white;
@@ -80,13 +63,17 @@ $white:     #ffffff;
   font-weight: 700;
   color: $primary;
   text-align: center;
-  margin: 0 0 1.75rem;
+  margin: 0 0 1.5rem;
 }
 
-// ── Form ──────────────────────────────────────────────────
-.form-group {
-  margin-bottom: 1.25rem;
+.step-hint {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1.25rem;
+  text-align: center;
 }
+
+.form-group { margin-bottom: 1.25rem; }
 
 .form-label {
   display: block;
@@ -115,7 +102,6 @@ $white:     #ffffff;
   }
 }
 
-// ── Error message ─────────────────────────────────────────
 .error-message {
   background: #fff4e0;
   border: 1px solid $secondary;
@@ -126,7 +112,16 @@ $white:     #ffffff;
   margin-bottom: 1rem;
 }
 
-// ── Submit button ─────────────────────────────────────────
+.success-message {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  color: #15803d;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
 .btn-login {
   width: 100%;
   padding: 0.875rem;
@@ -143,53 +138,35 @@ $white:     #ffffff;
   &:hover:not(:disabled) {
     background: color.adjust($primary, $lightness: -8%);
     transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(27, 63, 139, 0.45);
   }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
+  &:disabled { opacity: 0.7; cursor: not-allowed; }
 }
 
-// ── Esqueci minha senha ───────────────────────────────────
-.forgot-row {
-  text-align: right;
-  margin: -0.5rem 0 1rem;
+.btn-link-plain {
+  width: 100%;
+  margin-top: 0.75rem;
+  background: none;
+  border: none;
+  color: $accent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover { text-decoration: underline; }
 }
 
-// ── Card footer ───────────────────────────────────────────
-.card-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-}
-
-.footer-text {
-  font-size: 0.875rem;
-  color: #666;
-  margin: 0;
-}
-
+.card-footer { margin-top: 1.5rem; text-align: center; }
+.footer-text { font-size: 0.875rem; color: #666; margin: 0; }
 .footer-link {
   color: $accent;
   font-weight: 600;
   text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
+  &:hover { text-decoration: underline; }
 }
 
-// ── Page footer ───────────────────────────────────────────
 .page-footer {
   margin-top: 1.5rem;
   text-align: center;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.8rem;
-
   p { margin: 0; }
 }
