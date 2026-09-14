@@ -9,7 +9,7 @@ import { ProjectService, Category } from '../../services/project.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { issueStatusLabel, statusClass } from '../../utils/status-labels';
 
-type TabKey = 'minhas' | 'disponiveis';
+type TabKey = 'todos' | 'minhas' | 'disponiveis';
 
 /** Tela do vereador para acompanhar e adotar ocorrências relatadas pelos cidadãos. */
 @Component({
@@ -23,7 +23,7 @@ export class ProblemasComponent implements OnInit {
   allIssues: IssueReport[] = [];
   isLoading = true;
   loadError = '';
-  activeTab: TabKey = 'minhas';
+  activeTab: TabKey = 'todos';
   myId: number | null = null;
   linkingId: number | null = null;
 
@@ -68,17 +68,30 @@ export class ProblemasComponent implements OnInit {
     });
   }
 
+  /** Todas as ocorrências, independente de vínculo. */
+  get allIssuesList(): IssueReport[] {
+    return this.allIssues;
+  }
+
+  /** Vinculadas ao vereador logado. */
   get myIssues(): IssueReport[] {
     return this.allIssues.filter(i => this.myId != null && i.councilorId === this.myId);
   }
 
+  /** Disponíveis = sem nenhum vereador vinculado. */
   get availableIssues(): IssueReport[] {
-    // Disponíveis = sem vereador ou atribuídas a outro vereador.
-    return this.allIssues.filter(i => i.councilorId == null || i.councilorId !== this.myId);
+    return this.allIssues.filter(i => i.councilorId == null);
   }
 
   get visibleIssues(): IssueReport[] {
-    return this.activeTab === 'minhas' ? this.myIssues : this.availableIssues;
+    switch (this.activeTab) {
+      case 'minhas':
+        return this.myIssues;
+      case 'disponiveis':
+        return this.availableIssues;
+      default:
+        return this.allIssuesList;
+    }
   }
 
   setTab(tab: TabKey): void {
@@ -89,6 +102,16 @@ export class ProblemasComponent implements OnInit {
     return this.myId != null && i.councilorId === this.myId;
   }
 
+  /** Pertence a outro vereador (não pode ser assumida). */
+  isOwnedByOther(i: IssueReport): boolean {
+    return i.councilorId != null && i.councilorId !== this.myId;
+  }
+
+  /** Só pode assumir se ninguém tem vínculo. */
+  canAssume(i: IssueReport): boolean {
+    return i.councilorId == null;
+  }
+
   categoryName(id: number): string {
     return this.categoryNames.get(id) ?? '—';
   }
@@ -97,10 +120,13 @@ export class ProblemasComponent implements OnInit {
     this.router.navigate(['/problemas', i.id]);
   }
 
-  /** Vereador adota (vincula a si) ou desvincula a ocorrência. */
+  /** Vereador assume (vincula a si) ou desvincula a ocorrência. */
   toggleLink(i: IssueReport, event: Event): void {
     event.stopPropagation();
     if (this.myId == null || this.linkingId === i.id) return;
+    // Ocorrência de outro vereador não pode ser assumida.
+    if (this.isOwnedByOther(i)) return;
+
     this.linkingId = i.id;
     const linking = !this.isMine(i);
     // Associar usa o endpoint dedicado; desassociar cai no update JSON.

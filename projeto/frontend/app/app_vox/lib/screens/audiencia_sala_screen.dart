@@ -149,18 +149,26 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
 
   Future<void> _requestEntry() async {
     setState(() => _connectionState = 'requesting');
+
+    // 1) SEMPRE registra o pedido de entrada primeiro, para o moderador ver
+    //    a solicitação (mesmo que o backend gere token para não aprovados).
+    try {
+      await _salaService.solicitarEntrada(widget.salaId);
+    } catch (_) {
+      // ignora — pode já existir uma solicitação anterior
+    }
+
+    // 2) Tenta obter token (se já estiver aprovado, conecta direto).
     try {
       final token = await _salaService.gerarToken(widget.salaId);
       await _connectToRoom(token: token);
       return;
-    } catch (_) {}
-    try {
-      await _salaService.solicitarEntrada(widget.salaId);
-      if (mounted) setState(() => _connectionState = 'waiting');
-      _startPolling();
     } catch (_) {
-      if (mounted) setState(() => _connectionState = 'denied');
+      // Ainda não aprovado — aguarda e vai tentando.
     }
+
+    if (mounted) setState(() => _connectionState = 'waiting');
+    _startPolling();
   }
 
   void _startPolling() {
@@ -184,6 +192,19 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     } catch (_) {}
   }
 
+  /// Reinicia o fluxo de entrada após uma falha (botão "Tentar novamente").
+  Future<void> _retryEntry() async {
+    _pollTimer?.cancel();
+    await _room?.disconnect();
+    _room = null;
+    if (!mounted) return;
+    if (_isModerator) {
+      _connectToRoom();
+    } else {
+      _requestEntry();
+    }
+  }
+
   // ── Conexão LiveKit ────────────────────────────────────────
 
   Future<void> _requestMediaPermissions() async {
@@ -197,10 +218,24 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
   Future<void> _connectToRoom({String? token}) async {
     setState(() => _connectionState = 'connecting');
     try {
-      await _requestMediaPermissions();
+      // Moderador publica de imediato → precisa de permissões antes de conectar.
+      // Cidadão entra só para assistir; pede permissão só quando for publicar.
+      if (_isModerator) {
+        await _requestMediaPermissions();
+      }
 
-      final authToken = token ?? await _salaService.gerarToken(widget.salaId);
-      final room = livekit.Room();
+      final authToken =
+          token ??
+          await _salaService
+              .gerarToken(widget.salaId)
+              .timeout(const Duration(seconds: 10));
+      // Mesmas opções do site (adaptiveStream + dynacast) para economia de banda.
+      final room = livekit.Room(
+        roomOptions: const livekit.RoomOptions(
+          adaptiveStream: true,
+          dynacast: true,
+        ),
+      );
       _room = room;
       _listener = room.createListener();
 
@@ -212,6 +247,11 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
         ..on<livekit.TrackMutedEvent>((_) => setState(() {}))
         ..on<livekit.TrackUnmutedEvent>((_) => setState(() {}))
         ..on<livekit.ParticipantAttributesChanged>((_) => setState(() {}))
+        ..on<livekit.ParticipantPermissionsUpdatedEvent>((_) {
+          // Moderador liberou/bloqueou mic/câmera do cidadão.
+          if (!_isModerator) _syncCitizenPublishPermissions();
+          if (mounted) setState(() {});
+        })
         ..on<livekit.RoomDisconnectedEvent>((_) {
           if (mounted) setState(() => _connectionState = 'closed');
         });
@@ -235,15 +275,55 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
           await room.localParticipant?.setCameraEnabled(true);
         } catch (_) {}
       } else {
-        // Cidadão: tenta publicar; se o moderador ainda não liberou, vai falhar
-        // e os flags ficam false — exibindo o aviso correto na UI.
-        await _tryEnableMic();
-        await _tryEnableCam();
+        // Cidadão entra apenas assistindo. Só publica depois que o moderador
+        // liberar (evento de permissão) — não abre câmera/mic à toa aqui.
+        _canPublishAudio = false;
+        _canPublishVideo = false;
+        _micOn = false;
+        _camOn = false;
+        _syncCitizenPublishPermissions();
       }
       if (mounted) setState(() {});
     } catch (_) {
       if (mounted) setState(() => _connectionState = 'denied');
     }
+  }
+
+  /// Lê as permissões de publicação concedidas pelo moderador (via LiveKit)
+  /// e, ao ganhar permissão, publica automaticamente o track correspondente.
+  void _syncCitizenPublishPermissions() {
+    final local = _room?.localParticipant;
+    if (local == null) return;
+    final perms = local.permissions;
+
+    final canPublish = perms.canPublish;
+    // canPublishSources é a lista de fontes permitidas (enum protobuf).
+    // Comparamos pelo nome para não depender do tipo interno.
+    final sourceNames = perms.canPublishSources
+        .map((s) => s.name.toUpperCase())
+        .toList();
+    // Se a lista está vazia mas canPublish=true, assume tudo liberado.
+    final allowAll = canPublish && sourceNames.isEmpty;
+    final audioAllowed =
+        canPublish && (allowAll || sourceNames.contains('MICROPHONE'));
+    final videoAllowed =
+        canPublish && (allowAll || sourceNames.contains('CAMERA'));
+
+    final gainedAudio = audioAllowed && !_canPublishAudio;
+    final gainedVideo = videoAllowed && !_canPublishVideo;
+
+    _canPublishAudio = audioAllowed;
+    _canPublishVideo = videoAllowed;
+
+    // Publica automaticamente ao receber a permissão (pede acesso ao HW aqui).
+    if (gainedAudio) {
+      _requestMediaPermissions().then((_) => _tryEnableMic());
+    }
+    if (gainedVideo) {
+      _requestMediaPermissions().then((_) => _tryEnableCam());
+    }
+    if (!audioAllowed) _micOn = false;
+    if (!videoAllowed) _camOn = false;
   }
 
   Future<void> _tryEnableMic() async {
@@ -255,6 +335,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
       _canPublishAudio = false;
       _micOn = false;
     }
+    if (mounted) setState(() {});
   }
 
   Future<void> _tryEnableCam() async {
@@ -266,6 +347,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
       _canPublishVideo = false;
       _camOn = false;
     }
+    if (mounted) setState(() {});
   }
 
   // ── Controles de mídia ─────────────────────────────────────
@@ -534,10 +616,83 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     if (_connectionState == 'denied') {
       return _buildDeniedScreen();
     }
+    if (_connectionState == 'closed') {
+      return _buildClosedScreen();
+    }
+    if (_connectionState == 'connecting') {
+      return _buildConnectingScreen();
+    }
     if (_connectionState != 'connected') {
-      return const Center(child: CircularProgressIndicator());
+      return _buildConnectingScreen();
     }
     return _buildConnectedLayout();
+  }
+
+  Widget _buildConnectingScreen() {
+    return Container(
+      color: const Color(0xFF0F0F1A),
+      child: const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: Color(0xFFE8A838),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Conectando à sala...',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClosedScreen() {
+    return Container(
+      color: const Color(0xFF0F0F1A),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.stop_circle_outlined,
+                size: 56,
+                color: Colors.white38,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Sala encerrada',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Esta sala não está mais ativa.',
+                style: TextStyle(color: Colors.white54, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Voltar'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // ── Telas de estado ────────────────────────────────────────
@@ -623,14 +778,30 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Não foi possível entrar na sala.',
-                style: TextStyle(color: Colors.white54, fontSize: 14),
+                'Não foi possível entrar na sala.\nSe você foi removido, peça entrada novamente.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Voltar'),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Voltar'),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton.icon(
+                    onPressed: _retryEntry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Tentar novamente'),
+                  ),
+                ],
               ),
             ],
           ),

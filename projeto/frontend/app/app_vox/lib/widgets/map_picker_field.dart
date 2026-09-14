@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../theme/vox_colors.dart';
@@ -46,12 +47,54 @@ class _MapPickerFieldState extends State<MapPickerField> {
   final _mapController = MapController();
   LatLng? _selected;
   bool _isGeocoding = false;
+  bool _mapReady = false;
+  bool _locating = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.initialLatitude != null && widget.initialLongitude != null) {
       _selected = LatLng(widget.initialLatitude!, widget.initialLongitude!);
+    } else {
+      // Sem valor inicial: tenta centralizar perto do usuário (igual ao site).
+      _locateUser();
+    }
+  }
+
+  /// Pede permissão de localização e, se concedida, centraliza o mapa na
+  /// posição atual do usuário. Em caso de negação/erro, mantém o fallback
+  /// (Brasília) sem quebrar o fluxo.
+  Future<void> _locateUser() async {
+    if (_locating) return;
+    _locating = true;
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      final here = LatLng(pos.latitude, pos.longitude);
+      if (!mounted) return;
+      // Não seleciona o ponto — apenas aproxima, deixando o usuário tocar.
+      if (_mapReady && _selected == null) {
+        _mapController.move(here, 15);
+      }
+    } catch (_) {
+      // segue com o fallback padrão
+    } finally {
+      _locating = false;
     }
   }
 
@@ -115,6 +158,11 @@ class _MapPickerFieldState extends State<MapPickerField> {
                 initialCenter: _selected ?? _defaultCenter,
                 initialZoom: _selected != null ? 15 : 4,
                 onTap: (_, point) => _selectPoint(point),
+                onMapReady: () {
+                  _mapReady = true;
+                  // Se ainda não há seleção, tenta centralizar no usuário.
+                  if (_selected == null) _locateUser();
+                },
               ),
               children: [
                 TileLayer(

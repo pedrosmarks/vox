@@ -203,6 +203,20 @@ class IssueService {
   Future<void> assignCouncilor(IssueReport issue, int? councilorId) =>
       updateIssueJson(issue, councilorId: councilorId);
 
+  /// Vereador logado se associa à ocorrência (endpoint dedicado que deriva
+  /// o vereador do token).
+  Future<void> associate(int id) async {
+    final response = await http.post(
+      Uri.parse('${ApiClient.baseUrl}/api/issues/$id/associar'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  /// Remove o vínculo do vereador com a ocorrência.
+  Future<void> unassignCouncilor(IssueReport issue) =>
+      updateIssueJson(issue, councilorId: null);
+
   /// Atualiza apenas o status via endpoint de moderação.
   Future<void> updateIssueStatus(int id, String status, {String? note}) async {
     final payload = <String, dynamic>{'status': status};

@@ -22,9 +22,16 @@
         <span *ngIf="isMine" class="badge-mine">Minha ocorrência</span>
       </div>
       <div class="header-actions" *ngIf="isCouncilor">
-        <button class="btn-action btn-link" [class.linked]="isMine" [disabled]="linking" (click)="toggleLink()">
+        <button
+          *ngIf="isMine || canAssume"
+          class="btn-action btn-link"
+          [class.linked]="isMine"
+          [disabled]="linking"
+          (click)="toggleLink()"
+        >
           {{ linking ? '...' : (isMine ? '✓ Vinculada a mim' : '+ Assumir ocorrência') }}
         </button>
+        <span *ngIf="isOwnedByOther" class="owned-tag">👤 Já atribuída a outro vereador</span>
       </div>
     </div>
 

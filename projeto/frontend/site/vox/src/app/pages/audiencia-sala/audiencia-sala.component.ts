@@ -85,6 +85,11 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
   // Solicitações de fala pendentes (moderador) — userId -> nome
   speakRequestIds: number[] = [];
 
+  // View-models cacheados (recalculados só em eventos do LiveKit, nunca
+  // recriados a cada ciclo de change detection — evita recriar os <video>).
+  moderatorVM: ParticipantVM | null = null;
+  citizenVMs: ParticipantVM[] = [];
+
   // Elementos <audio> criados para cada track de áudio remoto (identity -> el)
   private audioEls = new Map<string, HTMLAudioElement>();
 
@@ -219,7 +224,12 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
       const room = new Room({ adaptiveStream: true, dynacast: true });
       this.room = room;
 
-      const refresh = () => this.zone.run(() => this.cdr.detectChanges());
+      // Recalcula os VMs cacheados e dispara uma única verificação.
+      const refresh = () =>
+        this.zone.run(() => {
+          this.refreshVms();
+          this.cdr.detectChanges();
+        });
 
       room
         .on(RoomEvent.ParticipantConnected, refresh)
@@ -289,12 +299,45 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
         await this.tryEnableCam();
       }
 
-      // Atualiza a UI periodicamente para refletir mudanças de permissão.
-      this.uiTick = setInterval(() => this.zone.run(() => this.cdr.detectChanges()), 2000);
+      // Um refresh após conectar/publicar já reflete o estado inicial.
+      // As mudanças seguintes chegam pelos eventos do LiveKit (sem polling
+      // de change detection, que causava recriação dos vídeos e vazamento).
       refresh();
     } catch {
       this.zone.run(() => (this.connState = 'denied'));
     }
+  }
+
+  /** Recalcula os view-models a partir do estado atual da sala. */
+  private refreshVms(): void {
+    const room = this.room;
+    if (!room || this.sala == null) {
+      this.moderatorVM = null;
+      this.citizenVMs = [];
+      return;
+    }
+    const modId = this.sala.moderatorId;
+    const all: Participant[] = [
+      room.localParticipant,
+      ...room.remoteParticipants.values()
+    ];
+    let mod: ParticipantVM | null = null;
+    const citizens: ParticipantVM[] = [];
+    for (const p of all) {
+      const vm = this.toVM(p);
+      if (Number(p.identity) === modId) {
+        mod = vm;
+      } else {
+        citizens.push(vm);
+      }
+    }
+    this.moderatorVM = mod;
+    this.citizenVMs = citizens;
+  }
+
+  /** trackBy para os *ngFor de participantes (evita recriar os <video>). */
+  trackByIdentity(_index: number, vm: ParticipantVM): string {
+    return vm.identity;
   }
 
   private gerarTokenAsync(): Promise<string> {
@@ -628,17 +671,6 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
       wantsMic: p.attributes?.['requestMic'] === 'true',
       wantsCam: p.attributes?.['requestCam'] === 'true'
     };
-  }
-
-  get moderatorVM(): ParticipantVM | null {
-    const mod = this.allParticipants().find(p => this.sala != null && Number(p.identity) === this.sala.moderatorId);
-    return mod ? this.toVM(mod) : null;
-  }
-
-  get citizenVMs(): ParticipantVM[] {
-    return this.allParticipants()
-      .filter(p => !(this.sala != null && Number(p.identity) === this.sala.moderatorId))
-      .map(p => this.toVM(p));
   }
 
   getInitial(name: string): string {

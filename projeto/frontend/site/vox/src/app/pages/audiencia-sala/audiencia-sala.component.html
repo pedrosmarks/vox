@@ -94,7 +94,7 @@
         <div *ngIf="citizenVMs.length === 0" class="citizens-empty">Nenhum cidadão conectado</div>
 
         <div
-          *ngFor="let c of citizenVMs"
+          *ngFor="let c of citizenVMs; trackBy: trackByIdentity"
           class="citizen-tile"
           [class.local]="c.isLocal"
           [class.wants]="c.wantsMic || c.wantsCam"
@@ -197,7 +197,7 @@
             <span class="p-name">{{ mod.isLocal ? 'Você' : mod.name }}</span>
             <span class="tag-mod">MOD</span>
           </li>
-          <li *ngFor="let c of citizenVMs" class="participant-item">
+          <li *ngFor="let c of citizenVMs; trackBy: trackByIdentity" class="participant-item">
             <span class="p-avatar">{{ getInitial(c.name) }}</span>
             <span class="p-name">{{ c.isLocal ? 'Você' : c.name }}</span>
             <span class="mic-ind small" [class.on]="c.micEnabled">{{ c.micEnabled ? '🎤' : '🔇' }}</span>

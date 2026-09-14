@@ -114,6 +114,16 @@ export class ProblemaDetalheComponent implements OnInit {
     return this.myId != null && this.issue?.councilorId === this.myId;
   }
 
+  /** Pertence a outro vereador (não pode ser assumida). */
+  get isOwnedByOther(): boolean {
+    return this.issue?.councilorId != null && this.issue?.councilorId !== this.myId;
+  }
+
+  /** Só pode assumir quando não há vereador vinculado. */
+  get canAssume(): boolean {
+    return this.issue != null && this.issue.councilorId == null;
+  }
+
   selectImage(url: string): void {
     this.selectedImage = url;
   }
@@ -125,6 +135,8 @@ export class ProblemaDetalheComponent implements OnInit {
   /** Vereador adota/desvincula a ocorrência. */
   toggleLink(): void {
     if (!this.issue || this.myId == null || this.linking) return;
+    // Ocorrência de outro vereador não pode ser assumida.
+    if (this.isOwnedByOther) return;
     this.linking = true;
     const linking = !this.isMine;
     // Associar usa o endpoint dedicado; desassociar cai no update JSON.

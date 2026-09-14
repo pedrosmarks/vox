@@ -35,6 +35,9 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
   bool get _isModerator => _role == 'MODERATOR' || _role == 'ADMINISTRATOR';
   bool get _isCouncilor => _role == 'COUNCILOR';
   bool get _isMine => _myId != null && _issue?.councilorId == _myId;
+  bool get _isOwnedByOther =>
+      _issue?.councilorId != null && _issue?.councilorId != _myId;
+  bool get _canAssume => _issue != null && _issue!.councilorId == null;
 
   bool _linking = false;
   bool _savingStatus = false;
@@ -124,10 +127,15 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
   Future<void> _toggleLink() async {
     final issue = _issue;
     if (issue == null || _myId == null || _linking) return;
+    // Ocorrência de outro vereador não pode ser assumida.
+    if (_isOwnedByOther) return;
     setState(() => _linking = true);
-    final target = _isMine ? null : _myId;
     try {
-      await _issueService.assignCouncilor(issue, target);
+      if (_isMine) {
+        await _issueService.unassignCouncilor(issue);
+      } else {
+        await _issueService.associate(issue.id);
+      }
       await _load();
     } catch (_) {
       if (mounted) {
@@ -250,8 +258,8 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
           Text(i.description),
           const SizedBox(height: 16),
 
-          // Ação do vereador: assumir / desvincular
-          if (_isCouncilor)
+          // Ação do vereador: assumir / desvincular (só se minha ou disponível)
+          if (_isCouncilor && (_isMine || _canAssume))
             OutlinedButton.icon(
               onPressed: _linking ? null : _toggleLink,
               icon: Icon(_isMine ? Icons.check_circle : Icons.how_to_reg),
@@ -260,6 +268,24 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
                     ? 'Vinculada a mim (desvincular)'
                     : 'Assumir ocorrência',
               ),
+            ),
+          // De outro vereador: apenas indicação, sem ação.
+          if (_isCouncilor && _isOwnedByOther)
+            Row(
+              children: [
+                Icon(
+                  Icons.person,
+                  size: 18,
+                  color: Theme.of(context).hintColor,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Já atribuída a outro vereador',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              ],
             ),
           const SizedBox(height: 16),
 

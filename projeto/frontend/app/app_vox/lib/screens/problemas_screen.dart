@@ -22,7 +22,7 @@ class _ProblemasScreenState extends State<ProblemasScreen> {
 
   List<IssueReport> _issues = [];
   int? _myId;
-  int _tab = 0; // 0 = Minhas, 1 = Disponíveis
+  int _tab = 0; // 0 = Todos, 1 = Minhas, 2 = Disponíveis
   int? _linkingId;
   bool _isLoading = true;
   String? _error;
@@ -53,20 +53,41 @@ class _ProblemasScreenState extends State<ProblemasScreen> {
 
   bool _isMine(IssueReport i) => _myId != null && i.councilorId == _myId;
 
-  List<IssueReport> get _myIssues => _issues.where((i) => _isMine(i)).toList();
+  /// Pertence a outro vereador (não pode ser assumida).
+  bool _isOwnedByOther(IssueReport i) =>
+      i.councilorId != null && i.councilorId != _myId;
 
-  List<IssueReport> get _availableIssues => _issues
-      .where((i) => i.councilorId == null || i.councilorId != _myId)
-      .toList();
+  /// Só pode assumir se ninguém tem vínculo.
+  bool _canAssume(IssueReport i) => i.councilorId == null;
 
-  List<IssueReport> get _visible => _tab == 0 ? _myIssues : _availableIssues;
+  List<IssueReport> get _myIssues => _issues.where(_isMine).toList();
+
+  /// Disponíveis = sem nenhum vereador vinculado.
+  List<IssueReport> get _availableIssues =>
+      _issues.where((i) => i.councilorId == null).toList();
+
+  List<IssueReport> get _visible {
+    switch (_tab) {
+      case 1:
+        return _myIssues;
+      case 2:
+        return _availableIssues;
+      default:
+        return _issues;
+    }
+  }
 
   Future<void> _toggleLink(IssueReport issue) async {
     if (_myId == null || _linkingId == issue.id) return;
+    // Ocorrência de outro vereador não pode ser assumida.
+    if (_isOwnedByOther(issue)) return;
     setState(() => _linkingId = issue.id);
-    final target = _isMine(issue) ? null : _myId;
     try {
-      await _issueService.assignCouncilor(issue, target);
+      if (_isMine(issue)) {
+        await _issueService.unassignCouncilor(issue);
+      } else {
+        await _issueService.associate(issue.id);
+      }
       await _load();
     } catch (_) {
       if (mounted) {
@@ -106,13 +127,16 @@ class _ProblemasScreenState extends State<ProblemasScreen> {
   }
 
   Widget _buildTabs() {
-    return Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: SegmentedButton<int>(
+        showSelectedIcon: false,
         segments: [
-          ButtonSegment(value: 0, label: Text('Minhas (${_myIssues.length})')),
+          ButtonSegment(value: 0, label: Text('Todos (${_issues.length})')),
+          ButtonSegment(value: 1, label: Text('Minhas (${_myIssues.length})')),
           ButtonSegment(
-            value: 1,
+            value: 2,
             label: Text('Disponíveis (${_availableIssues.length})'),
           ),
         ],
@@ -141,9 +165,11 @@ class _ProblemasScreenState extends State<ProblemasScreen> {
           const SizedBox(height: 120),
           Center(
             child: Text(
-              _tab == 0
+              _tab == 1
                   ? 'Você ainda não assumiu nenhuma ocorrência.'
-                  : 'Nenhuma ocorrência disponível no momento.',
+                  : _tab == 2
+                  ? 'Nenhuma ocorrência disponível no momento.'
+                  : 'Nenhuma ocorrência relatada até o momento.',
             ),
           ),
         ],
@@ -189,22 +215,45 @@ class _ProblemasScreenState extends State<ProblemasScreen> {
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _linkingId == issue.id
-                              ? null
-                              : () => _toggleLink(issue),
-                          icon: Icon(
-                            mine ? Icons.check_circle : Icons.how_to_reg,
-                            size: 18,
-                          ),
-                          label: Text(
-                            _linkingId == issue.id
-                                ? '...'
-                                : (mine ? 'Vinculada a mim' : 'Assumir'),
+                      // Minha ou disponível: botão de ação.
+                      if (mine || _canAssume(issue))
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _linkingId == issue.id
+                                ? null
+                                : () => _toggleLink(issue),
+                            icon: Icon(
+                              mine ? Icons.check_circle : Icons.how_to_reg,
+                              size: 18,
+                            ),
+                            label: Text(
+                              _linkingId == issue.id
+                                  ? '...'
+                                  : (mine ? 'Vinculada a mim' : 'Assumir'),
+                            ),
                           ),
                         ),
-                      ),
+                      // De outro vereador: apenas indicação.
+                      if (_isOwnedByOther(issue))
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.person,
+                                size: 16,
+                                color: Theme.of(context).hintColor,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Atribuída a outro vereador',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       const SizedBox(width: 8),
                       TextButton(
                         onPressed: () => _openDetail(issue),

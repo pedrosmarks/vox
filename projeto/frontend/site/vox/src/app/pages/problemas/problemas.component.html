@@ -8,6 +8,9 @@
 
   <!-- Abas -->
   <div class="tabs">
+    <button class="tab" [class.active]="activeTab === 'todos'" (click)="setTab('todos')">
+      Todos os problemas <span class="tab-count">{{ allIssuesList.length }}</span>
+    </button>
     <button class="tab" [class.active]="activeTab === 'minhas'" (click)="setTab('minhas')">
       Minhas ocorrências <span class="tab-count">{{ myIssues.length }}</span>
     </button>
@@ -24,7 +27,11 @@
   </div>
 
   <div *ngIf="!isLoading && visibleIssues.length === 0" class="state-message">
-    {{ activeTab === 'minhas' ? 'Você ainda não assumiu nenhuma ocorrência.' : 'Nenhuma ocorrência disponível no momento.' }}
+    <ng-container [ngSwitch]="activeTab">
+      <span *ngSwitchCase="'minhas'">Você ainda não assumiu nenhuma ocorrência.</span>
+      <span *ngSwitchCase="'disponiveis'">Nenhuma ocorrência disponível no momento.</span>
+      <span *ngSwitchDefault>Nenhuma ocorrência relatada até o momento.</span>
+    </ng-container>
   </div>
 
   <div *ngIf="!isLoading" class="cards-grid">
@@ -43,7 +50,9 @@
       </div>
 
       <div class="card-footer">
+        <!-- Minha ou disponível: botão de ação -->
         <button
+          *ngIf="isMine(i) || canAssume(i)"
           class="btn-link"
           [class.linked]="isMine(i)"
           [disabled]="linkingId === i.id"
@@ -51,6 +60,8 @@
         >
           {{ linkingId === i.id ? '...' : (isMine(i) ? '✓ Vinculada a mim' : '+ Assumir ocorrência') }}
         </button>
+        <!-- De outro vereador: apenas indicação, sem ação -->
+        <span *ngIf="isOwnedByOther(i)" class="owned-tag">👤 Já atribuída a outro vereador</span>
         <button class="btn-details" (click)="openIssue(i); $event.stopPropagation()">Ver detalhes →</button>
       </div>
     </div>
