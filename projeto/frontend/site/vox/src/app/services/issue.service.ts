@@ -35,7 +35,7 @@ export interface IssueStatusHistory {
 
 @Injectable({ providedIn: 'root' })
 export class IssueService {
-  private readonly API_URL = 'http://localhost:8080';
+  private readonly API_URL = 'http://192.168.1.105:8080';
 
   constructor(private http: HttpClient) {}
 

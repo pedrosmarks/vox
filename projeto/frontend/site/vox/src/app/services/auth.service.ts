@@ -61,7 +61,7 @@ export interface CreateUserPayload {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:8080';
+  private readonly API_URL = 'http://192.168.1.105:8080';
   private readonly TOKEN_KEY = 'token';
   private readonly USER_ID_KEY = 'userId';
   private readonly MUNICIPALITY_ID_KEY = 'municipalityId';
