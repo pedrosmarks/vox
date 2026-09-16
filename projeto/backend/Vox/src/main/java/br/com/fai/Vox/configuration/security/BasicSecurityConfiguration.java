@@ -31,7 +31,7 @@ public class BasicSecurityConfiguration {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.applyPermitDefaultValues();
         configuration.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
