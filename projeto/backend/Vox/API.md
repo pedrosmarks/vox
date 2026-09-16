@@ -1314,11 +1314,36 @@ Authorization: Bearer <token>
 > As agregações de mapa consideram apenas registros aprovados na moderação
 > (`moderation_status = APPROVED`).
 
+### Filtro de data (comum a todos os endpoints)
+Todos os endpoints do dashboard aceitam um filtro opcional de intervalo de
+datas aplicado sobre a data de criação (`created_at`) dos registros:
+
+| Param | Formato | Obrigatório | Descrição |
+|---|---|---|---|
+| `from` | `yyyy-MM-dd` (ISO) | ❌ | Início do período (inclusive). Normalizado para o começo do dia (`00:00:00`). |
+| `to` | `yyyy-MM-dd` (ISO) | ❌ | Fim do período (inclusive). Normalizado para o fim do dia (`23:59:59`). |
+
+Comportamento:
+- **Apenas `from`**: traz os dados daquela data **até hoje** (caso de uso típico: última semana, último mês, último bimestre, etc.).
+- **`from` e `to`**: traz os dados exatamente no intervalo `[from, to]`.
+- **Nenhum informado**: nenhum filtro de data é aplicado (todos os registros).
+
+Erros: se `from` for posterior a `to`, a resposta é `400`. Datas fora do
+formato ISO `yyyy-MM-dd` também retornam `400`.
+
+Exemplos:
+```
+?from=2026-08-16              # de 16/08/2026 até hoje
+?from=2026-07-01&to=2026-08-31  # somente julho e agosto de 2026
+```
+
 ### Visão geral (KPIs)
 ```
-GET /api/admin/dashboard/overview
+GET /api/admin/dashboard/overview?from=2026-08-16&to=2026-09-16
 Authorization: Bearer <token>
 ```
+**Query params:** `from`, `to` (ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints)).
+
 **Resposta `200`:**
 ```json
 {
@@ -1347,13 +1372,14 @@ Authorization: Bearer <token>
 > em uma grade.
 
 ```
-GET /api/admin/dashboard/mapa/coordenadas?precision=3
+GET /api/admin/dashboard/mapa/coordenadas?precision=3&from=2026-08-16
 Authorization: Bearer <token>
 ```
 **Query params:**
 - `precision` (opcional): casas decimais no arredondamento das coordenadas.
   Padrão `3` (~1 km por célula). Limitado ao intervalo `0`–`6`
   (maior = células menores / mais granular).
+- `from`, `to` (opcionais): ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints).
 
 **Resposta `200`:**
 ```json
@@ -1373,9 +1399,11 @@ Ordenado por `total` decrescente (zonas mais quentes primeiro).
 
 ### Mapa de zonas quentes — por bairro
 ```
-GET /api/admin/dashboard/mapa/bairros
+GET /api/admin/dashboard/mapa/bairros?from=2026-08-16
 Authorization: Bearer <token>
 ```
+**Query params:** `from`, `to` (ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints)).
+
 **Resposta `200`:**
 ```json
 [
@@ -1395,11 +1423,12 @@ Registros sem bairro informado são agrupados como `"Não informado"`.
 > Lista as issues e projetos aprovados de um bairro específico.
 
 ```
-GET /api/admin/dashboard/mapa/bairros/detalhe?bairro=Centro
+GET /api/admin/dashboard/mapa/bairros/detalhe?bairro=Centro&from=2026-08-16
 Authorization: Bearer <token>
 ```
 **Query params:**
 - `bairro` (obrigatório): nome do bairro (use `Não informado` para os sem bairro).
+- `from`, `to` (opcionais): ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints).
 
 **Resposta `200`:**
 ```json
@@ -1429,9 +1458,11 @@ Authorization: Bearer <token>
 
 ### Saúde da moderação
 ```
-GET /api/admin/dashboard/moderacao
+GET /api/admin/dashboard/moderacao?from=2026-08-16
 Authorization: Bearer <token>
 ```
+**Query params:** `from`, `to` (ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints)).
+
 **Resposta `200`:**
 ```json
 {
