@@ -1,13 +1,17 @@
 package br.com.fai.Vox.implementation.service.user;
 
 import br.com.fai.Vox.domain.UserModel;
+import br.com.fai.Vox.domain.dto.CreateUserDto;
 import br.com.fai.Vox.port.dao.passwordresettoken.PasswordResetTokenDao;
 import br.com.fai.Vox.port.dao.user.UserDao;
+import br.com.fai.Vox.port.service.drive.CloudinaryService;
 import br.com.fai.Vox.port.service.email.EmailService;
 import br.com.fai.Vox.port.service.user.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,14 +28,17 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenDao passwordResetTokenDao;
     private final EmailService emailService;
+    private final CloudinaryService cloudinaryService;
 
     public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder,
                             PasswordResetTokenDao passwordResetTokenDao,
-                            EmailService emailService) {
+                            EmailService emailService,
+                            CloudinaryService cloudinaryService) {
         this.userDao = userDao;
         this.passwordEncoder = passwordEncoder;
         this.passwordResetTokenDao = passwordResetTokenDao;
         this.emailService = emailService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Override
@@ -39,6 +46,40 @@ public class UserServiceImpl implements UserService {
         if (entity == null) return -1;
         if (entity.getName().isEmpty() || entity.getEmail().isEmpty() || isPassWordInvalid(entity.getPassword())) return -1;
         return userDao.create(entity);
+    }
+
+    @Override
+    public int create(CreateUserDto dto) {
+        if (dto == null) return -1;
+
+        UserModel entity = dto.toUserModel();
+        if (entity.getName() == null || entity.getName().isEmpty()
+                || entity.getEmail() == null || entity.getEmail().isEmpty()
+                || isPassWordInvalid(entity.getPassword())) {
+            return -1;
+        }
+
+        // Foto de perfil é opcional: só faz upload quando um arquivo é enviado.
+        String photoUrl = uploadProfilePhoto(dto.getFile(), entity.getEmail());
+        entity.setProfilePhotoUrl(photoUrl);
+
+        return userDao.create(entity);
+    }
+
+    /**
+     * Faz o upload da foto de perfil quando um arquivo válido é informado.
+     *
+     * @return a URL pública da imagem, ou {@code null} quando não há arquivo
+     */
+    private String uploadProfilePhoto(MultipartFile file, String ownerKey) {
+        if (file == null || file.isEmpty()) return null;
+        try {
+            String fileName = "user_" + ownerKey + "_" + file.getOriginalFilename();
+            return cloudinaryService.uploadFile(file, fileName);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Erro ao fazer upload da foto de perfil do usuário.", e);
+            throw new RuntimeException("Falha ao enviar a foto de perfil", e);
+        }
     }
 
     private boolean isPassWordInvalid(final String password) {
@@ -82,8 +123,23 @@ public class UserServiceImpl implements UserService {
         if (entity.getBirthDate() == null) entity.setBirthDate(current.getBirthDate());
         if (entity.getAcceptedTerms() == null) entity.setAcceptedTerms(current.getAcceptedTerms());
         if (entity.getAcceptedPrivacyPolicy() == null) entity.setAcceptedPrivacyPolicy(current.getAcceptedPrivacyPolicy());
+        if (entity.getProfilePhotoUrl() == null) entity.setProfilePhotoUrl(current.getProfilePhotoUrl());
 
         userDao.update(id, entity);
+    }
+
+    @Override
+    public void update(int id, UserModel entity, MultipartFile file) {
+        if (id <= 0 || entity == null) return;
+
+        // Só substitui a foto quando um novo arquivo é enviado; caso contrário,
+        // deixa profilePhotoUrl null para que o update parcial preserve a atual.
+        if (file != null && !file.isEmpty()) {
+            String ownerKey = entity.getEmail() != null ? entity.getEmail() : String.valueOf(id);
+            entity.setProfilePhotoUrl(uploadProfilePhoto(file, ownerKey));
+        }
+
+        update(id, entity);
     }
 
     @Override

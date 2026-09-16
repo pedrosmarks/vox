@@ -140,6 +140,7 @@ CREATE TABLE user_model (
     accepted_terms BOOLEAN DEFAULT FALSE,
     accepted_privacy_policy BOOLEAN DEFAULT FALSE,
     terms_accepted_at TIMESTAMP,
+    profile_photo_url TEXT,
     municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
