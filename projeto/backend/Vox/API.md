@@ -22,6 +22,7 @@
 - [Assinaturas](#assinaturas)
 - [Configurações do Usuário](#configurações-do-usuário)
 - [Salas de Conferência (LiveKit)](#salas-de-conferência-livekit)
+- [Dashboard Administrativo](#dashboard-administrativo)
 
 ---
 
@@ -396,12 +397,14 @@ Content-Type: multipart/form-data
 | `neighborhood` | string | ❌ |
 | `street` | string | ❌ |
 | `number` | string | ❌ |
-| `latitude` | decimal | ❌ |
-| `longitude` | decimal | ❌ |
+| `latitude` | decimal (entre -90 e 90) | ✅ |
+| `longitude` | decimal (entre -180 e 180) | ✅ |
 | `startDate` | `YYYY-MM-DD` | ❌ |
 | `expectedEndDate` | `YYYY-MM-DD` | ❌ |
 | `estimatedCost` | decimal | ❌ |
 | `file` | imagem | ❌ |
+
+> `latitude` e `longitude` são **obrigatórios** — usados no mapa de zonas quentes do dashboard.
 
 **Resposta `201`**
 
@@ -632,9 +635,11 @@ Content-Type: multipart/form-data
 | `neighborhood` | string | ❌ |
 | `street` | string | ❌ |
 | `number` | string | ❌ |
-| `latitude` | decimal | ❌ |
-| `longitude` | decimal | ❌ |
+| `latitude` | decimal (entre -90 e 90) | ✅ |
+| `longitude` | decimal (entre -180 e 180) | ✅ |
 | `file` | imagem | ❌ |
+
+> `latitude` e `longitude` são **obrigatórios** — usados no mapa de zonas quentes do dashboard.
 
 **Resposta `201`**
 
@@ -775,6 +780,10 @@ Content-Type: application/json
 ```
 **Resposta `200`**
 
+> O `feedback` de aprovação e rejeição é registrado no histórico de status
+> do projeto (aparece em `GET /api/project/{id}/history` no campo `note`),
+> além de ficar salvo no registro de moderação.
+
 ---
 
 ### Atualizar status do projeto
@@ -831,6 +840,11 @@ Content-Type: application/json
   "feedback": "Ocorrência duplicada."
 }
 ```
+
+> Ao rejeitar, o status da ocorrência (`IssueStatus`) passa a `REJECTED` e o
+> `feedback` é registrado no histórico (aparece em `GET /api/issues/{id}/history`
+> no campo `note`), além do registro de moderação. O `feedback` de aprovação
+> também é registrado no histórico.
 
 ---
 
@@ -1130,6 +1144,11 @@ Authorization: Bearer <token>
 ```
 **Resposta `200`**
 
+> Permite **reabrir** um novo pedido mesmo que já exista um registro anterior
+> `APPROVED` ou `REJECTED` (o status volta para `PENDING`). Só é bloqueado
+> (`400`) se já houver um pedido `PENDING` em aberto. Ao reabrir, as permissões
+> de áudio/vídeo são zeradas e propagadas ao LiveKit.
+
 ### Listar solicitações de fala
 > Requer role `MODERATOR` ou `ADMINISTRATOR`. Retorna apenas solicitações pendentes.
 
@@ -1149,6 +1168,7 @@ Authorization: Bearer <token>
 
 ### Recusar solicitação de fala
 > Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+> Só recusa solicitações que estejam `PENDING`.
 
 ```
 POST /api/salas/{id}/solicitacoes-fala/{participanteId}/rejeitar
@@ -1156,7 +1176,22 @@ Authorization: Bearer <token>
 ```
 **Resposta `200`**
 
+### Revogar fala já aprovada
+> Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+> Encerra uma fala que estava `APPROVED`: muda o status para `REJECTED`,
+> bloqueia microfone e câmera e propaga a revogação ao LiveKit imediatamente.
+> Depois disso o cidadão pode enviar um novo pedido de fala.
+
+```
+POST /api/salas/{id}/solicitacoes-fala/{participanteId}/revogar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
 **Status de fala:** `NOT_REQUESTED`, `PENDING`, `APPROVED`, `REJECTED`
+
+> Bloquear microfone **e** câmera (ambos) de um participante com fala aprovada
+> também encerra a aprovação de fala (status volta para `REJECTED`).
 
 ---
 
@@ -1268,6 +1303,156 @@ Authorization: Bearer <token>
 | Publicar vídeo | ✅ | Somente se liberado |
 | Publicar dados | ✅ | ❌ |
 | Administrar sala | ✅ | ❌ |
+
+---
+
+## Dashboard Administrativo
+
+> 🔒 Todos os endpoints requerem role `ADMINISTRATOR`.
+> Todas as métricas são sempre escopadas ao **município do administrador
+> autenticado** (obtido do token) — não há como consultar outro município.
+> As agregações de mapa consideram apenas registros aprovados na moderação
+> (`moderation_status = APPROVED`).
+
+### Visão geral (KPIs)
+```
+GET /api/admin/dashboard/overview
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{
+  "totalIssues": 120,
+  "approvedIssues": 90,
+  "pendingModerationIssues": 20,
+  "resolvedIssues": 35,
+  "issuesByStatus": { "OPEN": 40, "IN_PROGRESS": 15, "RESOLVED": 35 },
+  "issuesByModeration": { "PENDING": 20, "APPROVED": 90, "REJECTED": 10 },
+  "totalProjects": 60,
+  "publishedProjects": 45,
+  "pendingModerationProjects": 8,
+  "projectsByStatus": { "PENDING_APPROVAL": 8, "PUBLISHED": 45, "IN_EXECUTION": 7 },
+  "projectsByModeration": { "PENDING": 8, "APPROVED": 45, "REJECTED": 7 },
+  "totalUsers": 500,
+  "usersByRole": { "CITIZEN": 480, "COUNCILOR": 12, "MODERATOR": 7, "ADMINISTRATOR": 1 },
+  "issueResolutionRate": 38.9
+}
+```
+- `issueResolutionRate`: percentual (0–100) de issues aprovadas que estão `RESOLVED`.
+
+---
+
+### Mapa de zonas quentes — por coordenada
+> Heatmap: agrupa issues e projetos aprovados por coordenada arredondada
+> em uma grade.
+
+```
+GET /api/admin/dashboard/mapa/coordenadas?precision=3
+Authorization: Bearer <token>
+```
+**Query params:**
+- `precision` (opcional): casas decimais no arredondamento das coordenadas.
+  Padrão `3` (~1 km por célula). Limitado ao intervalo `0`–`6`
+  (maior = células menores / mais granular).
+
+**Resposta `200`:**
+```json
+[
+  {
+    "latitude": -23.550,
+    "longitude": -46.633,
+    "issueCount": 12,
+    "projectCount": 3,
+    "total": 15
+  }
+]
+```
+Ordenado por `total` decrescente (zonas mais quentes primeiro).
+
+---
+
+### Mapa de zonas quentes — por bairro
+```
+GET /api/admin/dashboard/mapa/bairros
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+[
+  {
+    "neighborhood": "Centro",
+    "issueCount": 22,
+    "projectCount": 5,
+    "total": 27
+  }
+]
+```
+Registros sem bairro informado são agrupados como `"Não informado"`.
+
+---
+
+### Detalhe de uma zona (drill-down por bairro)
+> Lista as issues e projetos aprovados de um bairro específico.
+
+```
+GET /api/admin/dashboard/mapa/bairros/detalhe?bairro=Centro
+Authorization: Bearer <token>
+```
+**Query params:**
+- `bairro` (obrigatório): nome do bairro (use `Não informado` para os sem bairro).
+
+**Resposta `200`:**
+```json
+{
+  "issues": [
+    {
+      "id": 101,
+      "title": "Buraco na via",
+      "status": "OPEN",
+      "category": "Infraestrutura",
+      "neighborhood": "Centro"
+    }
+  ],
+  "projects": [
+    {
+      "id": 55,
+      "title": "Revitalização da praça",
+      "status": "PUBLISHED",
+      "category": "Urbanismo",
+      "neighborhood": "Centro"
+    }
+  ]
+}
+```
+
+---
+
+### Saúde da moderação
+```
+GET /api/admin/dashboard/moderacao
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{
+  "pendingIssues": 20,
+  "pendingProjects": 8,
+  "approvedIssues": 90,
+  "rejectedIssues": 10,
+  "approvedProjects": 45,
+  "rejectedProjects": 7,
+  "issueApprovalRate": 90.0,
+  "projectApprovalRate": 86.5,
+  "avgIssueDecisionHours": 12.5,
+  "avgProjectDecisionHours": 30.2,
+  "topModerators": [
+    { "moderatorId": 5, "moderatorName": "Maria Silva", "decisions": 74 }
+  ]
+}
+```
+- `issueApprovalRate` / `projectApprovalRate`: percentual (0–100) de aprovações sobre o total de decisões.
+- `avgIssueDecisionHours` / `avgProjectDecisionHours`: tempo médio, em horas, entre a criação do registro e a decisão de moderação. Pode ser `null` se ainda não houver decisões.
+- `topModerators`: ranking (até 10) de moderadores por volume de decisões no município.
 
 ---
 
