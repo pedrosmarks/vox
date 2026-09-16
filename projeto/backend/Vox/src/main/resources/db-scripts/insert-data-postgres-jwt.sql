@@ -178,7 +178,7 @@ VALUES
     (1, 4, 'CITIZEN', 'Programa de Arborização Urbana',
      'Plantio de 500 novas árvores nativas em vias e praças da cidade.',
      'SELECTED_BY_COUNCIL', 6, FALSE, TRUE,
-     'Centro', 'Diversas vias', NULL, NULL, NULL,
+     'Centro', 'Rua Coronel Joaquim Inácio', '150', -22.25200000, -45.70300000,
      NULL, NULL, NULL, NULL, 95000.00, NULL, 'APPROVED'),
 
     (1, 5, 'CHAMBER', 'Instalação de Câmeras de Videomonitoramento',

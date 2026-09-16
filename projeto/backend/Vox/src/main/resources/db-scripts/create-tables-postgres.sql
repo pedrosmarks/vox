@@ -173,12 +173,14 @@ CREATE TABLE issue_report (
     neighborhood VARCHAR(255),
     street VARCHAR(255),
     number VARCHAR(50),
-    latitude DECIMAL(10,8),
-    longitude DECIMAL(11,8),
+    latitude DECIMAL(10,8) NOT NULL,
+    longitude DECIMAL(11,8) NOT NULL,
     status issue_status NOT NULL DEFAULT 'OPEN',
     moderation_status moderation_status NOT NULL DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (latitude BETWEEN -90 AND 90),
+    CHECK (longitude BETWEEN -180 AND 180)
 );
 
 CREATE TABLE issue_image (
@@ -221,8 +223,8 @@ CREATE TABLE project (
                          neighborhood VARCHAR(255),
                          street VARCHAR(255),
                          number VARCHAR(50),
-                         latitude DECIMAL(10,8),
-                         longitude DECIMAL(11,8),
+                         latitude DECIMAL(10,8) NOT NULL,
+                         longitude DECIMAL(11,8) NOT NULL,
                          start_date DATE,
                          expected_end_date DATE,
                          end_date DATE,
@@ -233,8 +235,8 @@ CREATE TABLE project (
                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                          CHECK (end_date IS NULL OR end_date >= start_date),
-                         CHECK (latitude BETWEEN -90 AND 90 OR latitude IS NULL),
-                         CHECK (longitude BETWEEN -180 AND 180 OR longitude IS NULL)
+                         CHECK (latitude BETWEEN -90 AND 90),
+                         CHECK (longitude BETWEEN -180 AND 180)
 );
 
 CREATE TABLE project_image (
