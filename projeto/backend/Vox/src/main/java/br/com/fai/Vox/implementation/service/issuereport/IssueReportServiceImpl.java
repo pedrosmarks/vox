@@ -145,6 +145,11 @@ public class IssueReportServiceImpl implements IssueReportService {
         IssueReport existing = findByid(id);
         if (existing == null) return;
 
+        // latitude/longitude são obrigatórios: em updates parciais que não os enviem,
+        // preserva os valores atuais para não violar o NOT NULL da coluna.
+        if (entity.getLatitude() == null) entity.setLatitude(existing.getLatitude());
+        if (entity.getLongitude() == null) entity.setLongitude(existing.getLongitude());
+
         if (existing.getStatus() != entity.getStatus()) {
             issueStatusHistoryService.recordStatusChange(
                     id, existing.getStatus(), entity.getStatus(), changedBy, null);
