@@ -128,9 +128,11 @@ Authorization: Bearer <token>
   "phone": "(11) 98888-7777",
   "role": "CITIZEN",
   "municipalityId": 1,
-  "birthDate": "1985-03-10"
+  "birthDate": "1985-03-10",
+  "profilePhotoUrl": "https://res.cloudinary.com/.../vox/user_joao@email.com_foto.jpg"
 }
 ```
+> `profilePhotoUrl` é a URL pública da foto de perfil. Fica `null` quando o usuário não possui foto.
 
 ---
 
@@ -155,23 +157,28 @@ Authorization: Bearer <token>
 ```
 POST /api/user
 Authorization: Bearer <token>
-Content-Type: application/json
+Content-Type: multipart/form-data
 ```
-**Body:**
-```json
-{
-  "name": "Ana Costa",
-  "email": "ana@email.com",
-  "cpf": "555.666.777-88",
-  "phone": "(21) 97777-6666",
-  "password": "senha123",
-  "birthDate": "1995-08-15",
-  "role": "CITIZEN",
-  "municipalityId": 1,
-  "acceptedTerms": true,
-  "acceptedPrivacyPolicy": true
-}
-```
+> Enviado como `multipart/form-data` (não JSON), pois aceita a foto de perfil.
+
+**Form fields:**
+
+| Campo | Tipo | Obrigatório | Descrição |
+|---|---|---|---|
+| `name` | texto | ✅ | Nome do usuário |
+| `email` | texto | ✅ | E-mail válido e único |
+| `password` | texto | ✅ | Senha (mín. 2 caracteres) |
+| `cpf` | texto | ❌ | CPF |
+| `phone` | texto | ❌ | Telefone |
+| `birthDate` | data (`yyyy-MM-dd`) | ❌ | Data de nascimento |
+| `role` | texto | ❌ | `CITIZEN`, `COUNCILOR`, `MODERATOR` ou `ADMINISTRATOR` |
+| `municipalityId` | número | ❌ | ID do município |
+| `acceptedTerms` | booleano | ❌ | Aceite dos termos |
+| `acceptedPrivacyPolicy` | booleano | ❌ | Aceite da política de privacidade |
+| `file` | imagem | ❌ | **Foto de perfil (opcional).** Sem arquivo, o usuário fica sem foto. |
+
+> A imagem, quando enviada, é armazenada no Cloudinary e a URL retornada é persistida em `profilePhotoUrl`.
+
 **Resposta `201`** com `Location: /api/user/{id}`
 
 ---
@@ -180,9 +187,11 @@ Content-Type: application/json
 ```
 PUT /api/user/{id}
 Authorization: Bearer <token>
-Content-Type: application/json
+Content-Type: multipart/form-data
 ```
-**Body:** mesmo formato da criação  
+**Form fields:** mesmos campos da criação (todos opcionais na atualização — update parcial).
+- `file` (imagem, opcional): quando enviado, **substitui** a foto de perfil. Se omitido, a foto atual é **mantida**.
+
 **Resposta `204`**
 
 ---
