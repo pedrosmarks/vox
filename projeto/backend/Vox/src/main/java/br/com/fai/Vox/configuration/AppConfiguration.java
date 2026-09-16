@@ -6,6 +6,7 @@ import br.com.fai.Vox.port.service.drive.CloudinaryService;
 import br.com.fai.Vox.port.service.email.EmailService;
 import org.springframework.mail.javamail.JavaMailSender;
 import br.com.fai.Vox.implementation.dao.category.CategoryPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.dashboard.DashboardPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.conferenceroom.ConferenceRoomPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.issueimage.IssueImagePostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.issuemoderation.IssueModerationPostgresDaoImpl;
@@ -29,6 +30,7 @@ import br.com.fai.Vox.implementation.service.authentication.BasicAuthenticationS
 import br.com.fai.Vox.implementation.service.authentication.JwtAuthenticationServiceImpl;
 import br.com.fai.Vox.implementation.service.livekit.LiveKitServiceImpl;
 import br.com.fai.Vox.port.dao.category.CategoryDao;
+import br.com.fai.Vox.port.dao.dashboard.DashboardDao;
 import br.com.fai.Vox.port.dao.conferenceroom.ConferenceRoomDao;
 import br.com.fai.Vox.port.dao.issueimage.IssueImageDao;
 import br.com.fai.Vox.port.dao.issuemoderation.IssueModerationDao;
@@ -235,6 +237,11 @@ public class AppConfiguration {
     @Bean
     public UserSettingsDao getUserSettingsDao(final Connection connection) {
         return new UserSettingsPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public DashboardDao getDashboardDao(final Connection connection) {
+        return new DashboardPostgresDaoImpl(connection);
     }
 
     // --- Authentication ---

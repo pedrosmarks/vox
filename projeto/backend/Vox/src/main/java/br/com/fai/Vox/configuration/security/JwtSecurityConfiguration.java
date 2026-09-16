@@ -43,6 +43,7 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                 ).permitAll()
                                 .requestMatchers(HttpMethod.POST, "/api/user/**").permitAll()
                                 .requestMatchers("/api/user/**").hasAnyAuthority("ADMINISTRATOR", "MODERATOR", "CITIZEN", "COUNCILOR")
+                                .requestMatchers("/api/admin/**").hasAuthority("ADMINISTRATOR")
                                 .requestMatchers("/api/moderation/**").hasAnyAuthority("ADMINISTRATOR", "MODERATOR")
                                 .requestMatchers("/api/councilor/**").hasAuthority("ADMINISTRATOR")
                                 .requestMatchers("/api/salas/**").authenticated()
