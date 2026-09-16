@@ -10,7 +10,7 @@ import '../utils/status_labels.dart';
 import 'login_screen.dart';
 import 'projeto_detalhe_screen.dart';
 
-enum _Filter { todos, oficiais, sugeridos }
+enum _Filter { todos, oficiais, sugeridos, apoiados }
 
 class ProjetosScreen extends StatefulWidget {
   const ProjetosScreen({super.key});
@@ -26,6 +26,10 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
   List<Project> _all = [];
   List<Project> _filtered = [];
   final Map<int, String> _authorNames = {};
+  final Map<int, int> _approvals = {};
+  final Set<int> _supported = {};
+  final Set<int> _supporting = {};
+  bool _isCitizen = false;
   _Filter _filter = _Filter.todos;
   bool _isLoading = true;
   String? _error;
@@ -53,6 +57,9 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
   }
 
   bool _isVisible(Project p) {
+    // Rejeitados/cancelados nunca aparecem na listagem pública.
+    if (p.status == 'REJECTED' || p.status == 'CANCELLED') return false;
+    // Projetos de cidadão só aparecem depois de aprovados.
     final isCitizen = !p.isOfficial && p.type == 'CITIZEN';
     return !isCitizen ||
         (p.status != 'PENDING_APPROVAL' && p.status != 'IN_ANALYSIS');
@@ -64,10 +71,12 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
       _error = null;
     });
     try {
+      _isCitizen = (await _authService.getUserRole()) == 'CITIZEN';
       final projects = await _projectService.getProjects();
       _all = projects.where(_isVisible).toList();
       _applyFilter();
       unawaited(_loadAuthorNames());
+      unawaited(_loadApprovals());
     } catch (_) {
       _error = 'Erro ao carregar projetos. Tente novamente.';
     } finally {
@@ -95,6 +104,73 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
 
   String _authorName(int id) => _authorNames[id] ?? 'Usuário #$id';
 
+  /// Carrega a contagem de apoios de cada projeto e, para cidadão, se já apoiou.
+  Future<void> _loadApprovals() async {
+    for (final p in _all) {
+      try {
+        final count = await _projectService.getApprovalCount(p.id);
+        if (!mounted) return;
+        setState(() {
+          _approvals[p.id] = count;
+          if (_filter == _Filter.apoiados) _applyFilter();
+        });
+      } catch (_) {
+        // ignora falha individual
+      }
+      if (_isCitizen) {
+        final op = await _projectService.getMyOpinion(p.id);
+        if (!mounted) return;
+        setState(() {
+          if (op == 'APPROVE') {
+            _supported.add(p.id);
+          } else {
+            _supported.remove(p.id);
+          }
+        });
+      }
+    }
+  }
+
+  int _approvalCount(int id) => _approvals[id] ?? 0;
+
+  /// Apoia (APPROVE) ou remove o apoio (NEUTRAL) do projeto.
+  Future<void> _toggleSupport(int id) async {
+    if (_supporting.contains(id)) return;
+    final wasSupported = _supported.contains(id);
+    setState(() {
+      _supporting.add(id);
+      if (wasSupported) {
+        _supported.remove(id);
+        _approvals[id] = (_approvalCount(id) - 1).clamp(0, 1 << 30);
+      } else {
+        _supported.add(id);
+        _approvals[id] = _approvalCount(id) + 1;
+      }
+      if (_filter == _Filter.apoiados) _applyFilter();
+    });
+    try {
+      await _projectService.setOpinion(
+        id,
+        wasSupported ? 'NEUTRAL' : 'APPROVE',
+      );
+    } catch (_) {
+      // Reverte em caso de falha.
+      if (mounted) {
+        setState(() {
+          if (wasSupported) {
+            _supported.add(id);
+            _approvals[id] = _approvalCount(id) + 1;
+          } else {
+            _supported.remove(id);
+            _approvals[id] = (_approvalCount(id) - 1).clamp(0, 1 << 30);
+          }
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _supporting.remove(id));
+    }
+  }
+
   void _applyFilter() {
     switch (_filter) {
       case _Filter.oficiais:
@@ -106,6 +182,11 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
         _filtered = _all
             .where((p) => !p.isOfficial && p.type == 'CITIZEN')
             .toList();
+        break;
+      case _Filter.apoiados:
+        _filtered = List.of(
+          _all,
+        )..sort((a, b) => _approvalCount(b.id).compareTo(_approvalCount(a.id)));
         break;
       case _Filter.todos:
         _filtered = List.of(_all);
@@ -140,6 +221,8 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
                           _filterChip('Oficiais', _Filter.oficiais),
                           const SizedBox(width: 8),
                           _filterChip('Sugeridos', _Filter.sugeridos),
+                          const SizedBox(width: 8),
+                          _filterChip('Mais apoiados', _Filter.apoiados),
                         ],
                       ),
                     ),
@@ -213,6 +296,54 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
                                             ).textTheme.bodySmall,
                                           ),
                                         ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          const Text('👍 '),
+                                          Text(
+                                            '${_approvalCount(p.id)}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          if (_isCitizen) ...[
+                                            const Spacer(),
+                                            _supported.contains(p.id)
+                                                ? FilledButton.icon(
+                                                    onPressed:
+                                                        _supporting.contains(
+                                                          p.id,
+                                                        )
+                                                        ? null
+                                                        : () => _toggleSupport(
+                                                            p.id,
+                                                          ),
+                                                    icon: const Icon(
+                                                      Icons.thumb_up,
+                                                      size: 16,
+                                                    ),
+                                                    label: const Text(
+                                                      'Apoiado',
+                                                    ),
+                                                  )
+                                                : OutlinedButton.icon(
+                                                    onPressed:
+                                                        _supporting.contains(
+                                                          p.id,
+                                                        )
+                                                        ? null
+                                                        : () => _toggleSupport(
+                                                            p.id,
+                                                          ),
+                                                    icon: const Icon(
+                                                      Icons.thumb_up_outlined,
+                                                      size: 16,
+                                                    ),
+                                                    label: const Text('Apoiar'),
+                                                  ),
+                                          ],
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 ),

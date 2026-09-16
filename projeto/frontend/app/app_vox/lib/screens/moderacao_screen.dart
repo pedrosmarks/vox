@@ -155,9 +155,13 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
   }
 
   Future<void> _reject(Project p) async {
+    // Pede o comentário (obrigatório) que o cidadão poderá ver.
+    final comment = await _promptRejectComment(p);
+    if (comment == null) return; // cancelado
+
     setState(() => _actionInProgress = p.id);
     try {
-      await _projectService.rejectProject(p.id);
+      await _projectService.rejectProject(p.id, feedback: comment);
       setState(() {
         _actionMessage = 'Projeto "${p.title}" rejeitado.';
         _pending = _pending.where((x) => x.id != p.id).toList();
@@ -167,6 +171,72 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
     } finally {
       if (mounted) setState(() => _actionInProgress = null);
     }
+  }
+
+  /// Diálogo que exige um comentário para o cidadão. Retorna o texto, ou null
+  /// se o moderador cancelar.
+  Future<String?> _promptRejectComment(Project p) {
+    final controller = TextEditingController();
+    String? errorText;
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Rejeitar sugestão'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '“${p.title}”',
+                  style: const TextStyle(fontStyle: FontStyle.italic),
+                ),
+                const SizedBox(height: 12),
+                if (errorText != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      errorText!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                TextField(
+                  controller: controller,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Comentário para o cidadão *',
+                    hintText: 'Explique por que a sugestão foi rejeitada.',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isEmpty) {
+                  setDialogState(
+                    () => errorText =
+                        'Escreva um comentário explicando o motivo para o cidadão.',
+                  );
+                  return;
+                }
+                Navigator.of(dialogContext).pop(text);
+              },
+              child: const Text('Confirmar rejeição'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _promoteToOfficial(Project p) {

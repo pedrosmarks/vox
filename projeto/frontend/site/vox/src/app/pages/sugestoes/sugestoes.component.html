@@ -128,13 +128,23 @@
 
       <ul *ngIf="!isLoadingSuggestions && mySuggestions.length > 0" class="suggestions-list">
         <li *ngFor="let s of mySuggestions" class="suggestion-item">
-          <div class="suggestion-meta">
-            <span class="suggestion-title">{{ s.title }}</span>
-            <span class="suggestion-date">{{ formatDate(s.startDate) }}</span>
+          <div class="suggestion-row">
+            <div class="suggestion-meta">
+              <span class="suggestion-title">{{ s.title }}</span>
+              <span class="suggestion-date">{{ formatDate(s.startDate) }}</span>
+            </div>
+            <span class="badge-status" [ngClass]="getStatusClass(s.status)">
+              {{ getStatusLabel(s.status) }}
+            </span>
           </div>
-          <span class="badge-status" [ngClass]="getStatusClass(s.status)">
-            {{ getStatusLabel(s.status) }}
-          </span>
+
+          <!-- Motivo da rejeição, visível ao cidadão -->
+          <div *ngIf="isRejected(s)" class="rejection-comment">
+            <span class="rejection-comment-title">💬 Motivo da rejeição</span>
+            <p class="rejection-comment-text">
+              {{ moderatorComment(s) || 'A moderação não informou um comentário.' }}
+            </p>
+          </div>
         </li>
       </ul>
     </div>

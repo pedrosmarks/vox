@@ -40,6 +40,12 @@ export class ModeracaoComponent implements OnInit {
   actionInProgress: number | null = null;
   actionSuccess = '';
 
+  // Modal de rejeição (comentário obrigatório para o cidadão)
+  rejectModalOpen = false;
+  rejectTarget: Project | null = null;
+  rejectComment = '';
+  rejectError = '';
+
   // Novo projeto
   editingProjectId: number | null = null; // se !== null, está editando projeto existente
   categories: Category[] = [];
@@ -159,16 +165,41 @@ export class ModeracaoComponent implements OnInit {
     });
   }
 
-  reject(project: Project): void {
+  /** Abre o modal para o moderador escrever o comentário da rejeição. */
+  openRejectModal(project: Project): void {
+    this.rejectTarget = project;
+    this.rejectComment = '';
+    this.rejectError = '';
+    this.rejectModalOpen = true;
+  }
+
+  closeRejectModal(): void {
+    this.rejectModalOpen = false;
+    this.rejectTarget = null;
+  }
+
+  confirmReject(): void {
+    const project = this.rejectTarget;
+    if (!project) return;
+    if (!this.rejectComment.trim()) {
+      this.rejectError = 'Escreva um comentário explicando o motivo para o cidadão.';
+      return;
+    }
+
     this.actionInProgress = project.id;
     this.actionSuccess = '';
-    this.projectService.rejectProject(project.id).subscribe({
+    this.rejectError = '';
+    this.projectService.rejectProject(project.id, this.rejectComment.trim()).subscribe({
       next: () => {
         this.actionInProgress = null;
         this.actionSuccess = `Projeto "${project.title}" rejeitado.`;
         this.pendingProjects = this.pendingProjects.filter(p => p.id !== project.id);
+        this.closeRejectModal();
       },
-      error: () => { this.actionInProgress = null; }
+      error: () => {
+        this.actionInProgress = null;
+        this.rejectError = 'Não foi possível rejeitar. Tente novamente.';
+      }
     });
   }
 

@@ -72,11 +72,29 @@
         <div class="card-footer">
           <span class="card-meta">{{ project.neighborhood }}</span>
           <span class="card-meta">{{ project.startDate | date:'dd/MM/yyyy' }}</span>
+
+          <!-- Contador de apoios (visível a todos) -->
+          <span class="card-meta support-count" title="Apoios">
+            👍 {{ getApprovals(project.id) }}
+          </span>
+
           <button
             *ngIf="isModerator && !project.isOfficial"
             class="btn-promote-card"
             (click)="$event.stopPropagation(); promoteProject(project.id)"
           >🏅 Tornar Oficial</button>
+
+          <!-- Botão apoiar (cidadão) -->
+          <button
+            *ngIf="isCitizen"
+            class="btn-support-card"
+            [class.supported]="hasSupported(project.id)"
+            [disabled]="isSupporting(project.id)"
+            (click)="toggleSupport(project.id, $event)"
+          >
+            {{ hasSupported(project.id) ? '👍 Apoiado' : '👍 Apoiar' }}
+          </button>
+
           <button
             *ngIf="isCitizen"
             class="btn-sign-card"

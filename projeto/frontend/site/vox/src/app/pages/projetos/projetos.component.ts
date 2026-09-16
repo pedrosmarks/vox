@@ -4,11 +4,11 @@ import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
-import { ProjectService, Project } from '../../services/project.service';
+import { ProjectService, Project, OpinionStats } from '../../services/project.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { projectStatusLabel, statusClass } from '../../utils/status-labels';
 
-type FilterKey = 'todos' | 'oficiais' | 'sugeridos' | 'curtidos';
+type FilterKey = 'todos' | 'oficiais' | 'sugeridos' | 'apoiados';
 
 @Component({
   selector: 'app-projetos',
@@ -33,8 +33,15 @@ export class ProjetosComponent implements OnInit {
     { key: 'todos',     label: 'Todos os projetos' },
     { key: 'oficiais',  label: 'Projetos oficiais' },
     { key: 'sugeridos', label: 'Projetos sugeridos' },
-    { key: 'curtidos',  label: 'Mais curtidos' }
+    { key: 'apoiados',  label: 'Mais apoiados' }
   ];
+
+  /** Nº de apoios (opinion APPROVE) por projeto. */
+  private approvals: Map<number, number> = new Map();
+  /** Projetos que o cidadão atual apoiou. */
+  private supportedProjects: Set<number> = new Set();
+  /** Projetos com toggle de apoio em andamento. */
+  private supportingProjects: Set<number> = new Set();
 
   constructor(
     private authService: AuthService,
@@ -54,6 +61,9 @@ export class ProjetosComponent implements OnInit {
   }
 
   private isVisible(p: Project): boolean {
+    // Rejeitados/cancelados nunca aparecem na listagem pública.
+    if (p.status === 'REJECTED' || p.status === 'CANCELLED') return false;
+    // Projetos de cidadão só aparecem depois de aprovados (não pendentes/em análise).
     const isCitizen = !p.isOfficial && p.type === 'CITIZEN';
     return !isCitizen || (p.status !== 'PENDING_APPROVAL' && p.status !== 'IN_ANALYSIS');
   }
@@ -67,6 +77,7 @@ export class ProjetosComponent implements OnInit {
         this.applyFilter();
         this.loadAuthorNames(this.allProjects);
         this.loadSignedStates(this.allProjects);
+        this.loadApprovals(this.allProjects);
         this.isLoading = false;
       },
       error: () => {
@@ -87,6 +98,30 @@ export class ProjetosComponent implements OnInit {
           if (res.signed) this.signedProjects.add(p.id);
           else this.signedProjects.delete(p.id);
         });
+    });
+  }
+
+  /** Carrega a contagem de apoios de cada projeto e, para cidadão, se já apoiou. */
+  private loadApprovals(projects: Project[]): void {
+    projects.forEach(p => {
+      this.projectService
+        .getOpinionStats(p.id)
+        .pipe(catchError(() => of({ approved: 0, disapproved: 0, neutral: 0, total: 0 } as OpinionStats)))
+        .subscribe(stats => {
+          this.approvals.set(p.id, stats.approved);
+          // Se o filtro atual é "mais apoiados", reordena conforme os dados chegam.
+          if (this.activeFilter === 'apoiados') this.applyFilter();
+        });
+
+      if (this.isCitizen) {
+        this.projectService
+          .getMyOpinion(p.id)
+          .pipe(catchError(() => of(null)))
+          .subscribe(op => {
+            if (op?.opinion === 'APPROVE') this.supportedProjects.add(p.id);
+            else this.supportedProjects.delete(p.id);
+          });
+      }
     });
   }
 
@@ -124,12 +159,63 @@ export class ProjetosComponent implements OnInit {
       case 'sugeridos':
         this.filteredProjects = this.allProjects.filter(p => !p.isOfficial && p.type === 'CITIZEN');
         break;
-      case 'curtidos':
-        this.filteredProjects = [...this.allProjects];
+      case 'apoiados':
+        this.filteredProjects = [...this.allProjects].sort(
+          (a, b) => this.getApprovals(b.id) - this.getApprovals(a.id)
+        );
         break;
       default:
         this.filteredProjects = [...this.allProjects];
     }
+  }
+
+  /** Nº de apoios de um projeto (0 se ainda não carregado). */
+  getApprovals(id: number): number {
+    return this.approvals.get(id) ?? 0;
+  }
+
+  hasSupported(id: number): boolean {
+    return this.supportedProjects.has(id);
+  }
+
+  isSupporting(id: number): boolean {
+    return this.supportingProjects.has(id);
+  }
+
+  /** Apoia (APPROVE) ou remove o apoio (NEUTRAL) do projeto. */
+  toggleSupport(id: number, event: MouseEvent): void {
+    event.stopPropagation(); // não abrir o projeto ao clicar no botão
+    if (this.supportingProjects.has(id)) return;
+
+    const wasSupported = this.supportedProjects.has(id);
+    this.supportingProjects.add(id);
+
+    // Atualização otimista.
+    if (wasSupported) {
+      this.supportedProjects.delete(id);
+      this.approvals.set(id, Math.max(0, this.getApprovals(id) - 1));
+    } else {
+      this.supportedProjects.add(id);
+      this.approvals.set(id, this.getApprovals(id) + 1);
+    }
+    if (this.activeFilter === 'apoiados') this.applyFilter();
+
+    const opinion = wasSupported ? 'NEUTRAL' : 'APPROVE';
+    this.projectService.setOpinion(id, opinion).subscribe({
+      next: () => this.supportingProjects.delete(id),
+      error: () => {
+        // Reverte em caso de falha.
+        if (wasSupported) {
+          this.supportedProjects.add(id);
+          this.approvals.set(id, this.getApprovals(id) + 1);
+        } else {
+          this.supportedProjects.delete(id);
+          this.approvals.set(id, Math.max(0, this.getApprovals(id) - 1));
+        }
+        this.supportingProjects.delete(id);
+        if (this.activeFilter === 'apoiados') this.applyFilter();
+      }
+    });
   }
 
   getStatusLabel(status: string): string {

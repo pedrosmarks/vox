@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
-  private readonly API_URL = 'http://192.168.1.105:8080';
+  private readonly API_URL = 'http://localhost:8080';
 
   /** Estado atual, observável pelos componentes. */
   private readonly _settings = new BehaviorSubject<UserSettings>({ ...DEFAULT_SETTINGS });

@@ -815,16 +815,26 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
   Widget _buildConnectedLayout() {
     return Column(
       children: [
-        // Tile principal — moderador (câmera da câmara)
-        _buildModeratorTile(),
+        // Área de vídeo rolável (evita overflow quando a fila de aprovação
+        // do moderador aparece — antes ela ficava fora da tela).
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Tile principal — moderador (câmera da câmara)
+                _buildModeratorTile(),
 
-        // Faixa de cidadãos
-        _buildCitizensStrip(),
+                // Faixa de cidadãos
+                _buildCitizensStrip(),
+              ],
+            ),
+          ),
+        ),
 
         // Controles
         _buildControls(),
 
-        // Fila de aprovação (só moderador)
+        // Fila de aprovação (só moderador) — sempre visível no rodapé
         if (_isModerator) _buildApprovalSection(),
       ],
     );
@@ -853,123 +863,145 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
         ? (mod.name.isNotEmpty ? mod.name : mod.identity)
         : 'Aguardando moderador...';
 
-    return Expanded(
-      flex: 5,
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A2E),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFFE8A838).withValues(alpha: 0.6),
-            width: 1.5,
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Vídeo ou avatar
-            if (videoTrack != null)
-              livekit.VideoTrackRenderer(videoTrack)
-            else
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: const Color(
-                        0xFFE8A838,
-                      ).withValues(alpha: 0.2),
-                      child: Text(
-                        mod != null ? name.substring(0, 1).toUpperCase() : '?',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          color: Color(0xFFE8A838),
-                        ),
-                      ),
-                    ),
-                    if (mod == null) ...[
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Aguardando moderador...',
-                        style: TextStyle(color: Colors.white54, fontSize: 13),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-            // Badge "Câmara Municipal" no topo
-            Positioned(
-              top: 10,
-              left: 12,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8A838),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.account_balance, size: 12, color: Colors.black),
-                    SizedBox(width: 4),
-                    Text(
-                      'Câmara Municipal',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
+      // Quadro travado em 1:1 (quadrado) — evita vídeo esticado.
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A2E),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFE8A838).withValues(alpha: 0.6),
+                width: 1.5,
               ),
             ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Vídeo ou avatar (cover = preenche o quadrado sem esticar)
+                if (videoTrack != null)
+                  livekit.VideoTrackRenderer(
+                    videoTrack,
+                    fit: livekit.VideoViewFit.cover,
+                  )
+                else
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: const Color(
+                            0xFFE8A838,
+                          ).withValues(alpha: 0.2),
+                          child: Text(
+                            mod != null
+                                ? name.substring(0, 1).toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              fontSize: 32,
+                              color: Color(0xFFE8A838),
+                            ),
+                          ),
+                        ),
+                        if (mod == null) ...[
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Aguardando moderador...',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
 
-            // Nome + mic no rodapé
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [Colors.black87, Colors.transparent],
+                // Badge "Câmara Municipal" no topo
+                Positioned(
+                  top: 10,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8A838),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.account_balance,
+                          size: 12,
+                          color: Colors.black,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'Câmara Municipal',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+
+                // Nome + mic no rodapé
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [Colors.black87, Colors.transparent],
                       ),
                     ),
-                    Icon(
-                      isMuted ? Icons.mic_off : Icons.mic,
-                      size: 16,
-                      color: isMuted ? Colors.redAccent : Colors.greenAccent,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(
+                          isMuted ? Icons.mic_off : Icons.mic,
+                          size: 16,
+                          color: isMuted
+                              ? Colors.redAccent
+                              : Colors.greenAccent,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -981,7 +1013,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     final citizens = _citizenParticipants;
 
     return SizedBox(
-      height: 110,
+      height: 124,
       child: citizens.isEmpty
           ? const Center(
               child: Text(
@@ -1023,7 +1055,8 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     return GestureDetector(
       onLongPress: _isModerator ? () => _showCitizenOptions(p) : null,
       child: Container(
-        width: 88,
+        // Quadro travado em 1:1 (quadrado): largura = altura da faixa menos margens.
+        width: 116,
         margin: const EdgeInsets.only(right: 8, top: 4, bottom: 4),
         decoration: BoxDecoration(
           color: const Color(0xFF1A1A2E),
@@ -1042,7 +1075,10 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
           fit: StackFit.expand,
           children: [
             if (videoTrack != null)
-              livekit.VideoTrackRenderer(videoTrack)
+              livekit.VideoTrackRenderer(
+                videoTrack,
+                fit: livekit.VideoViewFit.cover,
+              )
             else
               Center(
                 child: CircleAvatar(

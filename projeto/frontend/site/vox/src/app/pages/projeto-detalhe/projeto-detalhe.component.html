@@ -36,6 +36,11 @@
           (click)="promoteProject()"
         >🏅 Tornar Oficial</button>
         <button
+          *ngIf="isModerator"
+          class="btn-action btn-status"
+          (click)="openStatusModal()"
+        >🔄 Atualizar Status</button>
+        <button
           *ngIf="isCitizen"
           class="btn-action btn-sign"
           [class.signed]="signed"
@@ -79,6 +84,12 @@
         <!-- Título e descrição -->
         <h1 class="detalhe-title">{{ project.title }}</h1>
         <p class="detalhe-description">{{ project.description }}</p>
+
+        <!-- Comentário do moderador (motivo da rejeição, visível ao cidadão) -->
+        <div *ngIf="isRejected && moderatorComment" class="moderator-comment">
+          <span class="moderator-comment-title">💬 Comentário da moderação</span>
+          <p class="moderator-comment-text">{{ moderatorComment }}</p>
+        </div>
 
         <!-- Info cards -->
         <div class="info-grid">
@@ -166,6 +177,40 @@
         </div>
 
       </aside>
+    </div>
+  </div>
+
+  <!-- Modal: atualizar status (moderador) -->
+  <div *ngIf="statusModalOpen" class="status-modal-overlay" (click)="closeStatusModal()">
+    <div class="status-modal" (click)="$event.stopPropagation()">
+      <h3 class="status-modal-title">Atualizar status do projeto</h3>
+
+      <div *ngIf="statusError" class="alert alert-error">{{ statusError }}</div>
+
+      <label class="status-modal-label">Novo status</label>
+      <select class="status-modal-select" [(ngModel)]="selectedStatus" [disabled]="savingStatus">
+        <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+
+      <label class="status-modal-label">
+        Comentário para o cidadão
+        <span *ngIf="requiresNote" class="required">*</span>
+        <span *ngIf="!requiresNote" class="optional">(opcional)</span>
+      </label>
+      <textarea
+        class="status-modal-textarea"
+        rows="4"
+        [(ngModel)]="statusNote"
+        [disabled]="savingStatus"
+        placeholder="Explique o motivo desta decisão. O cidadão poderá ver este comentário."
+      ></textarea>
+
+      <div class="status-modal-actions">
+        <button class="btn-reject" (click)="closeStatusModal()" [disabled]="savingStatus">Cancelar</button>
+        <button class="btn-submit" (click)="saveStatus()" [disabled]="savingStatus">
+          {{ savingStatus ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
     </div>
   </div>
 

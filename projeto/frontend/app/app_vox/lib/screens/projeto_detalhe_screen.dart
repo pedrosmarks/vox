@@ -45,6 +45,9 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   List<UserSummary> _councilors = [];
   bool _isExporting = false;
 
+  /// Comentário de rejeição/cancelamento lido do histórico do projeto.
+  String _rejectionNote = '';
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +68,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
         _loadCategory(project.categoryId),
         _loadAuthor(project.authorId),
         _loadSignatureState(project.id),
+        _loadRejectionNote(project),
         if (_isCouncilor || _isModerator) _loadCouncilors(project.id),
       ]);
     } catch (_) {
@@ -115,6 +119,14 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     } catch (_) {
       _signatureCount = 0;
     }
+  }
+
+  Future<void> _loadRejectionNote(Project project) async {
+    if (project.status != 'REJECTED' && project.status != 'CANCELLED') {
+      _rejectionNote = '';
+      return;
+    }
+    _rejectionNote = await _projectService.getRejectionNote(project.id);
   }
 
   Future<void> _loadCouncilors(int projectId) async {
@@ -477,6 +489,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
           Text(p.title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(p.description),
+          _buildModeratorComment(p),
           const SizedBox(height: 16),
           _buildActionButtons(p),
           const SizedBox(height: 16),
@@ -507,11 +520,23 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   }
 
   Widget _buildActionButtons(Project p) {
-    if (_isModerator && !p.isOfficial) {
-      return ElevatedButton.icon(
-        onPressed: _promoteToOfficial,
-        icon: const Icon(Icons.workspace_premium_outlined),
-        label: const Text('Tornar Oficial'),
+    if (_isModerator) {
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          if (!p.isOfficial)
+            ElevatedButton.icon(
+              onPressed: _promoteToOfficial,
+              icon: const Icon(Icons.workspace_premium_outlined),
+              label: const Text('Tornar Oficial'),
+            ),
+          OutlinedButton.icon(
+            onPressed: _openStatusDialog,
+            icon: const Icon(Icons.sync),
+            label: const Text('Atualizar Status'),
+          ),
+        ],
       );
     }
     // Vereador: apenas visualização de projetos (sem adotar/assinar).
@@ -524,6 +549,177 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
       );
     }
     return const SizedBox.shrink();
+  }
+
+  /// Status disponíveis para o moderador (rótulos em pt-BR).
+  static const _statusOptions = <MapEntry<String, String>>[
+    MapEntry('PENDING_APPROVAL', 'Aguardando aprovação'),
+    MapEntry('PUBLISHED', 'Publicado'),
+    MapEntry('IN_VOTING', 'Em votação'),
+    MapEntry('SELECTED_BY_COUNCIL', 'Selecionado pelo conselho'),
+    MapEntry('APPROVED_BY_COUNCIL', 'Aprovado pelo conselho'),
+    MapEntry('IN_EXECUTION', 'Em execução'),
+    MapEntry('COMPLETED', 'Concluído'),
+    MapEntry('REJECTED', 'Rejeitado'),
+    MapEntry('ARCHIVED', 'Arquivado'),
+    MapEntry('CANCELLED', 'Cancelado'),
+  ];
+
+  Future<void> _openStatusDialog() async {
+    final p = _project;
+    if (p == null) return;
+
+    String selectedStatus = p.status.isNotEmpty ? p.status : 'PENDING_APPROVAL';
+    if (!_statusOptions.any((e) => e.key == selectedStatus)) {
+      selectedStatus = 'PENDING_APPROVAL';
+    }
+    final noteCtrl = TextEditingController();
+    String? errorText;
+    bool saving = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          final requiresNote =
+              selectedStatus == 'REJECTED' || selectedStatus == 'CANCELLED';
+          return AlertDialog(
+            title: const Text('Atualizar status do projeto'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        errorText!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedStatus,
+                    decoration: const InputDecoration(labelText: 'Novo status'),
+                    items: _statusOptions
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e.key,
+                            child: Text(e.value),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: saving
+                        ? null
+                        : (value) => setDialogState(
+                            () => selectedStatus = value ?? selectedStatus,
+                          ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: noteCtrl,
+                    enabled: !saving,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: requiresNote
+                          ? 'Comentário para o cidadão *'
+                          : 'Comentário para o cidadão (opcional)',
+                      hintText: 'Explique o motivo desta decisão.',
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: saving
+                    ? null
+                    : () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: saving
+                    ? null
+                    : () async {
+                        final note = noteCtrl.text.trim();
+                        if (requiresNote && note.isEmpty) {
+                          setDialogState(
+                            () => errorText =
+                                'Escreva um comentário explicando o motivo para o cidadão.',
+                          );
+                          return;
+                        }
+                        setDialogState(() {
+                          saving = true;
+                          errorText = null;
+                        });
+                        try {
+                          // Sempre via PATCH /status (grava o note no histórico).
+                          await _projectService.updateProjectStatus(
+                            p.id,
+                            selectedStatus,
+                            note: note,
+                          );
+                          if (dialogContext.mounted) {
+                            Navigator.of(dialogContext).pop();
+                          }
+                          await _load();
+                        } catch (_) {
+                          setDialogState(() {
+                            saving = false;
+                            errorText =
+                                'Não foi possível atualizar o status. Tente novamente.';
+                          });
+                        }
+                      },
+                child: saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Salvar'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Comentário do moderador exibido ao cidadão (motivo da rejeição).
+  Widget _buildModeratorComment(Project p) {
+    final comment = _rejectionNote.trim();
+    final isRejected = p.status == 'REJECTED' || p.status == 'CANCELLED';
+    if (!isRejected || comment.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(8),
+        border: const Border(
+          left: BorderSide(color: Color(0xFFDC2626), width: 4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '💬 Comentário da moderação',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFB91C1C),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(comment, style: const TextStyle(color: Color(0xFF7F1D1D))),
+        ],
+      ),
+    );
   }
 
   Widget _infoRow(String label, String value) {

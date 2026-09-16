@@ -21,15 +21,20 @@ class _UsuariosScreenState extends State<UsuariosScreen>
   bool _isLoading = true;
   String? _error;
 
-  String get _activeRole =>
-      _tabController.index == 0 ? 'COUNCILOR' : 'ADMINISTRATOR';
-  String get _roleLabel =>
-      _activeRole == 'COUNCILOR' ? 'Vereador' : 'Administrador';
+  static const _roles = ['COUNCILOR', 'MODERATOR', 'ADMINISTRATOR'];
+  static const _labels = {
+    'COUNCILOR': 'Vereador',
+    'MODERATOR': 'Moderador',
+    'ADMINISTRATOR': 'Administrador',
+  };
+
+  String get _activeRole => _roles[_tabController.index];
+  String get _roleLabel => _labels[_activeRole]!;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) _load();
     });
@@ -214,6 +219,7 @@ class _UsuariosScreenState extends State<UsuariosScreen>
           controller: _tabController,
           tabs: const [
             Tab(text: 'Vereadores'),
+            Tab(text: 'Moderadores'),
             Tab(text: 'Administradores'),
           ],
         ),

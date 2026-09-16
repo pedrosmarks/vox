@@ -3,7 +3,8 @@ import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ProjectService, Project, ProjectImage } from '../../services/project.service';
+import { FormsModule } from '@angular/forms';
+import { ProjectService, Project, ProjectImage, latestRejectionNote } from '../../services/project.service';
 import { AuthService } from '../../services/auth.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { projectStatusLabel, statusClass } from '../../utils/status-labels';
@@ -11,7 +12,7 @@ import { projectStatusLabel, statusClass } from '../../utils/status-labels';
 @Component({
   selector: 'app-projeto-detalhe',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, DatePipe, CurrencyPipe],
+  imports: [CommonModule, FormsModule, NavbarComponent, DatePipe, CurrencyPipe],
   templateUrl: './projeto-detalhe.component.html',
   styleUrls: ['./projeto-detalhe.component.scss']
 })
@@ -29,6 +30,29 @@ export class ProjetoDetalheComponent implements OnInit {
   signing = false;
   signatureCount = 0;
   exportMenuOpen = false;
+
+  /** Comentário de rejeição/cancelamento lido do histórico do projeto. */
+  rejectionNote = '';
+
+  // ── Atualização de status (moderador) ──────────────────────
+  statusModalOpen = false;
+  selectedStatus = '';
+  statusNote = '';
+  savingStatus = false;
+  statusError = '';
+
+  readonly statusOptions = [
+    { value: 'PENDING_APPROVAL',    label: 'Aguardando aprovação' },
+    { value: 'PUBLISHED',           label: 'Publicado' },
+    { value: 'IN_VOTING',           label: 'Em votação' },
+    { value: 'SELECTED_BY_COUNCIL', label: 'Selecionado pelo conselho' },
+    { value: 'APPROVED_BY_COUNCIL', label: 'Aprovado pelo conselho' },
+    { value: 'IN_EXECUTION',        label: 'Em execução' },
+    { value: 'COMPLETED',           label: 'Concluído' },
+    { value: 'REJECTED',            label: 'Rejeitado' },
+    { value: 'ARCHIVED',            label: 'Arquivado' },
+    { value: 'CANCELLED',           label: 'Cancelado' }
+  ];
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -90,6 +114,19 @@ export class ProjetoDetalheComponent implements OnInit {
     });
 
     this.loadSignatureState(project.id);
+    this.loadRejectionNote(project);
+  }
+
+  /** Carrega o comentário de rejeição do histórico, se o projeto estiver rejeitado/cancelado. */
+  private loadRejectionNote(project: Project): void {
+    if (project.status !== 'REJECTED' && project.status !== 'CANCELLED') {
+      this.rejectionNote = '';
+      return;
+    }
+    this.projectService
+      .getProjectHistory(project.id)
+      .pipe(catchError(() => of([])))
+      .subscribe(history => (this.rejectionNote = latestRejectionNote(history)));
   }
 
   /** Carrega se o usuário assinou e a contagem total de assinaturas. */
@@ -117,6 +154,73 @@ export class ProjetoDetalheComponent implements OnInit {
     if (this.project) {
       this.router.navigate(['/moderacao'], { queryParams: { promoteId: this.project.id } });
     }
+  }
+
+  // ── Atualização de status (moderador) ──────────────────────
+
+  openStatusModal(): void {
+    if (!this.project) return;
+    this.selectedStatus = this.project.status;
+    this.statusNote = '';
+    this.statusError = '';
+    this.statusModalOpen = true;
+  }
+
+  closeStatusModal(): void {
+    this.statusModalOpen = false;
+  }
+
+  /** True quando o status escolhido é de rejeição (exige comentário). */
+  get requiresNote(): boolean {
+    return this.selectedStatus === 'REJECTED' || this.selectedStatus === 'CANCELLED';
+  }
+
+  saveStatus(): void {
+    if (!this.project || this.savingStatus) return;
+    if (!this.selectedStatus) {
+      this.statusError = 'Selecione um status.';
+      return;
+    }
+    if (this.requiresNote && !this.statusNote.trim()) {
+      this.statusError = 'Escreva um comentário explicando o motivo para o cidadão.';
+      return;
+    }
+
+    this.savingStatus = true;
+    this.statusError = '';
+    const id = this.project.id;
+    const note = this.statusNote.trim();
+
+    // Todas as mudanças (inclusive rejeição) usam PATCH /status, que grava o note no histórico.
+    this.projectService.updateProjectStatus(id, this.selectedStatus, note).subscribe({
+      next: () => {
+        this.savingStatus = false;
+        this.statusModalOpen = false;
+        if (this.project) {
+          this.project.status = this.selectedStatus;
+        }
+        // Atualiza o comentário exibido ao cidadão a partir do novo status.
+        if (this.selectedStatus === 'REJECTED' || this.selectedStatus === 'CANCELLED') {
+          this.rejectionNote = note;
+        } else {
+          this.rejectionNote = '';
+        }
+      },
+      error: () => {
+        this.savingStatus = false;
+        this.statusError = 'Não foi possível atualizar o status. Tente novamente.';
+      }
+    });
+  }
+
+  /** Comentário do moderador exibido ao cidadão (lido do histórico). */
+  get moderatorComment(): string {
+    return this.rejectionNote;
+  }
+
+  /** Só destaca o comentário quando o projeto foi rejeitado/cancelado. */
+  get isRejected(): boolean {
+    return this.project?.status === 'REJECTED' || this.project?.status === 'CANCELLED';
   }
 
   toggleSign(): void {

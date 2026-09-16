@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService, CreateUserPayload, UserProfile, UserRole } from '../../services/auth.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 
-type ManagedRole = 'COUNCILOR' | 'ADMINISTRATOR';
+type ManagedRole = 'COUNCILOR' | 'MODERATOR' | 'ADMINISTRATOR';
 
 /** Tela do administrador para CRUD de moderadores e vereadores. */
 @Component({
@@ -168,6 +168,11 @@ export class UsuariosComponent implements OnInit {
   }
 
   get roleLabel(): string {
-    return this.activeTab === 'COUNCILOR' ? 'Vereador' : 'Administrador';
+    const labels: Record<ManagedRole, string> = {
+      COUNCILOR: 'Vereador',
+      MODERATOR: 'Moderador',
+      ADMINISTRATOR: 'Administrador'
+    };
+    return labels[this.activeTab];
   }
 }

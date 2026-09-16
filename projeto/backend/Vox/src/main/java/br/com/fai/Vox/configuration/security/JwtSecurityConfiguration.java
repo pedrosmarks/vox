@@ -41,11 +41,11 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                         "/api/auth/**",
                                         "/error"
                                 ).permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/user/**").permitAll()
                                 .requestMatchers("/api/user/**").hasAnyAuthority("ADMINISTRATOR", "MODERATOR", "CITIZEN", "COUNCILOR")
                                 .requestMatchers("/api/moderation/**").hasAnyAuthority("ADMINISTRATOR", "MODERATOR")
                                 .requestMatchers("/api/councilor/**").hasAuthority("ADMINISTRATOR")
                                 .requestMatchers("/api/salas/**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/api/user/").permitAll()
                                 .requestMatchers("/api/municipality/**").permitAll()
                                 .anyRequest().authenticated()
                 )

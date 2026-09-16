@@ -170,36 +170,178 @@ html[data-a11y='DARK'] {
     color: #e6e8ec !important;
     border-color: #2a2a2a !important;
   }
+
+  // Modais (rejeição na moderação, atualizar status no detalhe)
+  .status-modal, .reject-modal {
+    background: #121212 !important;
+    color: #e6e8ec !important;
+    border: 1px solid #2a2a2a !important;
+  }
+  .status-modal-title, .reject-modal-title,
+  .status-modal-label, .reject-modal-label { color: #f5f6f8 !important; }
+  .reject-modal-sub { color: #c3c8d0 !important; }
+  .status-modal-select, .status-modal-textarea,
+  .reject-modal-textarea {
+    background: #0a0a0a !important;
+    color: #e6e8ec !important;
+    border-color: #2a2a2a !important;
+  }
+
+  // Motivo da rejeição (minhas sugestões)
+  .rejection-comment {
+    background: #2a1416 !important;
+    border-left-color: #f87171 !important;
+  }
+  .rejection-comment-title { color: #fca5a5 !important; }
+  .rejection-comment-text { color: #f3c6c6 !important; }
 }
 
-/* --- Alto contraste --- */
+/* --- Alto contraste ---
+   Espelha a cobertura do modo escuro, mas com paleta de máximo contraste:
+   fundo preto, texto branco, destaques em amarelo. */
 html[data-a11y='HIGH_CONTRAST'] {
   background: #000;
 
-  body { background: #000; color: #fff; }
+  body {
+    background: #000 !important;
+    color: #fff;
+  }
 
+  // Containers de página e <main> → preto
+  main,
+  [class$='-page'],
+  [class*='-page '],
+  .page-body {
+    background: #000 !important;
+  }
+
+  // Cartões, painéis e superfícies → preto com borda branca visível
   .navbar, header, .header,
-  .card, .aside-card, .info-card, .sidebar-card,
-  .create-form-card, .audiencia-card, .detalhe-content,
-  .export-menu {
+  [class*='card'],
+  [class*='sidebar'],
+  .detalhe-content, .config-content, .tab-content, .tab-panel,
+  .mode-option, .queue-item, .identity-info,
+  .form-input, .form-textarea, .export-menu,
+  .status-modal, .status-modal-select, .status-modal-textarea {
     background: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
   }
 
-  h1, h2, h3, h4, p, span, label, .card-description, .info-label,
-  .page-subtitle, .card-meta { color: #fff !important; }
+  // Campos desabilitados
+  .form-input.disabled, .form-input:disabled,
+  input:disabled, textarea:disabled {
+    background: #000 !important;
+    color: #cccccc !important;
+    border: 2px solid #cccccc !important;
+  }
 
-  a { color: #ffff00 !important; text-decoration: underline; }
-
-  button, .btn, .btn-action, .btn-enter, .btn-create, .btn-submit {
+  // Botões de filtro / abas não selecionados
+  .filter-btn:not(.active), .tab-btn:not(.active), .tab:not(.active) {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+  }
+  // Abas / filtros selecionados → amarelo para destacar
+  .filter-btn.active, .tab-btn.active, .tab.active {
     background: #ffff00 !important;
     color: #000 !important;
     border: 2px solid #fff !important;
     font-weight: 800 !important;
   }
 
+  // Títulos e textos
+  .page-title, .card-title, .detalhe-title, .sidebar-title,
+  .config-title, .filters-title, .aside-title, .section-title,
+  .identity-name,
+  h1, h2, h3, h4, h5, h6,
+  p, span, label, li,
+  .page-subtitle, .card-description, .card-meta, .card-author,
+  .info-label, .info-value, .fin-label, .encerrada-label,
+  .config-hint, .mode-desc, .issue-date, .queue-name,
+  .identity-email, .form-label {
+    color: #fff !important;
+  }
+
+  // Links e realces em amarelo com sublinhado
+  a, .footer-link { color: #ffff00 !important; text-decoration: underline; }
+
+  // Link de navegação selecionado
+  .nav-link.active {
+    background: #ffff00 !important;
+    color: #000 !important;
+  }
+  .nav-link:hover:not(.active) {
+    background: #333 !important;
+    color: #ffff00 !important;
+  }
+
+  // Botão de avatar do usuário
+  .user-avatar {
+    background: #000 !important;
+    border: 2px solid #fff !important;
+    color: #fff !important;
+  }
+
+  // Menu suspenso do perfil (navbar)
+  .user-dropdown {
+    background: #000 !important;
+    border: 2px solid #fff !important;
+  }
+  .dropdown-item {
+    color: #fff !important;
+    background: transparent !important;
+    &:hover { background: #ffff00 !important; color: #000 !important; }
+    &.danger {
+      color: #ff6b6b !important;
+      &:hover { background: #ff6b6b !important; color: #000 !important; }
+    }
+  }
+  .dropdown-divider { background: #fff !important; }
+
+  .font-preview { background: #000 !important; }
+
+  // Botões de ação → amarelo sobre preto, texto preto
+  button, .btn, .btn-action, .btn-enter, .btn-create, .btn-submit,
+  .btn-promote, .btn-status, .btn-sign, .btn-export, .btn-back {
+    background: #ffff00 !important;
+    color: #000 !important;
+    border: 2px solid #fff !important;
+    font-weight: 800 !important;
+  }
+
+  // Botões de cancelar/rejeitar → preto com borda, para diferenciar
+  .btn-reject, .btn-cancel {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+    font-weight: 800 !important;
+  }
+
   input, textarea, select {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+  }
+
+  // Comentário da moderação (caixa de rejeição) — fundo claro fica ilegível
+  .moderator-comment,
+  .rejection-comment {
+    background: #000 !important;
+    border-left: 4px solid #ffff00 !important;
+    border: 2px solid #fff !important;
+  }
+  .moderator-comment-title, .moderator-comment-text,
+  .rejection-comment-title, .rejection-comment-text { color: #ffff00 !important; }
+
+  // Modais em alto contraste
+  .reject-modal {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+  }
+  .reject-modal-title, .reject-modal-label, .reject-modal-sub { color: #fff !important; }
+  .reject-modal-textarea {
     background: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;

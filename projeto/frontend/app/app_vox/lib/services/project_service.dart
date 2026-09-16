@@ -73,18 +73,66 @@ class ProjectService {
     );
   }
 
-  Future<void> approveProject(int id) async {
+  Future<void> approveProject(int id, {String? feedback}) async {
+    final hasFeedback = feedback != null && feedback.trim().isNotEmpty;
     final response = await http.post(
       Uri.parse('${ApiClient.baseUrl}/api/moderation/projects/$id/approve'),
       headers: await ApiClient.authHeaders(),
+      body: hasFeedback ? jsonEncode({'feedback': feedback.trim()}) : null,
     );
     ApiClient.checkResponse(response);
   }
 
-  Future<void> rejectProject(int id) async {
-    final response = await http.post(
-      Uri.parse('${ApiClient.baseUrl}/api/moderation/projects/$id/reject'),
+  /// Rejeita o projeto com um comentário visível ao cidadão.
+  /// Usa PATCH /status porque é o endpoint que persiste o `note` no histórico
+  /// (o /reject não registra o comentário de forma recuperável).
+  Future<void> rejectProject(int id, {String? feedback}) async {
+    await updateProjectStatus(id, 'REJECTED', note: feedback);
+  }
+
+  /// Histórico de mudanças de status do projeto (contém o comentário/note).
+  Future<List<ProjectHistoryEntry>> getProjectHistory(int id) async {
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$id/history'),
       headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list
+        .map((e) => ProjectHistoryEntry.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Comentário de rejeição/cancelamento mais recente do histórico.
+  Future<String> getRejectionNote(int id) async {
+    try {
+      final history = await getProjectHistory(id);
+      final rejections =
+          history
+              .where(
+                (h) => h.newStatus == 'REJECTED' || h.newStatus == 'CANCELLED',
+              )
+              .toList()
+            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return rejections.isNotEmpty ? rejections.first.note.trim() : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Atualiza o status do projeto (moderador/admin). [note] é um comentário
+  /// opcional associado à mudança de status.
+  Future<void> updateProjectStatus(
+    int id,
+    String status, {
+    String? note,
+  }) async {
+    final body = <String, dynamic>{'status': status};
+    if (note != null && note.trim().isNotEmpty) body['note'] = note.trim();
+    final response = await http.patch(
+      Uri.parse('${ApiClient.baseUrl}/api/moderation/projects/$id/status'),
+      headers: await ApiClient.authHeaders(),
+      body: jsonEncode(body),
     );
     ApiClient.checkResponse(response);
   }
@@ -230,5 +278,43 @@ class ProjectService {
     ApiClient.checkResponse(response);
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     return data['total'] as int? ?? 0;
+  }
+
+  // ── Opiniões / Apoios (opinion APPROVE) ─────────────────────
+
+  /// Registra a opinião do usuário. APPROVE = apoiar; NEUTRAL = remover apoio.
+  Future<void> setOpinion(int id, String opinion) async {
+    final response = await http.post(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$id/opinion'),
+      headers: await ApiClient.authHeaders(),
+      body: jsonEncode({'opinion': opinion}),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  /// Nº de apoios (opinion APPROVE) do projeto. O backend retorna
+  /// approved/disapproved/neutral/total.
+  Future<int> getApprovalCount(int id) async {
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$id/opinion/stats'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return data['approved'] as int? ?? 0;
+  }
+
+  /// Retorna a opinião do usuário atual ('APPROVE'/'DISAPPROVE'/'NEUTRAL') ou
+  /// null se ainda não opinou (backend responde 404).
+  Future<String?> getMyOpinion(int id) async {
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/api/project/$id/opinion/me'),
+      headers: await ApiClient.authHeaders(),
+    );
+    if (response.statusCode == 404) return null;
+    if (response.statusCode < 200 || response.statusCode >= 300) return null;
+    if (response.body.trim().isEmpty) return null;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return data['opinion'] as String?;
   }
 }

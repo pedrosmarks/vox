@@ -61,7 +61,7 @@ export interface CreateUserPayload {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://192.168.1.105:8080';
+  private readonly API_URL = 'http://localhost:8080';
   private readonly TOKEN_KEY = 'token';
   private readonly USER_ID_KEY = 'userId';
   private readonly MUNICIPALITY_ID_KEY = 'municipalityId';
@@ -210,22 +210,28 @@ export class AuthService {
 
   // ----- Administração de usuários -----
 
+  getAllUsers(): Observable<UserProfile[]> {
+    return this.http.get<UserProfile[]>(`${this.API_URL}/api/user`);
+  }
+
   getUsersByRole(role: UserRole | string): Observable<UserProfile[]> {
-    return this.http.get<UserProfile[]>(`${this.API_URL}/api/users`, {
-      params: { role: String(role) }
-    });
+    return this.http.get<UserProfile[]>(`${this.API_URL}/api/user/role/${role}`);
   }
 
-  createUser(payload: CreateUserPayload): Observable<UserProfile> {
-    return this.http.post<UserProfile>(`${this.API_URL}/api/users`, payload);
+  getUserById(id: number): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.API_URL}/api/user/${id}`);
   }
 
-  updateUser(id: number, data: Partial<UserProfile>): Observable<UserProfile> {
-    return this.http.put<UserProfile>(`${this.API_URL}/api/users/${id}`, data);
+  createUser(payload: CreateUserPayload): Observable<unknown> {
+    return this.http.post(`${this.API_URL}/api/user`, payload);
+  }
+
+  updateUser(id: number, data: Partial<UserProfile>): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, data);
   }
 
   deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/api/users/${id}`);
+    return this.http.delete<void>(`${this.API_URL}/api/user/${id}`);
   }
 
   // ----- Auditoria / logs -----
