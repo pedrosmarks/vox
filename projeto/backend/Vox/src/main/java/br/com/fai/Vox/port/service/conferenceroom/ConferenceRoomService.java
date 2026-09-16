@@ -36,6 +36,8 @@ public interface ConferenceRoomService {
 
     void rejectSpeech(int roomId, int participantId, int moderatorId);
 
+    void revokeSpeech(int roomId, int participantId, int moderatorId);
+
     // --- Controle de permissões ---
 
     void enableMicrophone(int roomId, int participantId, int moderatorId);

@@ -177,6 +177,22 @@ public class ConferenceRoomRestController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * POST /api/salas/{id}/solicitacoes-fala/{participanteId}/revogar
+     * Revoga uma fala já aprovada: encerra a aprovação (status volta para REJECTED),
+     * bloqueia microfone e câmera e propaga a mudança ao LiveKit imediatamente.
+     * O cidadão pode enviar um novo pedido de fala depois disso.
+     */
+    @PostMapping("/{id}/solicitacoes-fala/{participanteId}/revogar")
+    public ResponseEntity<Void> revokeSpeech(@PathVariable final int id,
+                                             @PathVariable final int participanteId,
+                                             HttpServletRequest request) {
+        int moderatorId = authHelper.getUserId(request);
+        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        conferenceRoomService.revokeSpeech(id, participanteId, moderatorId);
+        return ResponseEntity.ok().build();
+    }
+
     // --- Controle de microfone ---
 
     /**
