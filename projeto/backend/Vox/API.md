@@ -485,7 +485,7 @@ Content-Type: application/json
   "opinion": "APPROVE"
 }
 ```
-Valores: `APPROVE`, `DISAPPROVE`, `NEUTRAL`
+Valores: `APPROVE`, `NEUTRAL`
 
 **Listar opiniões:**
 ```
@@ -500,7 +500,7 @@ Authorization: Bearer <token>
 ```
 **Resposta:**
 ```json
-{ "APPROVE": 15, "DISAPPROVE": 3, "NEUTRAL": 2 }
+{ "APPROVE": 15, "NEUTRAL": 2 }
 ```
 
 **Minha opinião:**

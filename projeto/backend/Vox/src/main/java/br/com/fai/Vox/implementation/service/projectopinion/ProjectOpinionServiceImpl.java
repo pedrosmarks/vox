@@ -37,17 +37,16 @@ public class ProjectOpinionServiceImpl implements ProjectOpinionService {
 
     @Override
     public Map<String, Integer> countByProjectId(int projectId) {
-        if (projectId <= 0) return Map.of("APPROVE", 0, "DISAPPROVE", 0, "NEUTRAL", 0, "TOTAL", 0);
+        if (projectId <= 0) return Map.of("APPROVE", 0, "NEUTRAL", 0, "TOTAL", 0);
         return projectOpinionDao.countByProjectId(projectId);
     }
 
     @Override
     public ProjectOpinionStatsDto getStats(int projectId) {
-        if (projectId <= 0) return new ProjectOpinionStatsDto(0, 0, 0);
+        if (projectId <= 0) return new ProjectOpinionStatsDto(0, 0);
         Map<String, Integer> counts = projectOpinionDao.countByProjectId(projectId);
         return new ProjectOpinionStatsDto(
                 counts.getOrDefault("APPROVE", 0),
-                counts.getOrDefault("DISAPPROVE", 0),
                 counts.getOrDefault("NEUTRAL", 0)
         );
     }

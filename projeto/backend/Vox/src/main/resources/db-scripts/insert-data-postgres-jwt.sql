@@ -235,13 +235,13 @@ VALUES
     (1, 6, 'NEUTRAL'),
     (1, 8, 'APPROVE'),
     (2, 1, 'APPROVE'),
-    (2, 5, 'DISAPPROVE'),
+    (2, 5, 'NEUTRAL'),
     (2, 7, 'APPROVE'),
     (5, 6, 'APPROVE'),
     (5, 8, 'APPROVE'),
     (5, 1, 'NEUTRAL'),
-    (8, 5, 'DISAPPROVE'),
-    (8, 6, 'DISAPPROVE');
+    (8, 5, 'NEUTRAL'),
+    (8, 6, 'NEUTRAL');
 
 -- ---------------------------------------------------------------------
 -- Assinaturas de apoio a projetos (project_signature)

@@ -9,15 +9,13 @@ public class ProjectOpinionStatsDto {
 
     private int total;
     private int approved;
-    private int disapproved;
     private int neutral;
 
     public ProjectOpinionStatsDto() {}
 
-    public ProjectOpinionStatsDto(int approved, int disapproved, int neutral) {
+    public ProjectOpinionStatsDto(int approved, int neutral) {
         this.approved = approved;
-        this.disapproved = disapproved;
         this.neutral = neutral;
-        this.total = approved + disapproved + neutral;
+        this.total = approved + neutral;
     }
 }

@@ -96,7 +96,6 @@ CREATE TYPE notification_type AS ENUM (
 
 CREATE TYPE vote_type AS ENUM (
     'APPROVE',
-    'DISAPPROVE',
     'NEUTRAL'
 );
 
