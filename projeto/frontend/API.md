@@ -65,9 +65,11 @@ Authorization: Bearer <token>
   "role": "MODERATOR",
   "municipalityId": 1,
   "acceptedTerms": true,
-  "acceptedPrivacyPolicy": true
+  "acceptedPrivacyPolicy": true,
+  "profilePhotoUrl": "https://res.cloudinary.com/.../vox/user_maria@email.com_foto.jpg"
 }
 ```
+> `profilePhotoUrl` é a URL pública da foto de perfil do usuário autenticado. Fica `null` quando não há foto.
 
 ---
 
@@ -81,7 +83,7 @@ POST /api/auth/forgot-password
   "email": "usuario@email.com"
 }
 ```
-**Resposta `200`** — token de reset enviado (por e-mail, quando implementado).
+**Resposta `200`** — se o e-mail existir, é enviado um e-mail contendo **apenas o token** de redefinição (não um link). O token é válido por 2 horas.
 
 ---
 
@@ -96,6 +98,8 @@ POST /api/auth/reset-password
   "newPassword": "novaSenha123"
 }
 ```
+> O `token` é o valor recebido por e-mail em "Esqueci minha senha".
+
 **Resposta `200`**
 
 ---
@@ -415,6 +419,8 @@ Content-Type: multipart/form-data
 
 > `latitude` e `longitude` são **obrigatórios** — usados no mapa de zonas quentes do dashboard.
 
+> **Limite semanal:** usuários com role `CITIZEN` podem criar no máximo **3 projetos por semana**. Ao exceder, a API retorna `400`. Os demais papéis (`COUNCILOR`, `MODERATOR`, `ADMINISTRATOR`) não têm esse limite.
+
 **Resposta `201`**
 
 ---
@@ -427,6 +433,8 @@ Content-Type: application/json
 ```
 **Body:** objeto `Project` completo  
 **Resposta `204`**
+
+> Quando o status do projeto muda neste endpoint, o backend registra a transição no histórico e **notifica automaticamente** o autor, os assinantes do projeto (`SubscriptionType.PROJECT`) e os assinantes de todos os projetos (`SubscriptionType.ALL_PROJECTS`). Se o novo status for `PUBLISHED`, a notificação é de publicação.
 
 ---
 
@@ -485,7 +493,7 @@ Content-Type: application/json
   "opinion": "APPROVE"
 }
 ```
-Valores: `APPROVE`, `DISAPPROVE`, `NEUTRAL`
+Valores: `APPROVE`, `NEUTRAL`
 
 **Listar opiniões:**
 ```
@@ -500,7 +508,7 @@ Authorization: Bearer <token>
 ```
 **Resposta:**
 ```json
-{ "APPROVE": 15, "DISAPPROVE": 3, "NEUTRAL": 2 }
+{ "APPROVE": 15, "NEUTRAL": 2 }
 ```
 
 **Minha opinião:**
@@ -649,6 +657,8 @@ Content-Type: multipart/form-data
 | `file` | imagem | ❌ |
 
 > `latitude` e `longitude` são **obrigatórios** — usados no mapa de zonas quentes do dashboard.
+
+> **Limite semanal:** usuários com role `CITIZEN` podem criar no máximo **3 ocorrências por semana**. Ao exceder, a API retorna `400`. Os demais papéis (`COUNCILOR`, `MODERATOR`, `ADMINISTRATOR`) não têm esse limite.
 
 **Resposta `201`**
 
@@ -1493,6 +1503,119 @@ Authorization: Bearer <token>
 - `issueApprovalRate` / `projectApprovalRate`: percentual (0–100) de aprovações sobre o total de decisões.
 - `avgIssueDecisionHours` / `avgProjectDecisionHours`: tempo médio, em horas, entre a criação do registro e a decisão de moderação. Pode ser `null` se ainda não houver decisões.
 - `topModerators`: ranking (até 10) de moderadores por volume de decisões no município.
+
+---
+
+### Engajamento cidadão
+```
+GET /api/admin/dashboard/engajamento?from=2026-08-16&to=2026-09-16
+Authorization: Bearer <token>
+```
+Projetos mais apoiados/opinados, distribuição de opiniões, ocorrências mais acompanhadas e usuários mais ativos.
+
+**Resposta `200`:**
+```json
+{
+  "topSignedProjects": [
+    { "projectId": 12, "title": "Revitalização da praça", "count": 87 }
+  ],
+  "topOpinedProjects": [
+    { "projectId": 12, "title": "Revitalização da praça", "count": 40 }
+  ],
+  "opinionDistribution": { "APPROVE": 120, "NEUTRAL": 18 },
+  "topFollowedIssues": [
+    { "issueId": 55, "title": "Buraco na via", "count": 23 }
+  ],
+  "topActiveUsers": [
+    { "userId": 7, "userName": "João Ribeiro", "projectsCreated": 4, "issuesCreated": 9, "total": 13 }
+  ]
+}
+```
+- `opinionDistribution`: distribuição de opiniões por tipo. Os valores possíveis são apenas `APPROVE` e `NEUTRAL`.
+- Cada ranking retorna até 10 itens, ordenados por `count`/`total` decrescente.
+
+---
+
+### Análise por categoria
+```
+GET /api/admin/dashboard/categorias?from=2026-08-16
+Authorization: Bearer <token>
+```
+Ranking de categorias com mais issues/projetos e cruzamento categoria × status.
+
+**Resposta `200`:**
+```json
+{
+  "categories": [
+    {
+      "categoryId": 1,
+      "categoryName": "Infraestrutura",
+      "issueCount": 40,
+      "projectCount": 12,
+      "total": 52,
+      "openIssues": 18,
+      "issuesByStatus": { "OPEN": 18, "IN_PROGRESS": 10, "RESOLVED": 12 },
+      "projectsByStatus": { "PUBLISHED": 8, "IN_EXECUTION": 4 }
+    }
+  ]
+}
+```
+Ordenado por `total` (issues + projetos) decrescente. `openIssues` destaca as ocorrências ainda `OPEN` — proxy de "onde o município mais precisa agir".
+
+---
+
+### Séries temporais
+```
+GET /api/admin/dashboard/series-temporais?granularidade=month&from=2026-01-01&to=2026-09-16
+Authorization: Bearer <token>
+```
+Volume de issues e projetos criados ao longo do tempo.
+
+**Query params:**
+- `granularidade` (opcional): `day` (padrão), `week` ou `month`. Valor inválido retorna `400`.
+- `from` / `to`: intervalo de datas (recomendado informar em séries longas).
+
+**Resposta `200`:**
+```json
+{
+  "granularity": "month",
+  "points": [
+    { "period": "2026-07-01", "issueCount": 30, "projectCount": 8, "total": 38 },
+    { "period": "2026-08-01", "issueCount": 42, "projectCount": 11, "total": 53 }
+  ]
+}
+```
+`period` é o início de cada bucket (ISO `yyyy-MM-dd`), ordenado crescente.
+
+---
+
+### Ciclo de vida dos projetos
+```
+GET /api/admin/dashboard/projetos/ciclo-vida?from=2026-08-16
+Authorization: Bearer <token>
+```
+Distribuição dos projetos por status, tempo médio em cada etapa (via histórico de status) e execução orçamentária.
+
+**Resposta `200`:**
+```json
+{
+  "projectsByStatus": {
+    "PENDING_APPROVAL": 8,
+    "PUBLISHED": 45,
+    "IN_EXECUTION": 7,
+    "COMPLETED": 5
+  },
+  "avgTimePerStage": [
+    { "status": "PENDING_APPROVAL", "avgHours": 36.5 },
+    { "status": "IN_VOTING", "avgHours": 120.0 }
+  ],
+  "totalEstimatedCost": 1250000.00,
+  "totalApprovedBudget": 980000.00,
+  "budgetExecutionRate": 78.4
+}
+```
+- `avgTimePerStage`: tempo médio (horas) que os projetos permaneceram em cada etapa, calculado pelas transições consecutivas do histórico de status.
+- `budgetExecutionRate`: percentual do orçamento aprovado sobre o custo estimado. Pode ser `null` se não houver custo estimado no período.
 
 ---
 
