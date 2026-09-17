@@ -1,18 +1,24 @@
 package br.com.fai.Vox.implementation.service.project;
 
+import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.ProjectImage;
+import br.com.fai.Vox.domain.Subscription;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
 import br.com.fai.Vox.domain.dto.PageResponse;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
 import br.com.fai.Vox.port.dao.projectimage.ProjectImageDao;
 import br.com.fai.Vox.port.service.drive.CloudinaryService;
+import br.com.fai.Vox.port.service.notification.NotificationService;
 import br.com.fai.Vox.port.service.project.ProjectService;
 import br.com.fai.Vox.port.service.projectstatushistory.ProjectStatusHistoryService;
+import br.com.fai.Vox.port.service.subscription.SubscriptionService;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,14 +31,20 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectImageDao projectImageDao;
     private final CloudinaryService cloudinaryService;
     private final ProjectStatusHistoryService projectStatusHistoryService;
+    private final NotificationService notificationService;
+    private final SubscriptionService subscriptionService;
 
     public ProjectServiceImpl(ProjectDao projectDao, ProjectImageDao projectImageDao,
                                CloudinaryService cloudinaryService,
-                               ProjectStatusHistoryService projectStatusHistoryService) {
+                               ProjectStatusHistoryService projectStatusHistoryService,
+                               NotificationService notificationService,
+                               SubscriptionService subscriptionService) {
         this.projectDao = projectDao;
         this.projectImageDao = projectImageDao;
         this.cloudinaryService = cloudinaryService;
         this.projectStatusHistoryService = projectStatusHistoryService;
+        this.notificationService = notificationService;
+        this.subscriptionService = subscriptionService;
     }
 
     private static final int CITIZEN_WEEKLY_LIMIT = 3;
@@ -127,11 +139,49 @@ public class ProjectServiceImpl implements ProjectService {
         if (entity.getLatitude() == null) entity.setLatitude(existing.getLatitude());
         if (entity.getLongitude() == null) entity.setLongitude(existing.getLongitude());
 
-        if (existing.getStatus() != entity.getStatus()) {
+        boolean statusChanged = existing.getStatus() != entity.getStatus();
+        if (statusChanged) {
             projectStatusHistoryService.recordStatusChange(
                     id, existing.getStatus(), entity.getStatus(), changedBy, null);
         }
 
         projectDao.update(id, entity);
+
+        // Notifica automaticamente quando o status do projeto muda (inclui publicação),
+        // respeitando quem assina o projeto e quem assina todos os projetos.
+        if (statusChanged) {
+            notifyStatusChange(id, entity, changedBy);
+        }
+    }
+
+    /**
+     * Envia notificações de mudança de status/publicação de projeto para:
+     * - o autor do projeto;
+     * - assinantes do projeto específico (SubscriptionType.PROJECT);
+     * - assinantes de todos os projetos (SubscriptionType.ALL_PROJECTS).
+     * Evita duplicar notificação para o mesmo usuário e não notifica quem fez a alteração.
+     */
+    private void notifyStatusChange(int projectId, Project project, int changedBy) {
+        boolean published = project.getStatus() == Project.ProjectStatus.PUBLISHED;
+        String title = published ? "Projeto publicado" : "Status do projeto atualizado";
+        String message = published
+                ? "O projeto \"" + project.getTitle() + "\" foi publicado."
+                : "O projeto \"" + project.getTitle() + "\" teve seu status alterado para "
+                        + project.getStatus().name() + ".";
+
+        Set<Integer> recipients = new HashSet<>();
+        if (project.getAuthorId() != null) {
+            recipients.add(project.getAuthorId());
+        }
+        recipients.addAll(subscriptionService.findSubscriberUserIds(
+                Subscription.SubscriptionType.PROJECT, projectId));
+        recipients.addAll(subscriptionService.findSubscriberUserIds(
+                Subscription.SubscriptionType.ALL_PROJECTS, null));
+
+        for (int userId : recipients) {
+            if (userId == changedBy) continue;
+            notificationService.send(userId, title, message,
+                    Notification.NotificationType.PROJECT_STATUS_CHANGED);
+        }
     }
 }
