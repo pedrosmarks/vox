@@ -319,6 +319,10 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
 
     final gainedAudio = audioAllowed && !_canPublishAudio;
     final gainedVideo = videoAllowed && !_canPublishVideo;
+    final lostAllPermissions =
+        (_canPublishAudio || _canPublishVideo) &&
+        !audioAllowed &&
+        !videoAllowed;
 
     _canPublishAudio = audioAllowed;
     _canPublishVideo = videoAllowed;
@@ -337,6 +341,16 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     if (!videoAllowed) {
       _camOn = false;
       unawaited(local.setCameraEnabled(false));
+    }
+    if (lostAllPermissions) {
+      _requestingPermission = false;
+      unawaited(
+        local.setAttributes({
+          'requestMic': 'false',
+          'requestCam': 'false',
+          'speechRequestId': '',
+        }),
+      );
     }
     if (mounted) setState(() {});
   }
@@ -379,23 +393,6 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
         if (mounted) setState(() => _connectionState = 'closed');
         _syncingPermissions = false;
         return;
-      }
-      final userId = await _authService.getUserId();
-      if (userId != null) {
-        final speechRequests = await _salaService.getSolicitacoesFala(
-          widget.salaId,
-        );
-        final ownRequest = speechRequests.where(
-          (request) => request.userId == userId,
-        );
-        final requestStatus = ownRequest.isEmpty
-            ? 'NOT_REQUESTED'
-            : (ownRequest.last.speechRequestStatus ?? 'NOT_REQUESTED');
-        if (requestStatus == 'REJECTED' ||
-            requestStatus == 'REVOKED' ||
-            requestStatus == 'NOT_REQUESTED') {
-          _requestingPermission = false;
-        }
       }
       final local = _room?.localParticipant;
       if (local == null) return;
