@@ -47,6 +47,7 @@ export class ProblemaDetalheComponent implements OnInit {
     'CLOSED'
   ];
   selectedStatus = '';
+  statusNote = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -129,7 +130,7 @@ export class ProblemaDetalheComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/problemas']);
+    this.router.navigate([this.isModerator ? '/moderacao' : '/problemas']);
   }
 
   /** Vereador adota/desvincula a ocorrência. */
@@ -159,9 +160,13 @@ export class ProblemaDetalheComponent implements OnInit {
   updateStatus(): void {
     if (!this.issue || this.savingStatus) return;
     if (this.selectedStatus === this.issue.status) return;
+    if ((this.selectedStatus === 'REJECTED' || this.selectedStatus === 'CLOSED') && !this.statusNote.trim()) {
+      this.statusMessage = 'Informe o motivo da decisão.';
+      return;
+    }
     this.savingStatus = true;
     this.statusMessage = '';
-    this.issueService.updateIssueStatus(this.issue.id, this.selectedStatus).subscribe({
+    this.issueService.updateIssueStatus(this.issue.id, this.selectedStatus, this.statusNote.trim()).subscribe({
       next: () => {
         if (this.issue) this.issue.status = this.selectedStatus;
         this.savingStatus = false;
@@ -170,6 +175,32 @@ export class ProblemaDetalheComponent implements OnInit {
       error: () => {
         this.savingStatus = false;
         this.statusMessage = 'Não foi possível atualizar o status.';
+      }
+    });
+  }
+
+  approveIssue(): void {
+    if (!this.issue || this.savingStatus) return;
+    this.savingStatus = true;
+    this.issueService.updateIssueStatus(this.issue.id, 'OPEN').subscribe({
+      next: () => this.router.navigate(['/moderacao']),
+      error: () => {
+        this.savingStatus = false;
+        this.statusMessage = 'Não foi possível aceitar a ocorrência.';
+      }
+    });
+  }
+
+  rejectIssue(): void {
+    if (!this.issue || this.savingStatus) return;
+    const note = window.prompt('Informe o motivo da negativa:')?.trim() ?? '';
+    if (!note) return;
+    this.savingStatus = true;
+    this.issueService.updateIssueStatus(this.issue.id, 'REJECTED', note).subscribe({
+      next: () => this.router.navigate(['/moderacao']),
+      error: () => {
+        this.savingStatus = false;
+        this.statusMessage = 'Não foi possível negar a ocorrência.';
       }
     });
   }

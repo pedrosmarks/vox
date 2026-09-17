@@ -147,7 +147,7 @@ export class ProjetoDetalheComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/projetos']);
+    this.router.navigate([this.isModerator ? '/moderacao' : '/projetos']);
   }
 
   promoteProject(): void {
@@ -164,6 +164,20 @@ export class ProjetoDetalheComponent implements OnInit {
     this.statusNote = '';
     this.statusError = '';
     this.statusModalOpen = true;
+  }
+
+  openDecisionModal(status: 'PUBLISHED' | 'REJECTED'): void {
+    if (!this.project) return;
+    this.selectedStatus = status;
+    this.statusNote = '';
+    this.statusError = '';
+    this.statusModalOpen = true;
+  }
+
+  acceptProject(): void {
+    this.selectedStatus = 'PUBLISHED';
+    this.statusNote = '';
+    this.saveStatus();
   }
 
   closeStatusModal(): void {
@@ -205,6 +219,7 @@ export class ProjetoDetalheComponent implements OnInit {
         } else {
           this.rejectionNote = '';
         }
+        this.router.navigate(['/moderacao']);
       },
       error: () => {
         this.savingStatus = false;

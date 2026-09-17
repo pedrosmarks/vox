@@ -365,55 +365,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: VoxAppBar(
-        title: _project?.title ?? 'Projeto',
-        actions: [
-          if (_project != null && !_isExporting)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.ios_share),
-              tooltip: 'Exportar para',
-              onSelected: (value) {
-                if (value == 'csv') {
-                  _exportCsv();
-                } else if (value == 'pdf') {
-                  _exportPdf();
-                }
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
-                  value: 'csv',
-                  child: ListTile(
-                    leading: Icon(Icons.description_outlined),
-                    title: Text('Exportar CSV'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'pdf',
-                  child: ListTile(
-                    leading: Icon(Icons.picture_as_pdf_outlined),
-                    title: Text('Exportar PDF'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-          if (_isExporting)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+      appBar: VoxAppBar(title: _project?.title ?? 'Projeto'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -521,20 +473,37 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
 
   Widget _buildActionButtons(Project p) {
     if (_isModerator) {
-      return Wrap(
-        spacing: 8,
-        runSpacing: 8,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!p.isOfficial)
-            ElevatedButton.icon(
-              onPressed: _promoteToOfficial,
-              icon: const Icon(Icons.workspace_premium_outlined),
-              label: const Text('Tornar Oficial'),
-            ),
-          OutlinedButton.icon(
-            onPressed: _openStatusDialog,
-            icon: const Icon(Icons.sync),
-            label: const Text('Atualizar Status'),
+          Text('Moderação', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Color(0xFF1B3F8B),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () => _decideProject('PUBLISHED'),
+                  icon: const Icon(Icons.check),
+                  label: const Text('Aceitar'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black87,
+                  ),
+                  onPressed: () => _decideProject('REJECTED'),
+                  icon: const Icon(Icons.close),
+                  label: const Text('Negar'),
+                ),
+              ),
+            ],
           ),
         ],
       );
@@ -565,7 +534,107 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     MapEntry('CANCELLED', 'Cancelado'),
   ];
 
+  Future<void> _decideProject(String status) async {
+    final p = _project;
+    if (p == null) return;
+    String note = '';
+    if (status == 'REJECTED') {
+      final controller = TextEditingController();
+      note =
+          await showDialog<String>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('Negar projeto'),
+              content: TextField(
+                controller: controller,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Motivo da negativa *',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    if (controller.text.trim().isEmpty) return;
+                    Navigator.pop(dialogContext, controller.text.trim());
+                  },
+                  child: const Text('Confirmar'),
+                ),
+              ],
+            ),
+          ) ??
+          '';
+      controller.dispose();
+      if (note.isEmpty) return;
+    }
+    try {
+      await _projectService.updateProjectStatus(p.id, status, note: note);
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível salvar a decisão.')),
+        );
+      }
+    }
+  }
+
   Future<void> _openStatusDialog() async {
+    Future<void> _decideProject(String status) async {
+      final p = _project;
+      if (p == null) return;
+      String note = '';
+      if (status == 'REJECTED') {
+        final controller = TextEditingController();
+        note =
+            await showDialog<String>(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text('Negar projeto'),
+                content: TextField(
+                  controller: controller,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Motivo da negativa *',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      if (controller.text.trim().isEmpty) return;
+                      Navigator.pop(dialogContext, controller.text.trim());
+                    },
+                    child: const Text('Confirmar'),
+                  ),
+                ],
+              ),
+            ) ??
+            '';
+        controller.dispose();
+        if (note.isEmpty) return;
+      }
+      try {
+        await _projectService.updateProjectStatus(p.id, status, note: note);
+        if (mounted) Navigator.of(context).pop();
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Não foi possível salvar a decisão.')),
+          );
+        }
+      }
+    }
+
     final p = _project;
     if (p == null) return;
 

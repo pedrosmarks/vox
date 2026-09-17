@@ -144,10 +144,10 @@ $muted:      rgba(255,255,255,0.55);
 // Palco do moderador (grande)
 .moderator-stage {
   position: relative;
-  // Quadro travado em 1:1 (quadrado) — evita vídeo esticado.
+  // Palco do moderador em formato widescreen; cidadãos permanecem quadrados.
   width: 100%;
-  max-width: 520px;
-  aspect-ratio: 1 / 1;
+  max-width: 760px;
+  aspect-ratio: 16 / 9;
   margin: 0 auto;
   background: $panel;
   border: 1.5px solid rgba(232,168,56,0.6);

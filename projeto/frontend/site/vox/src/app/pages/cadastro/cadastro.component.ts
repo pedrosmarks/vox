@@ -23,6 +23,7 @@ export class CadastroComponent implements OnInit {
   confirmPassword = '';
   municipalityId: number | null = null;
   acceptedTerms = false;
+  profilePhoto: File | null = null;
 
   municipalities: Municipality[] = [];
   isLoading = false;
@@ -59,6 +60,11 @@ export class CadastroComponent implements OnInit {
     return null;
   }
 
+  onPhotoChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.profilePhoto = input.files?.[0] ?? null;
+  }
+
   onSubmit(): void {
     const error = this.validate();
     if (error) {
@@ -80,6 +86,7 @@ export class CadastroComponent implements OnInit {
         municipalityId: this.municipalityId!,
         acceptedTerms: true,
         acceptedPrivacyPolicy: true
+        ,file: this.profilePhoto
       })
       .subscribe({
         next: () => this.autoLogin(),

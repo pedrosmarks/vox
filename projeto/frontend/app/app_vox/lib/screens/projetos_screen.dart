@@ -30,9 +30,73 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
   final Set<int> _supported = {};
   final Set<int> _supporting = {};
   bool _isCitizen = false;
+  final Map<int, int> _signatureCounts = {};
+  final Set<int> _signed = {};
+  final Set<int> _signing = {};
   _Filter _filter = _Filter.todos;
   bool _isLoading = true;
   String? _error;
+
+  Future<void> _loadSignatures() async {
+    for (final p in _all) {
+      try {
+        final count = await _projectService.getSignatureCount(p.id);
+        if (!mounted) return;
+        setState(() => _signatureCounts[p.id] = count);
+      } catch (_) {}
+      if (_isCitizen) {
+        try {
+          final signed = await _projectService.hasSignedProject(p.id);
+          if (!mounted) return;
+          setState(() {
+            if (signed) {
+              _signed.add(p.id);
+            } else {
+              _signed.remove(p.id);
+            }
+          });
+        } catch (_) {}
+      }
+    }
+  }
+
+  int _signatureCount(int id) => _signatureCounts[id] ?? 0;
+
+  Future<void> _toggleSign(int id) async {
+    if (_signing.contains(id)) return;
+    final wasSigned = _signed.contains(id);
+    setState(() {
+      _signing.add(id);
+      if (wasSigned) {
+        _signed.remove(id);
+        _signatureCounts[id] = (_signatureCount(id) - 1).clamp(0, 1 << 30);
+      } else {
+        _signed.add(id);
+        _signatureCounts[id] = _signatureCount(id) + 1;
+      }
+    });
+    try {
+      if (wasSigned) {
+        await _projectService.unsignProject(id);
+      } else {
+        await _projectService.signProject(id);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          if (wasSigned) {
+            _signed.add(id);
+            _signatureCounts[id] = _signatureCount(id) + 1;
+          } else {
+            _signed.remove(id);
+            _signatureCounts[id] = (_signatureCount(id) - 1).clamp(0, 1 << 30);
+          }
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _signing.remove(id));
+    }
+  }
 
   @override
   void initState() {
@@ -77,6 +141,7 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
       _applyFilter();
       unawaited(_loadAuthorNames());
       unawaited(_loadApprovals());
+      unawaited(_loadSignatures());
     } catch (_) {
       _error = 'Erro ao carregar projetos. Tente novamente.';
     } finally {
@@ -299,17 +364,10 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
                                       const SizedBox(height: 6),
                                       Row(
                                         children: [
-                                          const Text('👍 '),
-                                          Text(
-                                            '${_approvalCount(p.id)}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
                                           if (_isCitizen) ...[
                                             const Spacer(),
                                             _supported.contains(p.id)
-                                                ? FilledButton.icon(
+                                                ? FilledButton(
                                                     onPressed:
                                                         _supporting.contains(
                                                           p.id,
@@ -318,15 +376,11 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
                                                         : () => _toggleSupport(
                                                             p.id,
                                                           ),
-                                                    icon: const Icon(
-                                                      Icons.thumb_up,
-                                                      size: 16,
-                                                    ),
-                                                    label: const Text(
-                                                      'Apoiado',
+                                                    child: Text(
+                                                      'Apoiado (${_approvalCount(p.id)})',
                                                     ),
                                                   )
-                                                : OutlinedButton.icon(
+                                                : OutlinedButton(
                                                     onPressed:
                                                         _supporting.contains(
                                                           p.id,
@@ -335,11 +389,39 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
                                                         : () => _toggleSupport(
                                                             p.id,
                                                           ),
-                                                    icon: const Icon(
-                                                      Icons.thumb_up_outlined,
-                                                      size: 16,
+                                                    child: Text(
+                                                      'Apoiar (${_approvalCount(p.id)})',
                                                     ),
-                                                    label: const Text('Apoiar'),
+                                                  ),
+                                          ] else
+                                            Text(
+                                              'Apoios (${_approvalCount(p.id)})',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          if (_isCitizen) ...[
+                                            const SizedBox(width: 8),
+                                            _signed.contains(p.id)
+                                                ? FilledButton(
+                                                    onPressed:
+                                                        _signing.contains(p.id)
+                                                        ? null
+                                                        : () =>
+                                                              _toggleSign(p.id),
+                                                    child: Text(
+                                                      'Assinado (${_signatureCount(p.id)})',
+                                                    ),
+                                                  )
+                                                : OutlinedButton(
+                                                    onPressed:
+                                                        _signing.contains(p.id)
+                                                        ? null
+                                                        : () =>
+                                                              _toggleSign(p.id),
+                                                    child: Text(
+                                                      'Assinar (${_signatureCount(p.id)})',
+                                                    ),
                                                   ),
                                           ],
                                         ],

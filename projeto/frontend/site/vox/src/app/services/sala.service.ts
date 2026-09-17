@@ -103,6 +103,10 @@ export class SalaService {
     return this.http.post<void>(`${this.API_URL}/api/salas/${id}/solicitacoes-fala/${participanteId}/rejeitar`, null);
   }
 
+  revogarFala(id: number, participanteId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/salas/${id}/solicitacoes-fala/${participanteId}/revogar`, null);
+  }
+
   aprovarSolicitacao(id: number, participanteId: number): Observable<void> {
     return this.http.post<void>(`${this.API_URL}/api/salas/${id}/solicitacoes-entrada/${participanteId}/aprovar`, null);
   }

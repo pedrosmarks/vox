@@ -201,6 +201,33 @@ $live:       #dc2626;
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
+.moderation-actions {
+  display: flex;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.moderation-actions .btn-save-status,
+.moderation-actions .btn-reject {
+  flex: 1;
+  width: auto;
+  min-height: 42px;
+  margin: 0;
+}
+
+.moderation-actions .btn-reject {
+  padding: 0.6rem;
+  background: #f59e0b;
+  color: #111827;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover:not(:disabled) { background: #d97706; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
 .status-msg {
   display: block;
   margin-top: 0.6rem;

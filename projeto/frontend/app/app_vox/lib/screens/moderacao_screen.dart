@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import '../models/issue.dart';
 import '../models/project.dart';
 import '../services/auth_service.dart';
 import '../services/project_service.dart';
+import '../services/issue_service.dart';
 import '../theme/vox_app_bar.dart';
 import '../utils/fallback_categories.dart';
 import '../utils/status_labels.dart';
+import 'problema_detalhe_screen.dart';
+import 'projeto_detalhe_screen.dart';
 
 const _projectTypes = [
   {'value': 'CHAMBER', 'label': 'Câmara / Prefeitura'},
@@ -43,8 +47,11 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
   late final TabController _tabController;
   final _authService = AuthService();
   final _projectService = ProjectService();
+  final _issueService = IssueService();
 
   List<Project> _pending = [];
+  List<IssueReport> _pendingIssues = [];
+  bool _isLoadingIssues = true;
   final Map<int, String> _authorNames = {};
   bool _isLoadingPending = true;
   String? _pendingError;
@@ -78,8 +85,9 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadPending();
+    _loadPendingIssues();
     _loadCategories();
     if (widget.initialPromote != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -122,6 +130,17 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
     }
   }
 
+  Future<void> _loadPendingIssues() async {
+    setState(() => _isLoadingIssues = true);
+    try {
+      _pendingIssues = await _issueService.getPendingIssues();
+    } catch (_) {
+      _pendingIssues = [];
+    } finally {
+      if (mounted) setState(() => _isLoadingIssues = false);
+    }
+  }
+
   Future<void> _loadAuthorNames() async {
     final ids = {for (final p in _pending) p.authorId};
     for (final id in ids) {
@@ -138,40 +157,6 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
   }
 
   String _authorName(int id) => _authorNames[id] ?? 'Usuário #$id';
-
-  Future<void> _approve(Project p) async {
-    setState(() => _actionInProgress = p.id);
-    try {
-      await _projectService.approveProject(p.id);
-      setState(() {
-        _actionMessage = 'Projeto "${p.title}" aprovado!';
-        _pending = _pending.where((x) => x.id != p.id).toList();
-      });
-    } catch (_) {
-      // ignora falha na ação
-    } finally {
-      if (mounted) setState(() => _actionInProgress = null);
-    }
-  }
-
-  Future<void> _reject(Project p) async {
-    // Pede o comentário (obrigatório) que o cidadão poderá ver.
-    final comment = await _promptRejectComment(p);
-    if (comment == null) return; // cancelado
-
-    setState(() => _actionInProgress = p.id);
-    try {
-      await _projectService.rejectProject(p.id, feedback: comment);
-      setState(() {
-        _actionMessage = 'Projeto "${p.title}" rejeitado.';
-        _pending = _pending.where((x) => x.id != p.id).toList();
-      });
-    } catch (_) {
-      // ignora falha na ação
-    } finally {
-      if (mounted) setState(() => _actionInProgress = null);
-    }
-  }
 
   /// Diálogo que exige um comentário para o cidadão. Retorna o texto, ou null
   /// se o moderador cancelar.
@@ -390,13 +375,18 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
           indicatorColor: Colors.white,
           tabs: const [
             Tab(text: 'Pendentes'),
+            Tab(text: 'Ocorrências'),
             Tab(text: 'Novo Projeto'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [_buildPendingTab(), _buildFormTab()],
+        children: [
+          _buildPendingTab(),
+          _buildPendingIssuesTab(),
+          _buildFormTab(),
+        ],
       ),
     );
   }
@@ -470,15 +460,18 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
                               Wrap(
                                 spacing: 8,
                                 children: [
-                                  FilledButton.icon(
-                                    onPressed: busy ? null : () => _approve(p),
-                                    icon: const Icon(Icons.check),
-                                    label: const Text('Aprovar'),
-                                  ),
-                                  OutlinedButton.icon(
-                                    onPressed: busy ? null : () => _reject(p),
-                                    icon: const Icon(Icons.close),
-                                    label: const Text('Rejeitar'),
+                                  OutlinedButton(
+                                    onPressed: busy
+                                        ? null
+                                        : () => Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  ProjetoDetalheScreen(
+                                                    projectId: p.id,
+                                                  ),
+                                            ),
+                                          ),
+                                    child: const Text('Abrir e analisar'),
                                   ),
                                   TextButton.icon(
                                     onPressed: busy
@@ -500,6 +493,48 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPendingIssuesTab() {
+    if (_isLoadingIssues) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return RefreshIndicator(
+      onRefresh: _loadPendingIssues,
+      child: _pendingIssues.isEmpty
+          ? ListView(
+              children: const [
+                Padding(
+                  padding: EdgeInsets.only(top: 80),
+                  child: Center(child: Text('Nenhuma ocorrência pendente.')),
+                ),
+              ],
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: _pendingIssues.length,
+              itemBuilder: (context, index) {
+                final issue = _pendingIssues[index];
+                return Card(
+                  child: ListTile(
+                    title: Text(issue.title),
+                    subtitle: Text(
+                      issue.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ProblemaDetalheScreen(issueId: issue.id),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 

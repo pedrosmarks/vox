@@ -70,6 +70,11 @@
             [(ngModel)]="confirmPassword" name="confirmPassword" required />
         </div>
 
+        <div class="form-group">
+          <label for="profilePhoto" class="form-label">Foto de perfil</label>
+          <input id="profilePhoto" type="file" class="form-input" accept="image/*" (change)="onPhotoChange($event)" />
+        </div>
+
         <label class="terms">
           <input type="checkbox" [(ngModel)]="acceptedTerms" name="acceptedTerms" />
           <span>Li e aceito os termos de uso e a política de privacidade.</span>

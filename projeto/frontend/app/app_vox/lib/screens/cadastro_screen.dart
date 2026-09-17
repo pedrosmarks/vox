@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
 import '../services/municipality_service.dart';
 import '../services/settings_service.dart';
@@ -31,6 +32,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
   bool _isLoading = false;
   bool _obscure = true;
   String? _errorMessage;
+  XFile? _profilePhoto;
 
   @override
   void initState() {
@@ -104,6 +106,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
             : _birthDateController.text.trim(),
         password: _passwordController.text,
         municipalityId: _municipalityId!,
+        profilePhoto: _profilePhoto,
       );
 
       // Login automático após o cadastro.
@@ -273,6 +276,24 @@ class _CadastroScreenState extends State<CadastroScreen> {
           _field(_confirmController, '••••••••', obscure: _obscure),
           const SizedBox(height: 8),
 
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: Text(
+              _profilePhoto == null
+                  ? 'Adicionar foto de perfil'
+                  : 'Foto selecionada',
+            ),
+            trailing: TextButton(
+              onPressed: () async {
+                final photo = await ImagePicker().pickImage(
+                  source: ImageSource.gallery,
+                );
+                if (photo != null && mounted)
+                  setState(() => _profilePhoto = photo);
+              },
+              child: const Text('Escolher'),
+            ),
+          ),
           CheckboxListTile(
             value: _acceptedTerms,
             onChanged: (v) => setState(() => _acceptedTerms = v ?? false),

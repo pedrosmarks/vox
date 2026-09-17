@@ -588,10 +588,9 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     final id = int.parse(p.identity);
     if (mounted) setState(() => _revokingUserId = id);
     try {
-      await _salaService.bloquearMicrofone(widget.salaId, id);
-      await _salaService.bloquearCamera(widget.salaId, id);
-      // Encerra o pedido APPROVED para que um novo clique gere PENDING.
-      await _salaService.rejeitarFala(widget.salaId, id);
+      // Encerra a aprovação e bloqueia os dispositivos no backend; depois
+      // disso um novo clique do cidadão pode gerar outro pedido PENDING.
+      await _salaService.revogarFala(widget.salaId, id);
       _mediaPermissions[id] = (audio: false, video: false);
     } catch (_) {
     } finally {
@@ -927,10 +926,10 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-      // Quadro travado em 1:1 (quadrado) — evita vídeo esticado.
+      // Palco do moderador em widescreen; os tiles dos cidadãos permanecem 1:1.
       child: Center(
         child: AspectRatio(
-          aspectRatio: 1,
+          aspectRatio: 16 / 9,
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(

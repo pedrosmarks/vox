@@ -85,15 +85,31 @@
       <!-- Sidebar: atualizar status -->
       <aside class="col-aside" *ngIf="isCouncilor || isModerator">
         <div class="aside-card">
+          <ng-container *ngIf="isModerator; else councilorStatus">
+            <h3 class="aside-title">Moderação</h3>
+            <div class="moderation-actions">
+              <button class="btn-save-status" [disabled]="savingStatus" (click)="approveIssue()">✓ Aceitar</button>
+              <button class="btn-reject" [disabled]="savingStatus" (click)="rejectIssue()">✕ Negar</button>
+            </div>
+          </ng-container>
+          <ng-template #councilorStatus>
           <h3 class="aside-title">Atualizar status</h3>
           <p class="aside-hint">Altere a situação da ocorrência para acompanhar o andamento.</p>
           <select class="status-select" [(ngModel)]="selectedStatus">
             <option *ngFor="let s of statuses" [value]="s">{{ statusLabel(s) }}</option>
           </select>
+          <textarea
+            *ngIf="selectedStatus === 'REJECTED' || selectedStatus === 'CLOSED'"
+            class="status-note"
+            [(ngModel)]="statusNote"
+            rows="3"
+            placeholder="Informe o motivo da decisão"
+          ></textarea>
           <button class="btn-save-status" [disabled]="savingStatus || selectedStatus === issue.status" (click)="updateStatus()">
             {{ savingStatus ? 'Salvando...' : 'Salvar status' }}
           </button>
           <span *ngIf="statusMessage" class="status-msg">{{ statusMessage }}</span>
+          </ng-template>
         </div>
       </aside>
     </div>

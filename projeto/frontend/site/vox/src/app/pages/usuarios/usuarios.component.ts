@@ -52,7 +52,7 @@ export class UsuariosComponent implements OnInit {
 
   selectTab(tab: ManagedRole): void {
     this.activeTab = tab;
-    this.showForm = false;
+    this.cancelForm();
     this.loadUsers();
   }
 

@@ -42,6 +42,7 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
   bool _linking = false;
   bool _savingStatus = false;
   String? _selectedStatus;
+  final _statusNoteController = TextEditingController();
 
   static const _statuses = [
     'OPEN',
@@ -57,6 +58,12 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _statusNoteController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -154,9 +161,20 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
     final issue = _issue;
     if (issue == null || _savingStatus || _selectedStatus == null) return;
     if (_selectedStatus == issue.status) return;
+    if ((_selectedStatus == 'REJECTED' || _selectedStatus == 'CLOSED') &&
+        _statusNoteController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Informe o motivo da decisão.')),
+      );
+      return;
+    }
     setState(() => _savingStatus = true);
     try {
-      await _issueService.updateIssueStatus(issue.id, _selectedStatus!);
+      await _issueService.updateIssueStatus(
+        issue.id,
+        _selectedStatus!,
+        note: _statusNoteController.text.trim(),
+      );
       await _load();
       if (mounted) {
         ScaffoldMessenger.of(
@@ -171,6 +189,56 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
       }
     } finally {
       if (mounted) setState(() => _savingStatus = false);
+    }
+  }
+
+  Future<void> _moderateIssue(String status) async {
+    final issue = _issue;
+    if (issue == null) return;
+    var note = '';
+    if (status == 'REJECTED') {
+      final controller = TextEditingController();
+      note =
+          await showDialog<String>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('Negar ocorrência'),
+              content: TextField(
+                controller: controller,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Motivo da negativa *',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    if (controller.text.trim().isEmpty) return;
+                    Navigator.pop(dialogContext, controller.text.trim());
+                  },
+                  child: const Text('Confirmar'),
+                ),
+              ],
+            ),
+          ) ??
+          '';
+      controller.dispose();
+      if (note.isEmpty) return;
+    }
+    try {
+      await _issueService.updateIssueStatus(issue.id, status, note: note);
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível salvar a decisão.')),
+        );
+      }
     }
   }
 
@@ -307,7 +375,32 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
             _infoRow('Relatado em', _fmtDate(i.createdAt)),
 
           // Atualização de status (vereador/moderador)
-          if (_isCouncilor || _isModerator) ...[
+          if (_isModerator) ...[
+            const Divider(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () => _moderateIssue('OPEN'),
+                    icon: const Icon(Icons.check),
+                    label: const Text('Aceitar'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      foregroundColor: Colors.black87,
+                    ),
+                    onPressed: () => _moderateIssue('REJECTED'),
+                    icon: const Icon(Icons.close),
+                    label: const Text('Negar'),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (_isCouncilor) ...[
             const Divider(height: 32),
             Text(
               'Atualizar status',
@@ -328,6 +421,17 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
               onChanged: (v) => setState(() => _selectedStatus = v),
             ),
             const SizedBox(height: 12),
+            if (_selectedStatus == 'REJECTED' || _selectedStatus == 'CLOSED')
+              TextField(
+                controller: _statusNoteController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Motivo da decisão *',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            if (_selectedStatus == 'REJECTED' || _selectedStatus == 'CLOSED')
+              const SizedBox(height: 12),
             FilledButton(
               onPressed: (_savingStatus || _selectedStatus == i.status)
                   ? null

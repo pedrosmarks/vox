@@ -88,6 +88,9 @@ class SalaService {
   Future<void> rejeitarFala(int id, int participanteId) =>
       _post('/api/salas/$id/solicitacoes-fala/$participanteId/rejeitar');
 
+  Future<void> revogarFala(int id, int participanteId) =>
+      _post('/api/salas/$id/solicitacoes-fala/$participanteId/revogar');
+
   // ── Solicitações de entrada ───────────────────────────────
 
   Future<void> aprovarSolicitacao(int id, int participanteId) =>

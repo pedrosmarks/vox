@@ -714,26 +714,18 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
     const id = Number(p.identity);
     if (!id) return;
     this.revokingUserId = id;
-    this.salaService.bloquearMicrofone(this.salaId, id).subscribe({
-      next: () => this.salaService.bloquearCamera(this.salaId, id).subscribe({
-        next: () => {
-          this.salaService.rejeitarFala(this.salaId, id).subscribe({
-            next: () => {
-              this.mediaPermissions[id] = { audio: false, video: false };
-              this.revokingUserId = 0;
-              this.loadSpeakRequests();
-              this.cdr.detectChanges();
-            },
-            error: () => {
-              this.revokingUserId = 0;
-              this.loadSpeakRequests();
-              this.cdr.detectChanges();
-            }
-          });
-        },
-        error: () => { this.revokingUserId = 0; this.loadPendingRequests(); }
-      }),
-      error: () => { this.revokingUserId = 0; this.loadPendingRequests(); }
+    this.salaService.revogarFala(this.salaId, id).subscribe({
+      next: () => {
+        this.mediaPermissions[id] = { audio: false, video: false };
+        this.revokingUserId = 0;
+        this.loadSpeakRequests();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.revokingUserId = 0;
+        this.loadSpeakRequests();
+        this.cdr.detectChanges();
+      }
     });
   }
 

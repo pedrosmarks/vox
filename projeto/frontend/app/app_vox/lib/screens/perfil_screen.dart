@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:typed_data';
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
@@ -26,6 +28,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
   bool _isSavingProfile = false;
   String? _profileMessage;
   bool _profileSuccess = false;
+  XFile? _selectedPhoto;
+  Uint8List? _selectedPhotoBytes;
 
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -84,7 +88,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
         'name': _nameController.text.trim(),
         if (_phoneController.text.trim().isNotEmpty)
           'phone': _phoneController.text.trim(),
-      });
+      }, profilePhoto: _selectedPhoto);
+      _selectedPhoto = null;
+      _selectedPhotoBytes = null;
       _profileSuccess = true;
       _profileMessage = 'Dados atualizados com sucesso!';
       _load();
@@ -94,6 +100,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
     } finally {
       if (mounted) setState(() => _isSavingProfile = false);
     }
+  }
+
+  Future<void> _pickProfilePhoto() async {
+    final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (photo == null) return;
+    final bytes = await photo.readAsBytes();
+    if (mounted)
+      setState(() {
+        _selectedPhoto = photo;
+        _selectedPhotoBytes = bytes;
+      });
   }
 
   Future<void> _savePassword() async {
@@ -195,12 +212,25 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     children: [
                       CircleAvatar(
                         radius: 36,
+                        backgroundImage: _selectedPhotoBytes != null
+                            ? MemoryImage(_selectedPhotoBytes!)
+                            : (_user!.profilePhotoUrl != null
+                                      ? NetworkImage(_user!.profilePhotoUrl!)
+                                      : null)
+                                  as ImageProvider?,
                         child: Text(
-                          _user!.name.isNotEmpty
+                          (_selectedPhotoBytes == null &&
+                                  _user!.profilePhotoUrl == null &&
+                                  _user!.name.isNotEmpty)
                               ? _user!.name[0].toUpperCase()
                               : '?',
                           style: const TextStyle(fontSize: 28),
                         ),
+                      ),
+                      TextButton.icon(
+                        onPressed: _isSavingProfile ? null : _pickProfilePhoto,
+                        icon: const Icon(Icons.photo_camera_outlined),
+                        label: const Text('Escolher foto'),
                       ),
                       const SizedBox(height: 8),
                       Text(

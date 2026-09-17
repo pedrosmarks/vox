@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_client.dart';
 import '../models/user_profile.dart';
@@ -40,23 +41,37 @@ class AuthService {
     required int municipalityId,
     String phone = '',
     String? birthDate,
+    XFile? profilePhoto,
   }) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/api/user'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'name': name,
-        'email': email,
-        'cpf': cpf,
-        'phone': phone,
-        'password': password,
-        if (birthDate != null && birthDate.isNotEmpty) 'birthDate': birthDate,
-        'role': 'CITIZEN',
-        'municipalityId': municipalityId,
-        'acceptedTerms': true,
-        'acceptedPrivacyPolicy': true,
-      }),
+    final fields = <String, String>{
+      'name': name,
+      'email': email,
+      'cpf': cpf,
+      'phone': phone,
+      'password': password,
+      if (birthDate != null && birthDate.isNotEmpty) 'birthDate': birthDate,
+      'role': 'CITIZEN',
+      'municipalityId': municipalityId.toString(),
+      'acceptedTerms': 'true',
+      'acceptedPrivacyPolicy': 'true',
+    };
+    final files = <http.MultipartFile>[];
+    if (profilePhoto != null) {
+      files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          await profilePhoto.readAsBytes(),
+          filename: profilePhoto.name,
+        ),
+      );
+    }
+    final streamedResponse = await ApiClient.multipartRequest(
+      'POST',
+      '$_baseUrl/api/user',
+      fields,
+      files: files,
     );
+    final response = await http.Response.fromStream(streamedResponse);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       String message = 'Não foi possível concluir o cadastro.';
       try {
@@ -85,12 +100,31 @@ class AuthService {
     return user;
   }
 
-  Future<UserProfile> updateProfile(int id, Map<String, dynamic> data) async {
-    final response = await http.put(
-      Uri.parse('$_baseUrl/api/user/$id'),
-      headers: await ApiClient.authHeaders(),
-      body: jsonEncode(data),
+  Future<UserProfile> updateProfile(
+    int id,
+    Map<String, dynamic> data, {
+    XFile? profilePhoto,
+  }) async {
+    final files = <http.MultipartFile>[];
+    if (profilePhoto != null) {
+      files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          await profilePhoto.readAsBytes(),
+          filename: profilePhoto.name,
+        ),
+      );
+    }
+    final streamedResponse = await ApiClient.multipartRequest(
+      'PUT',
+      '$_baseUrl/api/user/$id',
+      data.map((key, value) => MapEntry(key, value.toString())),
+      files: files,
     );
+    final response = await http.Response.fromStream(streamedResponse);
+    if (response.statusCode == 204 || response.body.isEmpty) {
+      return fetchCurrentUser();
+    }
     ApiClient.checkResponse(response);
     return UserProfile.fromJson(
       jsonDecode(response.body) as Map<String, dynamic>,
