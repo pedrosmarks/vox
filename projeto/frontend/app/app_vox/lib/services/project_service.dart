@@ -140,7 +140,7 @@ class ProjectService {
   Future<List<Project>> getPendingProjects({int? page, int? size}) async {
     final params = <String>[];
     if (page != null) params.add('page=$page');
-    if (size != null) params.add('size=$size');
+    params.add('size=${size ?? 1000}');
     final query = params.isNotEmpty ? '?${params.join('&')}' : '';
     final response = await http.get(
       Uri.parse('${ApiClient.baseUrl}/api/moderation/projects/pending$query'),

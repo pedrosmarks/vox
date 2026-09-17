@@ -217,17 +217,6 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
                   );
                 }),
 
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _isSaving ? null : _save,
-                  child: _isSaving
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Salvar configurações'),
-                ),
                 if (_message != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),

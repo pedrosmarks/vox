@@ -216,22 +216,29 @@ class AuthService {
   }
 
   Future<void> createUser(Map<String, dynamic> data) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/api/user'),
-      headers: await ApiClient.authHeaders(),
-      body: jsonEncode(data),
+    final streamedResponse = await ApiClient.multipartRequest(
+      'POST',
+      '$_baseUrl/api/user',
+      _multipartFields(data),
     );
+    final response = await http.Response.fromStream(streamedResponse);
     ApiClient.checkResponse(response);
   }
 
   Future<void> updateUser(int id, Map<String, dynamic> data) async {
-    final response = await http.put(
-      Uri.parse('$_baseUrl/api/user/$id'),
-      headers: await ApiClient.authHeaders(),
-      body: jsonEncode(data),
+    final streamedResponse = await ApiClient.multipartRequest(
+      'PUT',
+      '$_baseUrl/api/user/$id',
+      _multipartFields(data),
     );
+    final response = await http.Response.fromStream(streamedResponse);
     ApiClient.checkResponse(response);
   }
+
+  Map<String, String> _multipartFields(Map<String, dynamic> data) => {
+    for (final entry in data.entries)
+      if (entry.value != null) entry.key: entry.value.toString(),
+  };
 
   Future<void> deleteUser(int id) async {
     final response = await http.delete(

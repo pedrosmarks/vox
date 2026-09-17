@@ -121,12 +121,12 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
   }
 
   bool _isVisible(Project p) {
-    // Rejeitados/cancelados nunca aparecem na listagem pública.
-    if (p.status == 'REJECTED' || p.status == 'CANCELLED') return false;
-    // Projetos de cidadão só aparecem depois de aprovados.
-    final isCitizen = !p.isOfficial && p.type == 'CITIZEN';
-    return !isCitizen ||
-        (p.status != 'PENDING_APPROVAL' && p.status != 'IN_ANALYSIS');
+    // Projetos rejeitados, cancelados ou ainda em análise ficam fora do
+    // catálogo público; aparecem apenas na fila de moderação.
+    return p.status != 'REJECTED' &&
+        p.status != 'CANCELLED' &&
+        p.status != 'PENDING_APPROVAL' &&
+        p.status != 'IN_ANALYSIS';
   }
 
   Future<void> _load() async {

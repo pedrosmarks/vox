@@ -16,7 +16,12 @@ import 'moderacao_screen.dart';
 
 class ProjetoDetalheScreen extends StatefulWidget {
   final int projectId;
-  const ProjetoDetalheScreen({super.key, required this.projectId});
+  final bool fromModeration;
+  const ProjetoDetalheScreen({
+    super.key,
+    required this.projectId,
+    this.fromModeration = false,
+  });
 
   @override
   State<ProjetoDetalheScreen> createState() => _ProjetoDetalheScreenState();
@@ -365,7 +370,11 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: VoxAppBar(title: _project?.title ?? 'Projeto'),
+      appBar: VoxAppBar(
+        title: widget.fromModeration
+            ? 'Detalhe para moderação'
+            : (_project?.title ?? 'Projeto'),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -431,10 +440,11 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
                 p.isOfficial || p.type == 'OFFICIAL',
                 _typeLabel(p),
               ),
-              VoxBadgeColors.projectStatus(
-                p.status,
-                StatusLabels.project(p.status),
-              ),
+              if (!widget.fromModeration)
+                VoxBadgeColors.projectStatus(
+                  p.status,
+                  StatusLabels.project(p.status),
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -478,33 +488,32 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
         children: [
           Text('Moderação', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Color(0xFF1B3F8B),
-                    foregroundColor: Colors.white,
+          if (widget.fromModeration)
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () => _decideProject('PUBLISHED'),
+                    icon: const Icon(Icons.check),
+                    label: const Text('Aceitar'),
                   ),
-                  onPressed: () => _decideProject('PUBLISHED'),
-                  icon: const Icon(Icons.check),
-                  label: const Text('Aceitar'),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black87,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _decideProject('REJECTED'),
+                    icon: const Icon(Icons.close),
+                    label: const Text('Negar'),
                   ),
-                  onPressed: () => _decideProject('REJECTED'),
-                  icon: const Icon(Icons.close),
-                  label: const Text('Negar'),
                 ),
-              ),
-            ],
-          ),
+              ],
+            )
+          else
+            FilledButton.icon(
+              onPressed: _openStatusDialog,
+              icon: const Icon(Icons.edit_outlined),
+              label: const Text('Atualizar status'),
+            ),
         ],
       );
     }

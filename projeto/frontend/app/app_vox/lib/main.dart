@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/splash_screen.dart';
 import 'services/settings_service.dart';
 import 'theme/vox_theme.dart';
@@ -21,6 +22,9 @@ class MainApp extends StatelessWidget {
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,
+          locale: const Locale('pt', 'BR'),
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          supportedLocales: const [Locale('pt', 'BR')],
           theme: VoxTheme.forMode(settings.mode),
           home: const SplashScreen(),
           builder: (context, child) {

@@ -76,47 +76,58 @@ class _UsuariosScreenState extends State<UsuariosScreen>
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           title: Text('${editing != null ? 'Editar' : 'Novo'} $_roleLabel'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (errorText != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      errorText!,
-                      style: const TextStyle(color: Colors.red),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 480,
+              maxHeight: MediaQuery.sizeOf(context).height * .62,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        errorText!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  TextField(
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(labelText: 'Nome'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: emailCtrl,
+                    decoration: const InputDecoration(labelText: 'E-mail'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: cpfCtrl,
+                    decoration: const InputDecoration(labelText: 'CPF'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: phoneCtrl,
+                    decoration: const InputDecoration(labelText: 'Telefone'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: birthCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Data de nascimento (AAAA-MM-DD)',
                     ),
                   ),
-                TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nome'),
-                ),
-                TextField(
-                  controller: emailCtrl,
-                  decoration: const InputDecoration(labelText: 'E-mail'),
-                ),
-                TextField(
-                  controller: cpfCtrl,
-                  decoration: const InputDecoration(labelText: 'CPF'),
-                ),
-                TextField(
-                  controller: phoneCtrl,
-                  decoration: const InputDecoration(labelText: 'Telefone'),
-                ),
-                TextField(
-                  controller: birthCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Data de nascimento (AAAA-MM-DD)',
-                  ),
-                ),
-                if (editing == null)
-                  TextField(
-                    controller: passwordCtrl,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Senha'),
-                  ),
-              ],
+                  if (editing == null) const SizedBox(height: 12),
+                  if (editing == null)
+                    TextField(
+                      controller: passwordCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(labelText: 'Senha'),
+                    ),
+                ],
+              ),
             ),
           ),
           actions: [

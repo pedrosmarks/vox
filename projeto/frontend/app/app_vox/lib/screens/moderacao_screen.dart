@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../models/issue.dart';
@@ -7,10 +8,11 @@ import '../services/auth_service.dart';
 import '../services/project_service.dart';
 import '../services/issue_service.dart';
 import '../theme/vox_app_bar.dart';
+import '../widgets/map_picker_field.dart';
 import '../utils/fallback_categories.dart';
 import '../utils/status_labels.dart';
-import 'problema_detalhe_screen.dart';
-import 'projeto_detalhe_screen.dart';
+import 'problema_detalhe_moderacao_screen.dart';
+import 'projeto_detalhe_moderacao_screen.dart';
 
 const _projectTypes = [
   {'value': 'CHAMBER', 'label': 'Câmara / Prefeitura'},
@@ -77,6 +79,8 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
   String _type = 'CHAMBER';
   String _status = 'PUBLISHED';
   bool _highlighted = false;
+  double? _latitude;
+  double? _longitude;
   XFile? _pickedImage;
   bool _isSubmitting = false;
   String? _submitError;
@@ -158,72 +162,6 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
 
   String _authorName(int id) => _authorNames[id] ?? 'Usuário #$id';
 
-  /// Diálogo que exige um comentário para o cidadão. Retorna o texto, ou null
-  /// se o moderador cancelar.
-  Future<String?> _promptRejectComment(Project p) {
-    final controller = TextEditingController();
-    String? errorText;
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('Rejeitar sugestão'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '“${p.title}”',
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-                const SizedBox(height: 12),
-                if (errorText != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      errorText!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                TextField(
-                  controller: controller,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Comentário para o cidadão *',
-                    hintText: 'Explique por que a sugestão foi rejeitada.',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final text = controller.text.trim();
-                if (text.isEmpty) {
-                  setDialogState(
-                    () => errorText =
-                        'Escreva um comentário explicando o motivo para o cidadão.',
-                  );
-                  return;
-                }
-                Navigator.of(dialogContext).pop(text);
-              },
-              child: const Text('Confirmar rejeição'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _promoteToOfficial(Project p) {
     setState(() {
       _editingProjectId = p.id;
@@ -238,6 +176,8 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
       _neighborhoodController.text = p.neighborhood;
       _streetController.text = p.street;
       _numberController.text = p.number;
+      _latitude = p.latitude;
+      _longitude = p.longitude;
       _startDateController.clear();
       _expectedEndDateController.clear();
       _endDateController.clear();
@@ -278,6 +218,8 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
     _neighborhoodController.clear();
     _streetController.clear();
     _numberController.clear();
+    _latitude = null;
+    _longitude = null;
     _startDateController.clear();
     _expectedEndDateController.clear();
     _endDateController.clear();
@@ -292,8 +234,13 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
         _descriptionController.text.trim().isEmpty ||
         _categoryId == null ||
         _startDateController.text.trim().isEmpty ||
-        _expectedEndDateController.text.trim().isEmpty) {
-      setState(() => _submitError = 'Preencha todos os campos obrigatórios.');
+        _expectedEndDateController.text.trim().isEmpty ||
+        _latitude == null ||
+        _longitude == null) {
+      setState(
+        () => _submitError =
+            'Preencha os campos obrigatórios e selecione a localização no mapa.',
+      );
       return;
     }
 
@@ -317,16 +264,18 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
         'authorId': userId.toString(),
         'categoryId': _categoryId.toString(),
         'type': _type,
-        'status': _status,
+        'status': _editingProjectId == null ? 'PUBLISHED' : _status,
         'highlighted': _highlighted.toString(),
         'isOfficial': 'true',
         'neighborhood': _neighborhoodController.text.trim(),
         'street': _streetController.text.trim(),
         'number': _numberController.text.trim(),
-        'startDate': _startDateController.text.trim(),
-        'expectedEndDate': _expectedEndDateController.text.trim(),
+        'latitude': _latitude?.toString() ?? '',
+        'longitude': _longitude?.toString() ?? '',
+        'startDate': _apiDate(_startDateController.text),
+        'expectedEndDate': _apiDate(_expectedEndDateController.text),
         if (_endDateController.text.trim().isNotEmpty)
-          'endDate': _endDateController.text.trim(),
+          'endDate': _apiDate(_endDateController.text),
         if (_financialAnalysisController.text.trim().isNotEmpty)
           'financialAnalysis': _financialAnalysisController.text.trim(),
         if (_estimatedCostController.text.trim().isNotEmpty)
@@ -463,14 +412,26 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
                                   OutlinedButton(
                                     onPressed: busy
                                         ? null
-                                        : () => Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  ProjetoDetalheScreen(
-                                                    projectId: p.id,
+                                        : () async {
+                                            final changed =
+                                                await Navigator.of(
+                                                  context,
+                                                ).push<bool>(
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        ProjetoDetalheModeracaoScreen(
+                                                          projectId: p.id,
+                                                        ),
                                                   ),
-                                            ),
-                                          ),
+                                                );
+                                            if (changed == true && mounted) {
+                                              setState(() {
+                                                _pending.removeWhere(
+                                                  (item) => item.id == p.id,
+                                                );
+                                              });
+                                            }
+                                          },
                                     child: const Text('Abrir e analisar'),
                                   ),
                                   TextButton.icon(
@@ -525,17 +486,63 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
                       overflow: TextOverflow.ellipsis,
                     ),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ProblemaDetalheScreen(issueId: issue.id),
-                      ),
-                    ),
+                    onTap: () async {
+                      final changed = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              ProblemaDetalheModeracaoScreen(issueId: issue.id),
+                        ),
+                      );
+                      if (changed == true && mounted) {
+                        await _loadPendingIssues();
+                      }
+                    },
                   ),
                 );
               },
             ),
     );
+  }
+
+  Widget _dateField(TextEditingController controller, String label) {
+    return TextField(
+      controller: controller,
+      readOnly: true,
+      onTap: () async {
+        final initial = _displayDateParser(controller.text) ?? DateTime.now();
+        final selected = await showDatePicker(
+          context: context,
+          initialDate: initial,
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+          locale: const Locale('pt', 'BR'),
+          helpText: label,
+          cancelText: 'Cancelar',
+          confirmText: 'Selecionar',
+        );
+        if (selected != null) {
+          controller.text = DateFormat('dd/MM/yyyy').format(selected);
+        }
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: 'Selecione uma data',
+        suffixIcon: const Icon(Icons.calendar_month_outlined),
+      ),
+    );
+  }
+
+  DateTime? _displayDateParser(String value) {
+    try {
+      return DateFormat('dd/MM/yyyy').parseStrict(value);
+    } catch (_) {
+      return DateTime.tryParse(value);
+    }
+  }
+
+  String _apiDate(String value) {
+    final date = _displayDateParser(value);
+    return date == null ? value.trim() : DateFormat('yyyy-MM-dd').format(date);
   }
 
   Widget _buildFormTab() {
@@ -597,12 +604,6 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
               .toList(),
           onChanged: (v) => setState(() => _status = v ?? _status),
         ),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Destacar projeto'),
-          value: _highlighted,
-          onChanged: (v) => setState(() => _highlighted = v),
-        ),
         const SizedBox(height: 4),
         Row(
           children: [
@@ -628,34 +629,37 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
           decoration: const InputDecoration(labelText: 'Bairro'),
         ),
         const SizedBox(height: 12),
+        MapPickerField(
+          initialLatitude: _latitude,
+          initialLongitude: _longitude,
+          onLocationChanged: (point) => setState(() {
+            _latitude = point.latitude;
+            _longitude = point.longitude;
+          }),
+          onAddressChanged: (address) => setState(() {
+            if (address.street.isNotEmpty) {
+              _streetController.text = address.street;
+            }
+            if (address.number.isNotEmpty) {
+              _numberController.text = address.number;
+            }
+            if (address.neighborhood.isNotEmpty) {
+              _neighborhoodController.text = address.neighborhood;
+            }
+          }),
+        ),
+        const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(
-              child: TextField(
-                controller: _startDateController,
-                decoration: const InputDecoration(
-                  labelText: 'Data início * (AAAA-MM-DD)',
-                ),
-              ),
-            ),
+            Expanded(child: _dateField(_startDateController, 'Data início *')),
             const SizedBox(width: 8),
             Expanded(
-              child: TextField(
-                controller: _expectedEndDateController,
-                decoration: const InputDecoration(
-                  labelText: 'Previsão fim * (AAAA-MM-DD)',
-                ),
-              ),
+              child: _dateField(_expectedEndDateController, 'Previsão fim *'),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        TextField(
-          controller: _endDateController,
-          decoration: const InputDecoration(
-            labelText: 'Data de conclusão (AAAA-MM-DD)',
-          ),
-        ),
+        _dateField(_endDateController, 'Data de conclusão'),
         const SizedBox(height: 12),
         TextField(
           controller: _financialAnalysisController,

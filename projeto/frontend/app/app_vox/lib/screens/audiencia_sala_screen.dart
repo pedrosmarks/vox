@@ -380,6 +380,23 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
         _syncingPermissions = false;
         return;
       }
+      final userId = await _authService.getUserId();
+      if (userId != null) {
+        final speechRequests = await _salaService.getSolicitacoesFala(
+          widget.salaId,
+        );
+        final ownRequest = speechRequests.where(
+          (request) => request.userId == userId,
+        );
+        final requestStatus = ownRequest.isEmpty
+            ? 'NOT_REQUESTED'
+            : (ownRequest.last.speechRequestStatus ?? 'NOT_REQUESTED');
+        if (requestStatus == 'REJECTED' ||
+            requestStatus == 'REVOKED' ||
+            requestStatus == 'NOT_REQUESTED') {
+          _requestingPermission = false;
+        }
+      }
       final local = _room?.localParticipant;
       if (local == null) return;
       final audioAllowed =
@@ -658,7 +675,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
             ),
         ],
       ),
-      body: _buildBody(),
+      body: SafeArea(top: false, child: _buildBody()),
     );
   }
 
