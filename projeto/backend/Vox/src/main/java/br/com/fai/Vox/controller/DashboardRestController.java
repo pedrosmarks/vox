@@ -1,11 +1,15 @@
 package br.com.fai.Vox.controller;
 
 import br.com.fai.Vox.domain.UserModel;
+import br.com.fai.Vox.domain.dto.dashboard.CategoryAnalysisDto;
 import br.com.fai.Vox.domain.dto.dashboard.DashboardOverviewDto;
+import br.com.fai.Vox.domain.dto.dashboard.EngagementDto;
 import br.com.fai.Vox.domain.dto.dashboard.HotspotDetailDto;
 import br.com.fai.Vox.domain.dto.dashboard.MapPointDto;
 import br.com.fai.Vox.domain.dto.dashboard.ModerationHealthDto;
 import br.com.fai.Vox.domain.dto.dashboard.NeighborhoodHotspotDto;
+import br.com.fai.Vox.domain.dto.dashboard.ProjectLifecycleDto;
+import br.com.fai.Vox.domain.dto.dashboard.TimeSeriesDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
 import br.com.fai.Vox.port.service.dashboard.DashboardService;
 import br.com.fai.Vox.port.service.user.UserService;
@@ -109,6 +113,62 @@ public class DashboardRestController {
             HttpServletRequest request) {
         int municipalityId = requireAdminMunicipality(request);
         return ResponseEntity.ok(dashboardService.getModerationHealth(municipalityId, from, to));
+    }
+
+    /**
+     * GET /api/admin/dashboard/engajamento?from=2026-08-16
+     * Engajamento cidadão: projetos mais apoiados/opinados, distribuição de
+     * opiniões, ocorrências mais acompanhadas e usuários mais ativos.
+     */
+    @GetMapping("/engajamento")
+    public ResponseEntity<EngagementDto> getEngagement(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            HttpServletRequest request) {
+        int municipalityId = requireAdminMunicipality(request);
+        return ResponseEntity.ok(dashboardService.getEngagement(municipalityId, from, to));
+    }
+
+    /**
+     * GET /api/admin/dashboard/categorias?from=2026-08-16
+     * Análise por categoria: ranking e cruzamento categoria × status.
+     */
+    @GetMapping("/categorias")
+    public ResponseEntity<CategoryAnalysisDto> getCategoryAnalysis(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            HttpServletRequest request) {
+        int municipalityId = requireAdminMunicipality(request);
+        return ResponseEntity.ok(dashboardService.getCategoryAnalysis(municipalityId, from, to));
+    }
+
+    /**
+     * GET /api/admin/dashboard/series-temporais?granularidade=month&from=2026-01-01
+     * Volume de issues e projetos criados ao longo do tempo.
+     * granularidade: day (padrão), week ou month.
+     */
+    @GetMapping("/series-temporais")
+    public ResponseEntity<TimeSeriesDto> getTimeSeries(
+            @RequestParam(value = "granularidade", required = false) String granularidade,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            HttpServletRequest request) {
+        int municipalityId = requireAdminMunicipality(request);
+        return ResponseEntity.ok(dashboardService.getTimeSeries(municipalityId, granularidade, from, to));
+    }
+
+    /**
+     * GET /api/admin/dashboard/projetos/ciclo-vida?from=2026-08-16
+     * Ciclo de vida dos projetos: distribuição por status, tempo médio por
+     * etapa e execução orçamentária.
+     */
+    @GetMapping("/projetos/ciclo-vida")
+    public ResponseEntity<ProjectLifecycleDto> getProjectLifecycle(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            HttpServletRequest request) {
+        int municipalityId = requireAdminMunicipality(request);
+        return ResponseEntity.ok(dashboardService.getProjectLifecycle(municipalityId, from, to));
     }
 
     // --- Helpers ---

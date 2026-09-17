@@ -1,17 +1,22 @@
 package br.com.fai.Vox.implementation.service.dashboard;
 
+import br.com.fai.Vox.domain.dto.dashboard.CategoryAnalysisDto;
 import br.com.fai.Vox.domain.dto.dashboard.DashboardOverviewDto;
 import br.com.fai.Vox.domain.dto.dashboard.DateRangeFilter;
+import br.com.fai.Vox.domain.dto.dashboard.EngagementDto;
 import br.com.fai.Vox.domain.dto.dashboard.HotspotDetailDto;
 import br.com.fai.Vox.domain.dto.dashboard.MapPointDto;
 import br.com.fai.Vox.domain.dto.dashboard.ModerationHealthDto;
 import br.com.fai.Vox.domain.dto.dashboard.NeighborhoodHotspotDto;
+import br.com.fai.Vox.domain.dto.dashboard.ProjectLifecycleDto;
+import br.com.fai.Vox.domain.dto.dashboard.TimeSeriesDto;
 import br.com.fai.Vox.port.dao.dashboard.DashboardDao;
 import br.com.fai.Vox.port.service.dashboard.DashboardService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class DashboardServiceImpl implements DashboardService {
@@ -20,6 +25,10 @@ public class DashboardServiceImpl implements DashboardService {
     private static final int DEFAULT_PRECISION = 3;
     private static final int MIN_PRECISION = 0;
     private static final int MAX_PRECISION = 6;
+
+    /** Granularidades válidas para séries temporais (usadas no date_trunc do SQL). */
+    private static final Set<String> ALLOWED_GRANULARITIES = Set.of("day", "week", "month");
+    private static final String DEFAULT_GRANULARITY = "day";
 
     private final DashboardDao dashboardDao;
 
@@ -61,6 +70,47 @@ public class DashboardServiceImpl implements DashboardService {
     public ModerationHealthDto getModerationHealth(int municipalityId, LocalDate from, LocalDate to) {
         requireMunicipality(municipalityId);
         return dashboardDao.getModerationHealth(municipalityId, buildDateRange(from, to));
+    }
+
+    @Override
+    public EngagementDto getEngagement(int municipalityId, LocalDate from, LocalDate to) {
+        requireMunicipality(municipalityId);
+        return dashboardDao.getEngagement(municipalityId, buildDateRange(from, to));
+    }
+
+    @Override
+    public CategoryAnalysisDto getCategoryAnalysis(int municipalityId, LocalDate from, LocalDate to) {
+        requireMunicipality(municipalityId);
+        return dashboardDao.getCategoryAnalysis(municipalityId, buildDateRange(from, to));
+    }
+
+    @Override
+    public TimeSeriesDto getTimeSeries(int municipalityId, String granularity, LocalDate from, LocalDate to) {
+        requireMunicipality(municipalityId);
+        return dashboardDao.getTimeSeries(municipalityId, normalizeGranularity(granularity), buildDateRange(from, to));
+    }
+
+    @Override
+    public ProjectLifecycleDto getProjectLifecycle(int municipalityId, LocalDate from, LocalDate to) {
+        requireMunicipality(municipalityId);
+        return dashboardDao.getProjectLifecycle(municipalityId, buildDateRange(from, to));
+    }
+
+    /**
+     * Normaliza e valida a granularidade contra uma whitelist. Isso é obrigatório
+     * porque o valor é usado diretamente no {@code date_trunc} do SQL (não é
+     * parametrizável via bind), então qualquer valor fora da whitelist é rejeitado
+     * para evitar injeção.
+     */
+    private String normalizeGranularity(String granularity) {
+        if (granularity == null || granularity.isBlank()) {
+            return DEFAULT_GRANULARITY;
+        }
+        String normalized = granularity.trim().toLowerCase();
+        if (!ALLOWED_GRANULARITIES.contains(normalized)) {
+            throw new IllegalArgumentException("Granularidade inválida. Use: day, week ou month");
+        }
+        return normalized;
     }
 
     /**

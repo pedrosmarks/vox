@@ -1,11 +1,15 @@
 package br.com.fai.Vox.port.dao.dashboard;
 
+import br.com.fai.Vox.domain.dto.dashboard.CategoryAnalysisDto;
 import br.com.fai.Vox.domain.dto.dashboard.DashboardOverviewDto;
 import br.com.fai.Vox.domain.dto.dashboard.DateRangeFilter;
+import br.com.fai.Vox.domain.dto.dashboard.EngagementDto;
 import br.com.fai.Vox.domain.dto.dashboard.HotspotDetailDto;
 import br.com.fai.Vox.domain.dto.dashboard.MapPointDto;
 import br.com.fai.Vox.domain.dto.dashboard.ModerationHealthDto;
 import br.com.fai.Vox.domain.dto.dashboard.NeighborhoodHotspotDto;
+import br.com.fai.Vox.domain.dto.dashboard.ProjectLifecycleDto;
+import br.com.fai.Vox.domain.dto.dashboard.TimeSeriesDto;
 
 import java.util.List;
 
@@ -39,4 +43,20 @@ public interface DashboardDao {
     HotspotDetailDto getNeighborhoodDetail(int municipalityId, String neighborhood, DateRangeFilter dateRange);
 
     ModerationHealthDto getModerationHealth(int municipalityId, DateRangeFilter dateRange);
+
+    /** Engajamento cidadão: apoios, opiniões, acompanhamentos e usuários ativos. */
+    EngagementDto getEngagement(int municipalityId, DateRangeFilter dateRange);
+
+    /** Análise por categoria: ranking e cruzamento categoria × status. */
+    CategoryAnalysisDto getCategoryAnalysis(int municipalityId, DateRangeFilter dateRange);
+
+    /**
+     * Séries temporais de criação de issues e projetos.
+     *
+     * @param granularity {@code day}, {@code week} ou {@code month} (usado como unidade do date_trunc)
+     */
+    TimeSeriesDto getTimeSeries(int municipalityId, String granularity, DateRangeFilter dateRange);
+
+    /** Ciclo de vida dos projetos: distribuição por status, tempo por etapa e orçamento. */
+    ProjectLifecycleDto getProjectLifecycle(int municipalityId, DateRangeFilter dateRange);
 }

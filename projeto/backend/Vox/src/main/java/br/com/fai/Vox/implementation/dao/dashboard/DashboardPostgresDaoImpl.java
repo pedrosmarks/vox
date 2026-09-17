@@ -1,13 +1,18 @@
 package br.com.fai.Vox.implementation.dao.dashboard;
 
+import br.com.fai.Vox.domain.dto.dashboard.CategoryAnalysisDto;
 import br.com.fai.Vox.domain.dto.dashboard.DashboardOverviewDto;
 import br.com.fai.Vox.domain.dto.dashboard.DateRangeFilter;
+import br.com.fai.Vox.domain.dto.dashboard.EngagementDto;
 import br.com.fai.Vox.domain.dto.dashboard.HotspotDetailDto;
 import br.com.fai.Vox.domain.dto.dashboard.MapPointDto;
 import br.com.fai.Vox.domain.dto.dashboard.ModerationHealthDto;
 import br.com.fai.Vox.domain.dto.dashboard.NeighborhoodHotspotDto;
+import br.com.fai.Vox.domain.dto.dashboard.ProjectLifecycleDto;
+import br.com.fai.Vox.domain.dto.dashboard.TimeSeriesDto;
 import br.com.fai.Vox.port.dao.dashboard.DashboardDao;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -292,6 +297,346 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
             throw new RuntimeException(e);
         }
         return list;
+    }
+
+    // =========================================================
+    // ENGAJAMENTO CIDADÃO
+    // =========================================================
+
+    @Override
+    public EngagementDto getEngagement(int municipalityId, DateRangeFilter dateRange) {
+        EngagementDto dto = new EngagementDto();
+
+        // Projetos mais assinados (project_signature). O filtro de data é sobre a
+        // assinatura (s.created_at), medindo apoios no período.
+        dto.setTopSignedProjects(fetchRankedProjects(
+                "SELECT p.id AS project_id, p.title AS title, COUNT(s.id) AS c " +
+                "FROM project p JOIN project_signature s ON s.project_id = p.id " +
+                "WHERE p.municipality_id = ?" + dateClause("s.created_at", dateRange) + " " +
+                "GROUP BY p.id, p.title ORDER BY c DESC LIMIT 10",
+                municipalityId, dateRange));
+
+        // Projetos mais opinados (project_opinion), por volume de opiniões no período.
+        dto.setTopOpinedProjects(fetchRankedProjects(
+                "SELECT p.id AS project_id, p.title AS title, COUNT(o.id) AS c " +
+                "FROM project p JOIN project_opinion o ON o.project_id = p.id " +
+                "WHERE p.municipality_id = ?" + dateClause("o.created_at", dateRange) + " " +
+                "GROUP BY p.id, p.title ORDER BY c DESC LIMIT 10",
+                municipalityId, dateRange));
+
+        // Distribuição global de opiniões por tipo (APPROVE, NEUTRAL) no município.
+        dto.setOpinionDistribution(countGroupBy(
+                "SELECT o.opinion::text AS k, COUNT(*) AS c " +
+                "FROM project_opinion o JOIN project p ON p.id = o.project_id " +
+                "WHERE p.municipality_id = ?" + dateClause("o.created_at", dateRange) + " " +
+                "GROUP BY o.opinion",
+                municipalityId, dateRange));
+
+        // Ocorrências mais acompanhadas (subscription do tipo ISSUE).
+        dto.setTopFollowedIssues(fetchRankedIssues(
+                "SELECT i.id AS issue_id, i.title AS title, COUNT(s.id) AS c " +
+                "FROM issue_report i JOIN subscription s ON s.issue_id = i.id AND s.type = 'ISSUE' " +
+                "WHERE i.municipality_id = ?" + dateClause("s.created_at", dateRange) + " " +
+                "GROUP BY i.id, i.title ORDER BY c DESC LIMIT 10",
+                municipalityId, dateRange));
+
+        // Usuários mais ativos: soma de projetos + issues criados no período.
+        dto.setTopActiveUsers(fetchActiveUsers(municipalityId, dateRange));
+
+        return dto;
+    }
+
+    private List<EngagementDto.RankedProjectDto> fetchRankedProjects(String sql, int municipalityId,
+                                                                     DateRangeFilter dateRange) {
+        final List<EngagementDto.RankedProjectDto> list = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new EngagementDto.RankedProjectDto(
+                            rs.getInt("project_id"), rs.getString("title"), rs.getLong("c")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return list;
+    }
+
+    private List<EngagementDto.RankedIssueDto> fetchRankedIssues(String sql, int municipalityId,
+                                                                 DateRangeFilter dateRange) {
+        final List<EngagementDto.RankedIssueDto> list = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new EngagementDto.RankedIssueDto(
+                            rs.getInt("issue_id"), rs.getString("title"), rs.getLong("c")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return list;
+    }
+
+    private List<EngagementDto.ActiveUserDto> fetchActiveUsers(int municipalityId, DateRangeFilter dateRange) {
+        // Une contagens de projetos e issues por autor, escopado ao município.
+        final String sql =
+                "SELECT u.id AS user_id, u.name AS user_name, " +
+                "       SUM(CASE WHEN src = 'project' THEN 1 ELSE 0 END) AS projects_created, " +
+                "       SUM(CASE WHEN src = 'issue' THEN 1 ELSE 0 END) AS issues_created " +
+                "FROM ( " +
+                "   SELECT author_id, 'project' AS src FROM project " +
+                "   WHERE municipality_id = ?" + dateClause("created_at", dateRange) + " " +
+                "   UNION ALL " +
+                "   SELECT author_id, 'issue' AS src FROM issue_report " +
+                "   WHERE municipality_id = ?" + dateClause("created_at", dateRange) + " " +
+                ") a JOIN user_model u ON u.id = a.author_id " +
+                "GROUP BY u.id, u.name " +
+                "ORDER BY (projects_created + issues_created) DESC LIMIT 10";
+
+        final List<EngagementDto.ActiveUserDto> list = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            idx = bindDateRange(ps, idx, dateRange);
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new EngagementDto.ActiveUserDto(
+                            rs.getInt("user_id"), rs.getString("user_name"),
+                            rs.getLong("projects_created"), rs.getLong("issues_created")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return list;
+    }
+
+    // =========================================================
+    // ANÁLISE POR CATEGORIA
+    // =========================================================
+
+    @Override
+    public CategoryAnalysisDto getCategoryAnalysis(int municipalityId, DateRangeFilter dateRange) {
+        // Contagens agregadas de issues e projetos por categoria.
+        Map<Integer, long[]> counts = new LinkedHashMap<>(); // categoryId -> [issueCount, projectCount, openIssues]
+        Map<Integer, String> names = new LinkedHashMap<>();
+
+        // Issues por categoria (total e abertas).
+        final String issueSql =
+                "SELECT c.id AS category_id, c.name AS category_name, COUNT(i.id) AS total, " +
+                "       SUM(CASE WHEN i.status = 'OPEN' THEN 1 ELSE 0 END) AS open_count " +
+                "FROM category c JOIN issue_report i ON i.category_id = c.id " +
+                "WHERE i.municipality_id = ?" + dateClause("i.created_at", dateRange) + " " +
+                "GROUP BY c.id, c.name";
+        try (PreparedStatement ps = connection.prepareStatement(issueSql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int catId = rs.getInt("category_id");
+                    names.put(catId, rs.getString("category_name"));
+                    long[] arr = counts.computeIfAbsent(catId, k -> new long[3]);
+                    arr[0] = rs.getLong("total");
+                    arr[2] = rs.getLong("open_count");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Projetos por categoria.
+        final String projectSql =
+                "SELECT c.id AS category_id, c.name AS category_name, COUNT(p.id) AS total " +
+                "FROM category c JOIN project p ON p.category_id = c.id " +
+                "WHERE p.municipality_id = ?" + dateClause("p.created_at", dateRange) + " " +
+                "GROUP BY c.id, c.name";
+        try (PreparedStatement ps = connection.prepareStatement(projectSql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int catId = rs.getInt("category_id");
+                    names.put(catId, rs.getString("category_name"));
+                    long[] arr = counts.computeIfAbsent(catId, k -> new long[3]);
+                    arr[1] = rs.getLong("total");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Cruzamento categoria × status (issues e projetos).
+        Map<Integer, Map<String, Long>> issuesByStatus = categoryStatusBreakdown(
+                "SELECT i.category_id AS category_id, i.status::text AS st, COUNT(*) AS c " +
+                "FROM issue_report i WHERE i.municipality_id = ?" + dateClause("i.created_at", dateRange) + " " +
+                "GROUP BY i.category_id, i.status",
+                municipalityId, dateRange);
+        Map<Integer, Map<String, Long>> projectsByStatus = categoryStatusBreakdown(
+                "SELECT p.category_id AS category_id, p.status::text AS st, COUNT(*) AS c " +
+                "FROM project p WHERE p.municipality_id = ?" + dateClause("p.created_at", dateRange) + " " +
+                "GROUP BY p.category_id, p.status",
+                municipalityId, dateRange);
+
+        List<CategoryAnalysisDto.CategoryStatDto> categories = new ArrayList<>();
+        for (Map.Entry<Integer, long[]> e : counts.entrySet()) {
+            int catId = e.getKey();
+            long[] arr = e.getValue();
+            CategoryAnalysisDto.CategoryStatDto stat = new CategoryAnalysisDto.CategoryStatDto(
+                    catId, names.get(catId), arr[0], arr[1]);
+            stat.setOpenIssues(arr[2]);
+            stat.setIssuesByStatus(issuesByStatus.getOrDefault(catId, new LinkedHashMap<>()));
+            stat.setProjectsByStatus(projectsByStatus.getOrDefault(catId, new LinkedHashMap<>()));
+            categories.add(stat);
+        }
+        // Ordena por total (issues + projetos) desc.
+        categories.sort((a, b) -> Long.compare(b.getTotal(), a.getTotal()));
+
+        return new CategoryAnalysisDto(categories);
+    }
+
+    private Map<Integer, Map<String, Long>> categoryStatusBreakdown(String sql, int municipalityId,
+                                                                    DateRangeFilter dateRange) {
+        Map<Integer, Map<String, Long>> result = new LinkedHashMap<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int catId = rs.getInt("category_id");
+                    result.computeIfAbsent(catId, k -> new LinkedHashMap<>())
+                            .put(rs.getString("st"), rs.getLong("c"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+
+    // =========================================================
+    // SÉRIES TEMPORAIS
+    // =========================================================
+
+    @Override
+    public TimeSeriesDto getTimeSeries(int municipalityId, String granularity, DateRangeFilter dateRange) {
+        // 'granularity' já vem validado pelo service (day|week|month) e é usado
+        // diretamente como unidade do date_trunc — nunca é entrada crua do usuário.
+        final String sql =
+                "SELECT to_char(period, 'YYYY-MM-DD') AS period, " +
+                "       SUM(CASE WHEN src = 'issue' THEN 1 ELSE 0 END) AS issue_count, " +
+                "       SUM(CASE WHEN src = 'project' THEN 1 ELSE 0 END) AS project_count " +
+                "FROM ( " +
+                "   SELECT date_trunc('" + granularity + "', created_at) AS period, 'issue' AS src " +
+                "   FROM issue_report WHERE municipality_id = ?" + dateClause("created_at", dateRange) + " " +
+                "   UNION ALL " +
+                "   SELECT date_trunc('" + granularity + "', created_at) AS period, 'project' AS src " +
+                "   FROM project WHERE municipality_id = ?" + dateClause("created_at", dateRange) + " " +
+                ") t GROUP BY period ORDER BY period ASC";
+
+        final List<TimeSeriesDto.TimeSeriesPointDto> points = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            idx = bindDateRange(ps, idx, dateRange);
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    points.add(new TimeSeriesDto.TimeSeriesPointDto(
+                            rs.getString("period"),
+                            rs.getLong("issue_count"),
+                            rs.getLong("project_count")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return new TimeSeriesDto(granularity, points);
+    }
+
+    // =========================================================
+    // CICLO DE VIDA DOS PROJETOS
+    // =========================================================
+
+    @Override
+    public ProjectLifecycleDto getProjectLifecycle(int municipalityId, DateRangeFilter dateRange) {
+        ProjectLifecycleDto dto = new ProjectLifecycleDto();
+
+        // Distribuição de projetos por status.
+        dto.setProjectsByStatus(countGroupBy(
+                "SELECT status::text AS k, COUNT(*) AS c FROM project WHERE municipality_id = ?"
+                        + dateClause("created_at", dateRange) + " GROUP BY status",
+                municipalityId, dateRange));
+
+        // Tempo médio (horas) em cada etapa: diferença entre transições consecutivas
+        // no histórico. Usa LEAD para pegar o created_at da próxima transição do
+        // mesmo projeto; a etapa é o previous_status da transição atual.
+        final String stageSql =
+                "SELECT status, AVG(hours) AS avg_hours FROM ( " +
+                "   SELECT h.previous_status::text AS status, " +
+                "          EXTRACT(EPOCH FROM (" +
+                "              LEAD(h.created_at) OVER (PARTITION BY h.project_id ORDER BY h.created_at) - h.created_at" +
+                "          )) / 3600.0 AS hours " +
+                "   FROM project_status_history h JOIN project p ON p.id = h.project_id " +
+                "   WHERE p.municipality_id = ?" + dateClause("h.created_at", dateRange) + " " +
+                ") s WHERE hours IS NOT NULL AND status IS NOT NULL " +
+                "GROUP BY status ORDER BY avg_hours DESC";
+
+        List<ProjectLifecycleDto.StageDurationDto> stages = new ArrayList<>();
+        try (PreparedStatement ps = connection.prepareStatement(stageSql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    stages.add(new ProjectLifecycleDto.StageDurationDto(
+                            rs.getString("status"), round1(rs.getDouble("avg_hours"))));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        dto.setAvgTimePerStage(stages);
+
+        // Execução orçamentária: soma de estimated_cost e approved_budget.
+        final String budgetSql =
+                "SELECT COALESCE(SUM(estimated_cost), 0) AS est, COALESCE(SUM(approved_budget), 0) AS appr " +
+                "FROM project WHERE municipality_id = ?" + dateClause("created_at", dateRange);
+        try (PreparedStatement ps = connection.prepareStatement(budgetSql)) {
+            int idx = 1;
+            ps.setInt(idx++, municipalityId);
+            bindDateRange(ps, idx, dateRange);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    BigDecimal est = rs.getBigDecimal("est");
+                    BigDecimal appr = rs.getBigDecimal("appr");
+                    dto.setTotalEstimatedCost(est);
+                    dto.setTotalApprovedBudget(appr);
+                    if (est != null && est.signum() > 0) {
+                        dto.setBudgetExecutionRate(round1(
+                                appr.doubleValue() * 100.0 / est.doubleValue()));
+                    } else {
+                        dto.setBudgetExecutionRate(null);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return dto;
     }
 
     // =========================================================
