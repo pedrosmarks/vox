@@ -55,10 +55,9 @@ public class IssueReportServiceImpl implements IssueReportService {
     public int create(CreateIssueReportDto dto) {
         if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) return -1;
 
-        final int authorId = dto.getAuthorId() != null ? dto.getAuthorId() : 0;
-        if (authorId > 0) {
-            validateCitizenWeeklyCreateLimit(authorId);
-        }
+        // O limite semanal é aplicado apenas para CITIZEN, e essa checagem de role
+        // é feita no controller antes de chamar create(). Os demais papéis
+        // (COUNCILOR, MODERATOR, ADMINISTRATOR) não têm limite.
 
         final int issueId = issueReportDao.create(dto);
         logger.log(Level.INFO, "IssueReport criada. ID: " + issueId);
