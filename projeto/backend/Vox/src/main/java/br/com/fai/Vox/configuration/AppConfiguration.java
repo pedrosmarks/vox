@@ -117,9 +117,6 @@ public class AppConfiguration {
     @Value("${app.mail.from}")
     private String mailFrom;
 
-    @Value("${app.frontend.reset-password-url}")
-    private String frontendResetPasswordUrl;
-
     @Bean
     public CloudinaryService getGoogleDriveService() {
         return new CloudinaryServiceImpl(cloudinaryCloudName, cloudinaryApiKey, cloudinaryApiSecret);
@@ -132,7 +129,7 @@ public class AppConfiguration {
 
     @Bean
     public EmailService getEmailService(JavaMailSender mailSender) {
-        return new EmailServiceImpl(mailSender, frontendResetPasswordUrl, mailFrom);
+        return new EmailServiceImpl(mailSender, mailFrom);
     }
 
     // --- Existing DAOs ---
