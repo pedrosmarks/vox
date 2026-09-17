@@ -119,14 +119,6 @@
             <span class="mic-ind small" [class.on]="c.micEnabled">{{ c.micEnabled ? '🎤' : '🔇' }}</span>
           </div>
 
-          <!-- Controles do moderador sobre o cidadão -->
-          <div *ngIf="isModerator && !c.isLocal" class="citizen-controls">
-            <button title="Liberar microfone" (click)="liberarMic(c)">🎤</button>
-            <button title="Bloquear microfone" (click)="bloquearMic(c)">🔇</button>
-            <button title="Liberar câmera" (click)="liberarCam(c)">📷</button>
-            <button title="Bloquear câmera" (click)="bloquearCam(c)">🚫</button>
-            <button class="kick" title="Expulsar" (click)="expulsar(c)">✕</button>
-          </div>
         </div>
       </div>
 
@@ -200,8 +192,16 @@
           <li *ngFor="let c of citizenVMs; trackBy: trackByIdentity" class="participant-item">
             <span class="p-avatar">{{ getInitial(c.name) }}</span>
             <span class="p-name">{{ c.isLocal ? 'Você' : c.name }}</span>
-            <span class="mic-ind small" [class.on]="c.micEnabled">{{ c.micEnabled ? '🎤' : '🔇' }}</span>
-            <button *ngIf="!c.isLocal" class="btn-kick" title="Expulsar" (click)="expulsar(c)">✕</button>
+            <ng-container *ngIf="!c.isLocal">
+              <span class="participant-actions">
+                <button class="participant-control revoke" [class.revoking]="revokingUserId === +c.identity"
+                  [disabled]="revokingUserId === +c.identity" title="Revogar acesso ao microfone e câmera"
+                  (click)="revogarAcesso(c)">
+                  <span class="material-symbols-rounded">{{ revokingUserId === +c.identity ? 'hourglass_top' : 'lock' }}</span>
+                </button>
+                <button class="btn-kick" title="Expulsar" (click)="expulsar(c)">✕</button>
+              </span>
+            </ng-container>
           </li>
         </ul>
       </div>

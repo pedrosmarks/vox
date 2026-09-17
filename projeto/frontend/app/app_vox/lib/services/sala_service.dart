@@ -25,8 +25,9 @@ class SalaService {
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    final list = jsonDecode(response.body) as List;
-    return list.map((e) => Sala.fromJson(e as Map<String, dynamic>)).toList();
+    return _unwrapList(
+      response.body,
+    ).map((e) => Sala.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<Sala> getSalaById(int id) async {
@@ -60,8 +61,7 @@ class SalaService {
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    final list = jsonDecode(response.body) as List;
-    return list
+    return _unwrapList(response.body)
         .map((e) => SolicitacaoEntrada.fromJson(e as Map<String, dynamic>))
         .toList();
   }
@@ -77,8 +77,7 @@ class SalaService {
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    final list = jsonDecode(response.body) as List;
-    return list
+    return _unwrapList(response.body)
         .map((e) => SolicitacaoEntrada.fromJson(e as Map<String, dynamic>))
         .toList();
   }
@@ -135,5 +134,17 @@ class SalaService {
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
+  }
+
+  /// O backend envolve alguns arrays em { "value": [...], "Count": n }.
+  /// Este helper extrai a lista independente do formato da resposta.
+  List<dynamic> _unwrapList(String body) {
+    final decoded = jsonDecode(body);
+    if (decoded is List) return decoded;
+    if (decoded is Map) {
+      if (decoded['value'] is List) return decoded['value'] as List;
+      if (decoded['content'] is List) return decoded['content'] as List;
+    }
+    return [];
   }
 }

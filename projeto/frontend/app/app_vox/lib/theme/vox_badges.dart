@@ -16,16 +16,19 @@ class VoxBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final highContrast =
+        Theme.of(context).colorScheme.primary == const Color(0xFFFFFF00);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: background,
+        color: highContrast ? const Color(0xFFFFFF00) : background,
         borderRadius: BorderRadius.circular(20),
+        border: highContrast ? Border.all(color: Colors.white, width: 2) : null,
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: foreground,
+          color: highContrast ? Colors.black : foreground,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),

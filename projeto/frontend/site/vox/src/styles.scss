@@ -10,6 +10,7 @@ $text-color: #1b3f8b;       // Texto principal no azul da marca
 $white: #ffffff;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -312,6 +313,25 @@ html[data-a11y='HIGH_CONTRAST'] {
 
   // Botões de cancelar/rejeitar → preto com borda, para diferenciar
   .btn-reject, .btn-cancel {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+    font-weight: 800 !important;
+  }
+
+  // Tags/status: manter a informação legível, sem herdar texto branco
+  // sobre as paletas claras do tema normal.
+  .badge-status, .badge-type, .badge-destaque, .role-badge,
+  .status-badge, .follow-badge, .count-badge, .tag-mod,
+  .sala-badge, .stage-badge, .wants-badge, .owned-tag {
+    background: #ffff00 !important;
+    color: #000 !important;
+    border: 2px solid #fff !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+  }
+
+  .badge-mine, .encerrada-label {
     background: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;

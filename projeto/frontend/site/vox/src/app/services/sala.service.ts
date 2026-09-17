@@ -20,6 +20,7 @@ export interface SolicitacaoEntrada {
   roomId: number;
   userId: number;
   status: SolicitacaoStatus;
+  speechRequestStatus?: 'NOT_REQUESTED' | 'PENDING' | 'APPROVED' | 'REJECTED';
   canPublishAudio: boolean;
   canPublishVideo: boolean;
   requestedAt: string;
@@ -59,7 +60,9 @@ export class SalaService {
   }
 
   getSalas(): Observable<Sala[]> {
-    return this.http.get<Sala[]>(`${this.API_URL}/api/salas`);
+    return this.http.get<any>(`${this.API_URL}/api/salas`).pipe(
+      map(res => this.unwrapArray<Sala>(res))
+    );
   }
 
   getSalaById(id: number): Observable<Sala> {
@@ -75,7 +78,9 @@ export class SalaService {
   }
 
   getSolicitacoesEntrada(id: number): Observable<SolicitacaoEntrada[]> {
-    return this.http.get<SolicitacaoEntrada[]>(`${this.API_URL}/api/salas/${id}/solicitacoes-entrada`);
+    return this.http.get<any>(`${this.API_URL}/api/salas/${id}/solicitacoes-entrada`).pipe(
+      map(res => this.unwrapArray<SolicitacaoEntrada>(res))
+    );
   }
 
   // ----- Solicitações de fala -----
@@ -85,7 +90,9 @@ export class SalaService {
   }
 
   getSolicitacoesFala(id: number): Observable<SolicitacaoEntrada[]> {
-    return this.http.get<SolicitacaoEntrada[]>(`${this.API_URL}/api/salas/${id}/solicitacoes-fala`);
+    return this.http.get<any>(`${this.API_URL}/api/salas/${id}/solicitacoes-fala`).pipe(
+      map(res => this.unwrapArray<SolicitacaoEntrada>(res))
+    );
   }
 
   aprovarFala(id: number, participanteId: number): Observable<void> {
@@ -126,5 +133,16 @@ export class SalaService {
 
   gerarToken(id: number): Observable<{ token: string }> {
     return this.http.post<{ token: string }>(`${this.API_URL}/api/salas/${id}/token`, null);
+  }
+
+  /**
+   * O backend às vezes envolve arrays em { value: [...], Count: n }.
+   * Este helper extrai o array independente do formato.
+   */
+  private unwrapArray<T>(res: any): T[] {
+    if (Array.isArray(res)) return res as T[];
+    if (res && Array.isArray(res.value)) return res.value as T[];
+    if (res && Array.isArray(res.content)) return res.content as T[];
+    return [];
   }
 }

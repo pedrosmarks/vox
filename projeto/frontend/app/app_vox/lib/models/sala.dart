@@ -33,6 +33,8 @@ class SolicitacaoEntrada {
   final int roomId;
   final int userId;
   final String status; // PENDING | APPROVED | REJECTED | REMOVED
+  final String?
+  speechRequestStatus; // NOT_REQUESTED | PENDING | APPROVED | REJECTED
   final bool canPublishAudio;
   final bool canPublishVideo;
   final String requestedAt;
@@ -42,6 +44,7 @@ class SolicitacaoEntrada {
     required this.roomId,
     required this.userId,
     required this.status,
+    this.speechRequestStatus,
     required this.canPublishAudio,
     required this.canPublishVideo,
     required this.requestedAt,
@@ -53,6 +56,7 @@ class SolicitacaoEntrada {
         roomId: json['roomId'] as int? ?? 0,
         userId: json['userId'] as int? ?? 0,
         status: json['status'] as String? ?? 'PENDING',
+        speechRequestStatus: json['speechRequestStatus'] as String?,
         canPublishAudio: json['canPublishAudio'] as bool? ?? false,
         canPublishVideo: json['canPublishVideo'] as bool? ?? false,
         requestedAt: json['requestedAt'] as String? ?? '',

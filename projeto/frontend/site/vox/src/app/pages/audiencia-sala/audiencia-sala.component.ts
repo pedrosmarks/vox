@@ -69,10 +69,14 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
 
   // Cidadão já enviou pedido para falar
   requestingPermission = false;
+  private speechRequestId = '';
+  revokingUserId = 0;
+  private syncingPermissions = false;
 
   // Solicitações de entrada pendentes (moderador)
   pendingRequests: SolicitacaoEntrada[] = [];
   requestNames: Record<number, string> = {};
+  mediaPermissions: Record<number, { audio: boolean; video: boolean }> = {};
 
   private pendingPoll: any = null;
   private joinPoll: any = null;
@@ -167,6 +171,7 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
           this.falaPoll = setInterval(() => this.loadSpeakRequests(), 4000);
         } else {
           this.requestEntry();
+          this.uiTick = setInterval(() => this.syncCitizenPermissions(), 1000);
         }
       },
       error: () => {
@@ -371,6 +376,51 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
     }
   }
 
+  private syncCitizenPermissions(): void {
+    if (this.isModerator || this.connState !== 'connected' || this.syncingPermissions) return;
+    this.syncingPermissions = true;
+    this.salaService.getSalaById(this.salaId).subscribe({
+      next: sala => {
+        if (sala.status !== 'OPEN') {
+          this.room?.disconnect();
+          this.connState = 'closed';
+          this.cdr.detectChanges();
+        }
+      },
+      error: () => {}
+    });
+    const local = this.room?.localParticipant;
+    const liveKitAllowed = local?.permissions?.canPublish ?? false;
+    const hadPermission = this.canPublishAudio || this.canPublishVideo;
+    const sources = (local?.permissions?.canPublishSources ?? [])
+          .map(source => String(source).toLowerCase());
+    const allSourcesAllowed = liveKitAllowed && sources.length === 0;
+    const audioAllowed = liveKitAllowed && (allSourcesAllowed || sources.some(source => source.includes('microphone')));
+    const videoAllowed = liveKitAllowed && (allSourcesAllowed || sources.some(source => source.includes('camera')));
+    const gainedAudio = audioAllowed && !this.canPublishAudio;
+    const gainedVideo = videoAllowed && !this.canPublishVideo;
+    this.canPublishAudio = audioAllowed;
+    this.canPublishVideo = videoAllowed;
+    if (!audioAllowed) {
+      this.micOn = false;
+      void local?.setMicrophoneEnabled(false);
+    }
+    if (!videoAllowed) {
+      this.camOn = false;
+      void local?.setCameraEnabled(false);
+    }
+    if (gainedAudio) void this.tryEnableMic();
+    if (gainedVideo) void this.tryEnableCam();
+    if (gainedAudio || gainedVideo) {
+      void local?.setAttributes({ requestMic: 'false', requestCam: 'false', speechRequestId: '' });
+    }
+    if (gainedAudio || gainedVideo || (hadPermission && !audioAllowed && !videoAllowed)) {
+      this.requestingPermission = false;
+    }
+    this.cdr.detectChanges();
+    this.syncingPermissions = false;
+  }
+
   // ── Áudio remoto ───────────────────────────────────────────
 
   /** Cria/atualiza um <audio> oculto e anexa o track de áudio remoto. */
@@ -466,11 +516,15 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
   requestToSpeak(): void {
     if (this.requestingPermission) return;
     this.requestingPermission = true;
+    this.speechRequestId = `${Date.now()}`;
 
     // 1) Registra a solicitação de fala no backend (persistente).
     this.salaService.solicitarFala(this.salaId).subscribe({
       next: () => {},
-      error: () => {}
+      error: () => {
+        // 400 também pode significar que o pedido pendente já existe.
+        this.loadSpeakRequests();
+      }
     });
 
     // 2) Sinaliza em tempo real via atributos do LiveKit (redundância).
@@ -479,7 +533,8 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
       room.localParticipant
         .setAttributes({
           requestMic: (!this.canPublishAudio).toString(),
-          requestCam: (!this.canPublishVideo).toString()
+          requestCam: (!this.canPublishVideo).toString(),
+          speechRequestId: this.speechRequestId
         })
         .catch(() => {});
     }
@@ -497,6 +552,12 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
   private loadPendingRequests(): void {
     this.salaService.getSolicitacoesEntrada(this.salaId).subscribe({
       next: reqs => {
+        reqs.forEach(req => {
+          this.mediaPermissions[req.userId] = {
+            audio: req.canPublishAudio,
+            video: req.canPublishVideo
+          };
+        });
         const pending = reqs.filter(r => r.status === 'PENDING');
         this.pendingRequests = pending;
         pending.forEach(req => {
@@ -539,7 +600,7 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
   private loadSpeakRequests(): void {
     this.salaService.getSolicitacoesFala(this.salaId).subscribe({
       next: reqs => {
-        const pending = reqs.filter(r => r.status === 'PENDING');
+        const pending = reqs.filter(r => r.speechRequestStatus === 'PENDING');
         this.speakRequestIds = pending.map(r => r.userId);
         pending.forEach(req => {
           if (this.requestNames[req.userId]) return;
@@ -558,12 +619,19 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
   aprovarFala(userId: number): void {
     this.salaService.aprovarFala(this.salaId, userId).subscribe({
       next: () => {
+        // O endpoint de aprovação pode atualizar só o estado do pedido.
+        // Libera os dois dispositivos explicitamente para o LiveKit enviar
+        // a atualização de permissões ao cidadão.
+        this.salaService.liberarMicrofone(this.salaId, userId).subscribe({
+          complete: () => this.salaService.liberarCamera(this.salaId, userId).subscribe()
+        });
         this.speakRequestIds = this.speakRequestIds.filter(id => id !== userId);
         this.cdr.detectChanges();
       },
       error: () => {
         // fallback: libera o microfone diretamente
         this.salaService.liberarMicrofone(this.salaId, userId).subscribe();
+        this.salaService.liberarCamera(this.salaId, userId).subscribe();
         this.speakRequestIds = this.speakRequestIds.filter(id => id !== userId);
         this.cdr.detectChanges();
       }
@@ -605,25 +673,76 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
   liberarMic(p: ParticipantVM): void {
     const id = Number(p.identity);
     if (!id) return;
-    this.salaService.liberarMicrofone(this.salaId, id).subscribe();
+    this.salaService.liberarMicrofone(this.salaId, id).subscribe({
+      error: () => this.loadPendingRequests()
+    });
   }
 
   bloquearMic(p: ParticipantVM): void {
     const id = Number(p.identity);
     if (!id) return;
-    this.salaService.bloquearMicrofone(this.salaId, id).subscribe();
+    this.salaService.bloquearMicrofone(this.salaId, id).subscribe({
+      next: () => {
+        this.mediaPermissions[id] = { ...this.mediaPermissions[id], audio: false };
+        this.cdr.detectChanges();
+      },
+      error: () => this.loadPendingRequests()
+    });
   }
 
   liberarCam(p: ParticipantVM): void {
     const id = Number(p.identity);
     if (!id) return;
-    this.salaService.liberarCamera(this.salaId, id).subscribe();
+    this.salaService.liberarCamera(this.salaId, id).subscribe({
+      error: () => this.loadPendingRequests()
+    });
   }
 
   bloquearCam(p: ParticipantVM): void {
     const id = Number(p.identity);
     if (!id) return;
-    this.salaService.bloquearCamera(this.salaId, id).subscribe();
+    this.salaService.bloquearCamera(this.salaId, id).subscribe({
+      next: () => {
+        this.mediaPermissions[id] = { ...this.mediaPermissions[id], video: false };
+        this.cdr.detectChanges();
+      },
+      error: () => this.loadPendingRequests()
+    });
+  }
+
+  revogarAcesso(p: ParticipantVM): void {
+    const id = Number(p.identity);
+    if (!id) return;
+    this.revokingUserId = id;
+    this.salaService.bloquearMicrofone(this.salaId, id).subscribe({
+      next: () => this.salaService.bloquearCamera(this.salaId, id).subscribe({
+        next: () => {
+          this.salaService.rejeitarFala(this.salaId, id).subscribe({
+            next: () => {
+              this.mediaPermissions[id] = { audio: false, video: false };
+              this.revokingUserId = 0;
+              this.loadSpeakRequests();
+              this.cdr.detectChanges();
+            },
+            error: () => {
+              this.revokingUserId = 0;
+              this.loadSpeakRequests();
+              this.cdr.detectChanges();
+            }
+          });
+        },
+        error: () => { this.revokingUserId = 0; this.loadPendingRequests(); }
+      }),
+      error: () => { this.revokingUserId = 0; this.loadPendingRequests(); }
+    });
+  }
+
+  canParticipantPublishAudio(p: ParticipantVM): boolean {
+    return this.mediaPermissions[Number(p.identity)]?.audio ?? p.micEnabled;
+  }
+
+  canParticipantPublishVideo(p: ParticipantVM): boolean {
+    return this.mediaPermissions[Number(p.identity)]?.video ?? p.camEnabled;
   }
 
   /** Expulsa o cidadão — ele precisará solicitar entrada novamente. */
@@ -668,7 +787,7 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
       isModerator: isMod,
       micEnabled,
       camEnabled,
-      wantsMic: p.attributes?.['requestMic'] === 'true',
+      wantsMic: p.attributes?.['requestMic'] === 'true' || !!p.attributes?.['speechRequestId'],
       wantsCam: p.attributes?.['requestCam'] === 'true'
     };
   }

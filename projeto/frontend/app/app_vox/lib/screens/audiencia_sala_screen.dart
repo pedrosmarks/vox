@@ -39,6 +39,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
 
   List<SolicitacaoEntrada> _pendingRequests = [];
   final Map<int, String> _requestNames = {};
+  final Map<int, ({bool audio, bool video})> _mediaPermissions = {};
 
   /// userIds que pediram para falar (via backend /solicitacoes-fala)
   List<int> _speakRequestIds = [];
@@ -53,6 +54,9 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
 
   /// Cidadão já solicitou permissão para falar/câmera
   bool _requestingPermission = false;
+  int? _revokingUserId;
+  String _speechRequestId = '';
+  bool _syncingPermissions = false;
 
   // ── Helpers de identidade ──────────────────────────────────
 
@@ -116,6 +120,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
       _isLoading = true;
       _loadError = null;
     });
+    _mediaPermissions.clear(); // Initialize the map
     try {
       final sala = await _salaService.getSalaById(widget.salaId);
       if (!mounted) return;
@@ -134,6 +139,9 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
         });
       } else {
         _requestEntry();
+        _pendingPollTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+          _syncCitizenPermissions();
+        });
       }
     } catch (_) {
       if (mounted) {
@@ -322,8 +330,15 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     if (gainedVideo) {
       _requestMediaPermissions().then((_) => _tryEnableCam());
     }
-    if (!audioAllowed) _micOn = false;
-    if (!videoAllowed) _camOn = false;
+    if (!audioAllowed) {
+      _micOn = false;
+      unawaited(local.setMicrophoneEnabled(false));
+    }
+    if (!videoAllowed) {
+      _camOn = false;
+      unawaited(local.setCameraEnabled(false));
+    }
+    if (mounted) setState(() {});
   }
 
   Future<void> _tryEnableMic() async {
@@ -350,6 +365,70 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _syncCitizenPermissions() async {
+    if (_isModerator ||
+        _connectionState != 'connected' ||
+        _syncingPermissions) {
+      return;
+    }
+    _syncingPermissions = true;
+    try {
+      final sala = await _salaService.getSalaById(widget.salaId);
+      if (sala.status != 'OPEN') {
+        await _room?.disconnect();
+        if (mounted) setState(() => _connectionState = 'closed');
+        _syncingPermissions = false;
+        return;
+      }
+      final local = _room?.localParticipant;
+      if (local == null) return;
+      final audioAllowed =
+          local.permissions.canPublish &&
+          (local.permissions.canPublishSources.isEmpty ||
+              local.permissions.canPublishSources.any(
+                (s) => s.name.toUpperCase().contains('MICROPHONE'),
+              ));
+      final videoAllowed =
+          local.permissions.canPublish &&
+          (local.permissions.canPublishSources.isEmpty ||
+              local.permissions.canPublishSources.any(
+                (s) => s.name.toUpperCase().contains('CAMERA'),
+              ));
+      final hadPermission = _canPublishAudio || _canPublishVideo;
+      final gainedAudio = audioAllowed && !_canPublishAudio;
+      final gainedVideo = videoAllowed && !_canPublishVideo;
+      _canPublishAudio = audioAllowed;
+      _canPublishVideo = videoAllowed;
+      if (!audioAllowed) _micOn = false;
+      if (!videoAllowed) _camOn = false;
+      if (!audioAllowed) {
+        await _room?.localParticipant?.setMicrophoneEnabled(false);
+      }
+      if (!videoAllowed) await _room?.localParticipant?.setCameraEnabled(false);
+      if (hadPermission && !audioAllowed && !videoAllowed) {
+        await _room?.localParticipant?.setAttributes({
+          'requestMic': 'false',
+          'requestCam': 'false',
+          'speechRequestId': '',
+        });
+        _requestingPermission = false;
+      }
+      if (gainedAudio) await _tryEnableMic();
+      if (gainedVideo) await _tryEnableCam();
+      if (gainedAudio || gainedVideo) {
+        await _room?.localParticipant?.setAttributes({
+          'requestMic': 'false',
+          'requestCam': 'false',
+          'speechRequestId': '',
+        });
+      }
+      if (mounted) setState(() {});
+    } catch (_) {
+    } finally {
+      _syncingPermissions = false;
+    }
+  }
+
   // ── Controles de mídia ─────────────────────────────────────
 
   Future<void> _toggleMic() async {
@@ -372,6 +451,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     final room = _room;
     if (_requestingPermission) return;
     setState(() => _requestingPermission = true);
+    _speechRequestId = DateTime.now().microsecondsSinceEpoch.toString();
 
     // 1) Registra a solicitação de fala no backend (persistente).
     try {
@@ -383,6 +463,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
       await room?.localParticipant?.setAttributes({
         'requestMic': (!_canPublishAudio).toString(),
         'requestCam': (!_canPublishVideo).toString(),
+        'speechRequestId': _speechRequestId,
       });
     } catch (_) {}
   }
@@ -411,13 +492,21 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
             ..addAll(names);
         });
       }
+      for (final req in reqs) {
+        _mediaPermissions[req.userId] = (
+          audio: req.canPublishAudio,
+          video: req.canPublishVideo,
+        );
+      }
     } catch (_) {}
   }
 
   Future<void> _loadSpeakRequests() async {
     try {
       final reqs = await _salaService.getSolicitacoesFala(widget.salaId);
-      final pending = reqs.where((r) => r.status == 'PENDING').toList();
+      final pending = reqs
+          .where((r) => r.speechRequestStatus == 'PENDING')
+          .toList();
       final names = <int, String>{};
       for (final req in pending) {
         if (_requestNames.containsKey(req.userId)) continue;
@@ -441,10 +530,14 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
   Future<void> _aprovarFala(int userId) async {
     try {
       await _salaService.aprovarFala(widget.salaId, userId);
+      // Garante que a permissão de publicação chegue ao participante no LiveKit.
+      await _salaService.liberarMicrofone(widget.salaId, userId);
+      await _salaService.liberarCamera(widget.salaId, userId);
     } catch (_) {
       // fallback: libera o microfone diretamente
       try {
         await _salaService.liberarMicrofone(widget.salaId, userId);
+        await _salaService.liberarCamera(widget.salaId, userId);
       } catch (_) {}
     }
     if (mounted) {
@@ -481,60 +574,29 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
 
   Future<void> _liberarMic(livekit.Participant p) async {
     try {
-      await _salaService.liberarMicrofone(widget.salaId, int.parse(p.identity));
-    } catch (_) {}
-  }
-
-  Future<void> _bloquearMic(livekit.Participant p) async {
-    try {
-      await _salaService.bloquearMicrofone(
-        widget.salaId,
-        int.parse(p.identity),
+      final id = int.parse(p.identity);
+      await _salaService.liberarMicrofone(widget.salaId, id);
+      _mediaPermissions[id] = (
+        audio: true,
+        video: _mediaPermissions[id]?.video ?? false,
       );
+      if (mounted) setState(() {});
     } catch (_) {}
   }
 
-  Future<void> _liberarCam(livekit.Participant p) async {
+  Future<void> _revogarAcesso(livekit.Participant p) async {
+    final id = int.parse(p.identity);
+    if (mounted) setState(() => _revokingUserId = id);
     try {
-      await _salaService.liberarCamera(widget.salaId, int.parse(p.identity));
-    } catch (_) {}
-  }
-
-  Future<void> _bloquearCam(livekit.Participant p) async {
-    try {
-      await _salaService.bloquearCamera(widget.salaId, int.parse(p.identity));
-    } catch (_) {}
-  }
-
-  /// Expulsa o cidadão da sala. Ele precisará solicitar entrada novamente.
-  Future<void> _expulsar(livekit.Participant p) async {
-    final name = p.name.isNotEmpty ? p.name : p.identity;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Expulsar participante'),
-        content: Text(
-          'Remover $name da sala? Ele precisará solicitar entrada novamente.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Expulsar'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    try {
-      await _salaService.expulsarParticipante(
-        widget.salaId,
-        int.parse(p.identity),
-      );
-    } catch (_) {}
+      await _salaService.bloquearMicrofone(widget.salaId, id);
+      await _salaService.bloquearCamera(widget.salaId, id);
+      // Encerra o pedido APPROVED para que um novo clique gere PENDING.
+      await _salaService.rejeitarFala(widget.salaId, id);
+      _mediaPermissions[id] = (audio: false, video: false);
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _revokingUserId = null);
+    }
   }
 
   Future<void> _encerrarSala() async {
@@ -1053,7 +1115,7 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     final wantsPermission = wantsMic || wantsCam;
 
     return GestureDetector(
-      onLongPress: _isModerator ? () => _showCitizenOptions(p) : null,
+      onLongPress: null,
       child: Container(
         // Quadro travado em 1:1 (quadrado): largura = altura da faixa menos margens.
         width: 116,
@@ -1147,98 +1209,6 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     );
   }
 
-  /// Moderador: menu de ações ao segurar o tile de um cidadão
-  void _showCitizenOptions(livekit.Participant p) {
-    final name = p.name.isNotEmpty ? p.name : p.identity;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1E1E2E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                name,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            const Divider(color: Colors.white12),
-            ListTile(
-              leading: const Icon(Icons.mic, color: Colors.greenAccent),
-              title: const Text(
-                'Liberar microfone',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _liberarMic(p);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.mic_off, color: Colors.redAccent),
-              title: const Text(
-                'Bloquear microfone',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _bloquearMic(p);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam, color: Colors.greenAccent),
-              title: const Text(
-                'Liberar câmera',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _liberarCam(p);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam_off, color: Colors.redAccent),
-              title: const Text(
-                'Bloquear câmera',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _bloquearCam(p);
-              },
-            ),
-            const Divider(color: Colors.white12),
-            ListTile(
-              leading: const Icon(Icons.person_remove, color: Colors.redAccent),
-              title: const Text(
-                'Expulsar da sala',
-                style: TextStyle(color: Colors.redAccent),
-              ),
-              subtitle: const Text(
-                'Precisará pedir entrada novamente',
-                style: TextStyle(color: Colors.white38, fontSize: 11),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _expulsar(p);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ── Controles de mídia ─────────────────────────────────────
 
   Widget _buildControls() {
@@ -1325,7 +1295,9 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     if (room != null) {
       for (final p in room.remoteParticipants.values) {
         final attrs = p.attributes;
-        if (attrs['requestMic'] == 'true' || attrs['requestCam'] == 'true') {
+        if (attrs['requestMic'] == 'true' ||
+            attrs['requestCam'] == 'true' ||
+            (attrs['speechRequestId']?.isNotEmpty ?? false)) {
           requesters.add(p);
         }
       }
@@ -1334,8 +1306,12 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
     final hasPending = _pendingRequests.isNotEmpty;
     final hasRequesters = requesters.isNotEmpty;
     final hasSpeakRequests = _speakRequestIds.isNotEmpty;
+    final participants = _citizenParticipants;
 
-    if (!hasPending && !hasRequesters && !hasSpeakRequests) {
+    if (!hasPending &&
+        !hasRequesters &&
+        !hasSpeakRequests &&
+        participants.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -1349,6 +1325,70 @@ class _AudienciaSalaScreenState extends State<AudienciaSalaScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (participants.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 10, 16, 4),
+              child: Text(
+                'Participantes',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ...participants.map((p) {
+              final name = p.name.isNotEmpty ? p.name : p.identity;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.white12,
+                      child: Text(
+                        name.substring(0, 1).toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 92,
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: IconButton(
+                          tooltip: 'Revogar acesso ao microfone e câmera',
+                          icon: Icon(
+                            _revokingUserId == int.tryParse(p.identity)
+                                ? Icons.hourglass_top
+                                : Icons.lock_outline,
+                            color: Colors.redAccent,
+                            size: 20,
+                          ),
+                          onPressed: _revokingUserId == int.tryParse(p.identity)
+                              ? null
+                              : () => _revogarAcesso(p),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+
           // Pedidos de entrada (PENDING)
           if (hasPending) ...[
             const Padding(
