@@ -23,6 +23,7 @@
 - [Configurações do Usuário](#configurações-do-usuário)
 - [Salas de Conferência (LiveKit)](#salas-de-conferência-livekit)
 - [Dashboard Administrativo](#dashboard-administrativo)
+- [Logs de Auditoria](#logs-de-auditoria)
 
 ---
 
@@ -1616,6 +1617,60 @@ Distribuição dos projetos por status, tempo médio em cada etapa (via históri
 ```
 - `avgTimePerStage`: tempo médio (horas) que os projetos permaneceram em cada etapa, calculado pelas transições consecutivas do histórico de status.
 - `budgetExecutionRate`: percentual do orçamento aprovado sobre o custo estimado. Pode ser `null` se não houver custo estimado no período.
+
+---
+
+## Logs de Auditoria
+
+> 🔒 Requer role `ADMINISTRATOR`. Sempre escopado ao município do administrador autenticado (via token).
+
+O backend registra automaticamente as **ações de escrita** e a **autenticação**:
+
+- São auditadas as chamadas `POST`, `PUT`, `PATCH` e `DELETE` (inclui o login em `POST /authenticate`).
+- **Não** são auditados: chamadas `GET` e a documentação (`/swagger-ui`, `/v3/api-docs`).
+- Chamadas não autenticadas (ex.: login, recuperação de senha) são registradas com `userId` nulo.
+- Tentativas negadas (`401`/`403`) e erros (`500`) também são registrados (via `statusCode`/`success`).
+- **Não** é guardado o corpo da requisição — apenas os metadados da atividade.
+- A gravação é assíncrona (não afeta o tempo de resposta) e os registros são mantidos por **90 dias** (limpeza automática diária).
+
+### Listar logs de auditoria
+```
+GET /api/admin/logs?page=0&size=20&userId=7&method=POST&from=2026-09-01&to=2026-09-16
+Authorization: Bearer <token>
+```
+**Query params (todos opcionais, exceto paginação):**
+- `page` (padrão `0`), `size` (padrão `20`, máx. `200`)
+- `userId`: filtra por usuário
+- `method`: `POST`, `PUT`, `PATCH` ou `DELETE`
+- `from` / `to`: intervalo de datas (ISO `yyyy-MM-dd`), sobre a data do registro
+
+**Resposta `200`:**
+```json
+{
+  "content": [
+    {
+      "id": 1024,
+      "userId": 7,
+      "userRole": "CITIZEN",
+      "municipalityId": 1,
+      "httpMethod": "POST",
+      "path": "/api/issues",
+      "queryString": null,
+      "statusCode": 201,
+      "success": true,
+      "durationMs": 143,
+      "ipAddress": "203.0.113.10",
+      "userAgent": "Mozilla/5.0 ...",
+      "errorMessage": null,
+      "createdAt": "2026-09-16T10:32:15"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 342
+}
+```
+Ordenado do mais recente para o mais antigo. `userId`, `userRole` e `municipalityId` ficam `null` em chamadas não autenticadas; `errorMessage` é preenchido quando a requisição falhou.
 
 ---
 
