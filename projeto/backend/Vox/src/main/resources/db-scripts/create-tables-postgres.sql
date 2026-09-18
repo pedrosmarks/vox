@@ -1,5 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+DROP TABLE IF EXISTS audit_log CASCADE;
 DROP TABLE IF EXISTS user_settings CASCADE;
 DROP TABLE IF EXISTS project_signature CASCADE;
 DROP TABLE IF EXISTS notification CASCADE;
@@ -389,3 +390,31 @@ CREATE TABLE user_settings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- =============================================
+-- Log de auditoria de chamadas (mutações + login)
+-- =============================================
+-- Registra ações de escrita (POST/PUT/PATCH/DELETE) e autenticação.
+-- GETs e Swagger não são registrados. Não guarda corpo da requisição.
+-- user_id fica NULL em chamadas não autenticadas (ex.: login, forgot-password).
+
+CREATE TABLE audit_log (
+    id BIGSERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES user_model(id) ON DELETE SET NULL,
+    user_role VARCHAR(20),
+    municipality_id INTEGER,
+    http_method VARCHAR(10) NOT NULL,
+    path VARCHAR(512) NOT NULL,
+    query_string VARCHAR(1024),
+    status_code INTEGER NOT NULL,
+    success BOOLEAN NOT NULL,
+    duration_ms BIGINT,
+    ip_address VARCHAR(64),
+    user_agent VARCHAR(512),
+    error_message VARCHAR(1024),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_audit_log_created_at ON audit_log(created_at);
+CREATE INDEX idx_audit_log_user ON audit_log(user_id);
+CREATE INDEX idx_audit_log_municipality ON audit_log(municipality_id);
