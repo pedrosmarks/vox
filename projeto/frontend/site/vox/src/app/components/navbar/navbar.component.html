@@ -11,38 +11,76 @@
     </a>
 
     <nav class="navbar-nav">
+      <!-- ADMINISTRADOR -->
       <a
+        *ngIf="isAdmin"
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        class="nav-link"
+      >Dashboard</a>
+
+      <a
+        *ngIf="isAdmin"
+        routerLink="/logs"
+        routerLinkActive="active"
+        class="nav-link"
+      >Logs</a>
+
+      <a
+        *ngIf="isAdmin"
+        routerLink="/usuarios"
+        routerLinkActive="active"
+        class="nav-link"
+      >Usuários</a>
+
+      <!-- Não-admin: projetos em votação -->
+      <a
+        *ngIf="!isAdmin"
         routerLink="/projetos"
         routerLinkActive="active"
         class="nav-link"
       >Projetos em votação</a>
 
+      <!-- CIDADÃO -->
       <a
-        *ngIf="!isModerator"
+        *ngIf="isCitizen"
         routerLink="/sugestoes"
         routerLinkActive="active"
         class="nav-link"
       >Sugerir um Projeto</a>
 
       <a
-        *ngIf="!isModerator"
+        *ngIf="isCitizen"
         routerLink="/relatar-problema"
         routerLinkActive="active"
         class="nav-link"
       >Relatar um Problema</a>
 
+      <!-- VEREADOR -->
       <a
+        *ngIf="isCouncilor"
+        routerLink="/problemas"
+        routerLinkActive="active"
+        class="nav-link"
+      >Problemas Relatados</a>
+
+      <!-- Audiência: cidadão e moderador (vereador não) -->
+      <a
+        *ngIf="isCitizen || isModerator"
         routerLink="/audiencia"
         routerLinkActive="active"
         class="nav-link"
       >Audiência Pública</a>
 
+      <!-- Comunidade: todos menos admin -->
       <a
+        *ngIf="!isAdmin"
         routerLink="/comunidade"
         routerLinkActive="active"
         class="nav-link"
       >Comunidade</a>
 
+      <!-- MODERADOR -->
       <a
         *ngIf="isModerator"
         routerLink="/moderacao"

@@ -234,6 +234,22 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
     }
 
     @Override
+    public long countCreatedInLastWeek(int authorId) {
+        final String sql = "SELECT COUNT(*) FROM project WHERE author_id = ? AND created_at >= NOW() - INTERVAL '7 days'";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, authorId);
+            ResultSet rs = ps.executeQuery();
+            long count = rs.next() ? rs.getLong(1) : 0;
+            rs.close();
+            ps.close();
+            return count;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public List<Project> findByAuthorId(int authorId) {
         final List<Project> projects = new ArrayList<>();
         final String sql = "SELECT * FROM project WHERE author_id = ? ORDER BY created_at DESC";

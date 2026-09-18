@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_client.dart';
 import '../models/user_profile.dart';
@@ -31,37 +32,118 @@ class AuthService {
     }
   }
 
+  /// Cadastro público de novo cidadão. O papel é sempre CITIZEN.
+  Future<void> register({
+    required String name,
+    required String email,
+    required String cpf,
+    required String password,
+    required int municipalityId,
+    String phone = '',
+    String? birthDate,
+    XFile? profilePhoto,
+  }) async {
+    final fields = <String, String>{
+      'name': name,
+      'email': email,
+      'cpf': cpf,
+      'phone': phone,
+      'password': password,
+      if (birthDate != null && birthDate.isNotEmpty) 'birthDate': birthDate,
+      'role': 'CITIZEN',
+      'municipalityId': municipalityId.toString(),
+      'acceptedTerms': 'true',
+      'acceptedPrivacyPolicy': 'true',
+    };
+    final files = <http.MultipartFile>[];
+    if (profilePhoto != null) {
+      files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          await profilePhoto.readAsBytes(),
+          filename: profilePhoto.name,
+        ),
+      );
+    }
+    final streamedResponse = await ApiClient.multipartRequest(
+      'POST',
+      '$_baseUrl/api/user',
+      fields,
+      files: files,
+    );
+    final response = await http.Response.fromStream(streamedResponse);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String message = 'Não foi possível concluir o cadastro.';
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['message'] is String) message = data['message'] as String;
+      } catch (_) {}
+      if (response.statusCode == 409 || response.statusCode == 400) {
+        throw AuthException(message);
+      }
+      throw AuthException('Erro ao conectar ao servidor. Tente novamente.');
+    }
+  }
+
   Future<UserProfile> fetchCurrentUser() async {
     final response = await http.get(
       Uri.parse('$_baseUrl/api/auth/me'),
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    final user = UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    final user = UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_userIdKey, user.id.toString());
     await prefs.setString(_municipalityIdKey, user.municipalityId.toString());
     return user;
   }
 
-  Future<UserProfile> updateProfile(int id, Map<String, dynamic> data) async {
-    final response = await http.put(
-      Uri.parse('$_baseUrl/api/user/$id'),
-      headers: await ApiClient.authHeaders(),
-      body: jsonEncode(data),
+  Future<UserProfile> updateProfile(
+    int id,
+    Map<String, dynamic> data, {
+    XFile? profilePhoto,
+  }) async {
+    final files = <http.MultipartFile>[];
+    if (profilePhoto != null) {
+      files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          await profilePhoto.readAsBytes(),
+          filename: profilePhoto.name,
+        ),
+      );
+    }
+    final streamedResponse = await ApiClient.multipartRequest(
+      'PUT',
+      '$_baseUrl/api/user/$id',
+      data.map((key, value) => MapEntry(key, value.toString())),
+      files: files,
     );
+    final response = await http.Response.fromStream(streamedResponse);
+    if (response.statusCode == 204 || response.body.isEmpty) {
+      return fetchCurrentUser();
+    }
     ApiClient.checkResponse(response);
-    return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
-  Future<void> updatePassword(String currentPassword, String newPassword) async {
+  Future<void> updatePassword(String oldPassword, String newPassword) async {
+    final id = await getUserId();
+    final payload = <String, dynamic>{
+      'oldPassword': oldPassword,
+      'newPassword': newPassword,
+    };
+    if (id != null) {
+      payload['id'] = id;
+    }
     final response = await http.put(
       Uri.parse('$_baseUrl/api/user/update-password'),
       headers: await ApiClient.authHeaders(),
-      body: jsonEncode({
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      }),
+      body: jsonEncode(payload),
     );
     ApiClient.checkResponse(response);
   }
@@ -102,7 +184,80 @@ class AuthService {
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    return UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  // ── Administração de usuários (somente ADMINISTRATOR) ──────
+
+  Future<List<UserProfile>> getAllUsers() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/api/user'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list
+        .map((e) => UserProfile.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<UserProfile>> getUsersByRole(String role) async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/api/user/role/$role'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list
+        .map((e) => UserProfile.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> createUser(Map<String, dynamic> data) async {
+    final streamedResponse = await ApiClient.multipartRequest(
+      'POST',
+      '$_baseUrl/api/user',
+      _multipartFields(data),
+    );
+    final response = await http.Response.fromStream(streamedResponse);
+    ApiClient.checkResponse(response);
+  }
+
+  Future<void> updateUser(int id, Map<String, dynamic> data) async {
+    final streamedResponse = await ApiClient.multipartRequest(
+      'PUT',
+      '$_baseUrl/api/user/$id',
+      _multipartFields(data),
+    );
+    final response = await http.Response.fromStream(streamedResponse);
+    ApiClient.checkResponse(response);
+  }
+
+  Map<String, String> _multipartFields(Map<String, dynamic> data) => {
+    for (final entry in data.entries)
+      if (entry.value != null) entry.key: entry.value.toString(),
+  };
+
+  Future<void> deleteUser(int id) async {
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/api/user/$id'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  // ── Logs (somente ADMINISTRATOR) ────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getLogs() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/api/logs'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    final list = jsonDecode(response.body) as List;
+    return list.cast<Map<String, dynamic>>();
   }
 
   Future<void> logout() async {
@@ -165,6 +320,20 @@ class AuthService {
     final payload = decodeToken(token);
     final id = payload['municipalityId'] ?? payload['municipality_id'];
     return id != null ? int.tryParse(id.toString()) ?? 1 : 1;
+  }
+
+  /// Papel do usuário logado ('ADMINISTRATOR' | 'MODERATOR' | 'COUNCILOR' |
+  /// 'CITIZEN'), lido do JWT — usado para decidir quais telas mostrar, igual
+  /// ao site.
+  Future<String?> getUserRole() async {
+    final token = await getToken();
+    if (token == null) return null;
+    final payload = decodeToken(token);
+    final roles = payload['roles'] as List?;
+    final role =
+        payload['role'] ??
+        (roles != null && roles.isNotEmpty ? roles.first : null);
+    return role as String?;
   }
 }
 

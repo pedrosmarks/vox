@@ -1,12 +1,17 @@
 package br.com.fai.Vox.implementation.service.user;
 
 import br.com.fai.Vox.domain.UserModel;
+import br.com.fai.Vox.domain.dto.CreateUserDto;
 import br.com.fai.Vox.port.dao.passwordresettoken.PasswordResetTokenDao;
 import br.com.fai.Vox.port.dao.user.UserDao;
+import br.com.fai.Vox.port.service.drive.CloudinaryService;
+import br.com.fai.Vox.port.service.email.EmailService;
 import br.com.fai.Vox.port.service.user.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,120 +27,149 @@ public class UserServiceImpl implements UserService {
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder;
     private final PasswordResetTokenDao passwordResetTokenDao;
+    private final EmailService emailService;
+    private final CloudinaryService cloudinaryService;
 
     public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder,
-                            PasswordResetTokenDao passwordResetTokenDao) {
+                            PasswordResetTokenDao passwordResetTokenDao,
+                            EmailService emailService,
+                            CloudinaryService cloudinaryService) {
         this.userDao = userDao;
         this.passwordEncoder = passwordEncoder;
         this.passwordResetTokenDao = passwordResetTokenDao;
+        this.emailService = emailService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Override
     public int create(UserModel entity) {
-        int invalidResponse = -1;
+        if (entity == null) return -1;
+        if (entity.getName().isEmpty() || entity.getEmail().isEmpty() || isPassWordInvalid(entity.getPassword())) return -1;
+        return userDao.create(entity);
+    }
 
-        if (entity == null) {
-            return invalidResponse;
+    @Override
+    public int create(CreateUserDto dto) {
+        if (dto == null) return -1;
+
+        UserModel entity = dto.toUserModel();
+        if (entity.getName() == null || entity.getName().isEmpty()
+                || entity.getEmail() == null || entity.getEmail().isEmpty()
+                || isPassWordInvalid(entity.getPassword())) {
+            return -1;
         }
 
-        if (entity.getName().isEmpty() || entity.getEmail().isEmpty() || isPassWordInvalid(entity.getPassword())) {
-            return invalidResponse;
-        }
+        // Foto de perfil é opcional: só faz upload quando um arquivo é enviado.
+        String photoUrl = uploadProfilePhoto(dto.getFile(), entity.getEmail());
+        entity.setProfilePhotoUrl(photoUrl);
 
-        final int id = userDao.create(entity);
-        return id;
+        return userDao.create(entity);
+    }
+
+    /**
+     * Faz o upload da foto de perfil quando um arquivo válido é informado.
+     *
+     * @return a URL pública da imagem, ou {@code null} quando não há arquivo
+     */
+    private String uploadProfilePhoto(MultipartFile file, String ownerKey) {
+        if (file == null || file.isEmpty()) return null;
+        try {
+            String fileName = "user_" + ownerKey + "_" + file.getOriginalFilename();
+            return cloudinaryService.uploadFile(file, fileName);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Erro ao fazer upload da foto de perfil do usuário.", e);
+            throw new RuntimeException("Falha ao enviar a foto de perfil", e);
+        }
     }
 
     private boolean isPassWordInvalid(final String password) {
-
-        if (password.isEmpty()) {
-            return true;
-        }
-
-        if (password.length() < 2) {
-            return true;
-        }
-
-        return false;
+        return password == null || password.isEmpty() || password.length() < 2;
     }
 
     @Override
     public void delete(int id) {
-        if (id < 0) {
-            return;
-        }
-
+        if (id < 0) return;
         userDao.delete(id);
     }
 
     @Override
     public UserModel findByid(int id) {
-        if (id < 0) {
-            return null;
-        }
-
-        UserModel entity = userDao.findByid(id);
-        return entity;
+        if (id < 0) return null;
+        return userDao.findByid(id);
     }
 
     @Override
     public List<UserModel> findAll() {
-        final List<UserModel> entities = userDao.findAll();
-        return entities;
+        return userDao.findAll();
     }
 
     @Override
     public void update(int id, UserModel entity) {
-        if (id != entity.getId()) {
-            return;
-        }
+        if (id <= 0 || entity == null) return;
 
-        UserModel userModel = findByid(id);
-        if (userModel == null) {
-            return;
-        }
+        UserModel current = findByid(id);
+        if (current == null) return;
+
+        // O ID da URL define o usuário atualizado; o body não precisa informá-lo.
+        entity.setId(id);
+
+        // Update parcial: campos ausentes no body mantêm o valor atual do banco,
+        // evitando sobrescrever com null (municipality_id é NOT NULL).
+        if (entity.getName() == null) entity.setName(current.getName());
+        if (entity.getCpf() == null) entity.setCpf(current.getCpf());
+        if (entity.getEmail() == null) entity.setEmail(current.getEmail());
+        if (entity.getPhone() == null) entity.setPhone(current.getPhone());
+        if (entity.getMunicipalityId() == null) entity.setMunicipalityId(current.getMunicipalityId());
+        if (entity.getBirthDate() == null) entity.setBirthDate(current.getBirthDate());
+        if (entity.getAcceptedTerms() == null) entity.setAcceptedTerms(current.getAcceptedTerms());
+        if (entity.getAcceptedPrivacyPolicy() == null) entity.setAcceptedPrivacyPolicy(current.getAcceptedPrivacyPolicy());
+        if (entity.getProfilePhotoUrl() == null) entity.setProfilePhotoUrl(current.getProfilePhotoUrl());
 
         userDao.update(id, entity);
     }
 
     @Override
-    public UserModel findByEmail(String email) {
-        if (email.isEmpty()) {
-            return null;
+    public void update(int id, UserModel entity, MultipartFile file) {
+        if (id <= 0 || entity == null) return;
+
+        // Só substitui a foto quando um novo arquivo é enviado; caso contrário,
+        // deixa profilePhotoUrl null para que o update parcial preserve a atual.
+        if (file != null && !file.isEmpty()) {
+            String ownerKey = entity.getEmail() != null ? entity.getEmail() : String.valueOf(id);
+            entity.setProfilePhotoUrl(uploadProfilePhoto(file, ownerKey));
         }
 
-        UserModel entity = userDao.findByEmail(email);
-        return entity;
+        update(id, entity);
+    }
+
+    @Override
+    public UserModel findByEmail(String email) {
+        if (email == null || email.isEmpty()) return null;
+        return userDao.findByEmail(email);
     }
 
     @Override
     public boolean updatePassword(int id, String oldPassword, String newPassword) {
-        if (id < 0) {
-            return false;
-        }
+        if (id < 0) return false;
 
         UserModel entity = userDao.findByid(id);
+        if (entity == null) return false;
 
         if (!passwordEncoder.matches(oldPassword, entity.getPassword()) || isPassWordInvalid(newPassword)) {
             return false;
         }
 
+        // O DAO já faz o hash da senha via crypt(?, gen_salt('bf')),
+        // então passamos a senha em texto puro para evitar hash duplo.
         userDao.updatePassword(id, newPassword);
         return true;
     }
 
     @Override
     public List<UserModel> findByRole(String role) {
-        if (role == null) {
-            return new ArrayList<>();
-        }
-
-        List<UserModel> users = userDao.findByRole(role);
-
-        return users;
+        if (role == null) return new ArrayList<>();
+        return userDao.findByRole(role);
     }
-
-    // Criar o fluxo para poder resetar a senha do usuário
 
     @Override
     public Boolean forgotPassword(String email) {
@@ -143,7 +177,7 @@ public class UserServiceImpl implements UserService {
 
         UserModel user = userDao.findByEmail(email);
         if (user == null) {
-            // Não revelar se o e-mail existe por questões de segurança
+            // Não revelar se o e-mail existe — retorna true mesmo assim
             logger.log(Level.INFO, "Forgot password solicitado para e-mail não encontrado: " + email);
             return true;
         }
@@ -152,8 +186,14 @@ public class UserServiceImpl implements UserService {
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(2);
         passwordResetTokenDao.save(user.getId(), token, expiresAt);
 
-        // TODO: enviar e-mail com o token. Token gerado: token
-        logger.log(Level.INFO, "Token de reset gerado para userId: " + user.getId() + " | Token: " + token);
+        try {
+            emailService.sendPasswordResetEmail(user.getEmail(), token);
+            logger.log(Level.INFO, "E-mail de reset enviado para userId: " + user.getId());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Erro ao enviar e-mail de reset para userId: " + user.getId(), e);
+            // Token já foi salvo — o usuário pode tentar novamente
+        }
+
         return true;
     }
 
@@ -166,8 +206,9 @@ public class UserServiceImpl implements UserService {
         Integer userId = passwordResetTokenDao.findUserIdByToken(token);
         if (userId == null) return false;
 
-        String encoded = passwordEncoder.encode(newPassword);
-        userDao.updatePassword(userId, encoded);
+        // O DAO já faz o hash da senha via crypt(?, gen_salt('bf')),
+        // então passamos a senha em texto puro para evitar hash duplo.
+        userDao.updatePassword(userId, newPassword);
         passwordResetTokenDao.markAsUsed(token);
 
         logger.log(Level.INFO, "Senha resetada com sucesso para userId: " + userId);

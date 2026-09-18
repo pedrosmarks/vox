@@ -44,6 +44,11 @@
           />
         </div>
 
+        <!-- Esqueci minha senha -->
+        <div class="forgot-row">
+          <a routerLink="/recuperar-senha" class="footer-link">Esqueci minha senha</a>
+        </div>
+
         <!-- Mensagem de erro -->
         <div class="error-message" *ngIf="errorMessage">
           {{ errorMessage }}
@@ -59,7 +64,7 @@
       <div class="card-footer">
         <p class="footer-text">
           Não tem uma conta?
-          <a href="#" class="footer-link">Cadastre-se</a>
+          <a routerLink="/cadastro" class="footer-link">Cadastre-se</a>
         </p>
       </div>
     </div>

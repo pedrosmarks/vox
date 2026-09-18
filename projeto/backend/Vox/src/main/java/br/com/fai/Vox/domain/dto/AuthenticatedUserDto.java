@@ -20,6 +20,7 @@ public class AuthenticatedUserDto {
     private Integer municipalityId;
     private Boolean acceptedTerms;
     private Boolean acceptedPrivacyPolicy;
+    private String profilePhotoUrl;
 
     public AuthenticatedUserDto() {}
 
@@ -35,6 +36,7 @@ public class AuthenticatedUserDto {
         dto.setMunicipalityId(user.getMunicipalityId());
         dto.setAcceptedTerms(user.getAcceptedTerms());
         dto.setAcceptedPrivacyPolicy(user.getAcceptedPrivacyPolicy());
+        dto.setProfilePhotoUrl(user.getProfilePhotoUrl());
         return dto;
     }
 }

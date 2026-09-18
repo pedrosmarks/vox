@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/settings_service.dart';
 import '../theme/vox_colors.dart';
+import 'cadastro_screen.dart';
+import 'recuperar_senha_screen.dart';
 import 'home_shell.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -51,6 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
       } catch (_) {
         // segue mesmo se a busca do perfil falhar
       }
+      // Carrega as preferências de acessibilidade do usuário.
+      await SettingsController.instance.load();
       if (!mounted) return;
       Navigator.of(
         context,
@@ -230,7 +235,30 @@ class _LoginScreenState extends State<LoginScreen> {
             // Botão Entrar
             _buildSubmitButton(),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+
+            // Esqueci minha senha
+            Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RecuperarSenhaScreen(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Esqueci minha senha',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: VoxColors.accent,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
 
             // Rodapé do card
             Row(
@@ -242,7 +270,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    // TODO: navegar para cadastro
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CadastroScreen()),
+                    );
                   },
                   child: const Text(
                     'Cadastre-se',

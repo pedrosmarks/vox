@@ -111,10 +111,25 @@
             <artifactId>cloudinary-http45</artifactId>
             <version>1.36.0</version>
         </dependency>
+
+        <!-- LiveKit Server SDK -->
+        <dependency>
+            <groupId>io.livekit</groupId>
+            <artifactId>livekit-server</artifactId>
+            <version>0.15.0</version>
+        </dependency>
+
+        <!-- E-mail -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>4.0.5</version>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- Carregamento de .env -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
         </dependency>
     </dependencies>
 

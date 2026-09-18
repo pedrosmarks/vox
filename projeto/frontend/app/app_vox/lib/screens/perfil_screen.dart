@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:typed_data';
 import '../models/user_profile.dart';
 import '../services/auth_service.dart';
+import '../services/settings_service.dart';
 import '../theme/vox_app_bar.dart';
 import '../theme/vox_badges.dart';
+import 'configuracoes_screen.dart';
 import 'login_screen.dart';
-import 'moderacao_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -25,6 +28,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
   bool _isSavingProfile = false;
   String? _profileMessage;
   bool _profileSuccess = false;
+  XFile? _selectedPhoto;
+  Uint8List? _selectedPhotoBytes;
 
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -83,7 +88,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
         'name': _nameController.text.trim(),
         if (_phoneController.text.trim().isNotEmpty)
           'phone': _phoneController.text.trim(),
-      });
+      }, profilePhoto: _selectedPhoto);
+      _selectedPhoto = null;
+      _selectedPhotoBytes = null;
       _profileSuccess = true;
       _profileMessage = 'Dados atualizados com sucesso!';
       _load();
@@ -93,6 +100,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
     } finally {
       if (mounted) setState(() => _isSavingProfile = false);
     }
+  }
+
+  Future<void> _pickProfilePhoto() async {
+    final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (photo == null) return;
+    final bytes = await photo.readAsBytes();
+    if (mounted)
+      setState(() {
+        _selectedPhoto = photo;
+        _selectedPhotoBytes = bytes;
+      });
   }
 
   Future<void> _savePassword() async {
@@ -140,11 +158,18 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   Future<void> _logout() async {
     await _authService.logout();
+    SettingsController.instance.reset();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
     );
+  }
+
+  void _openSettings() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ConfiguracoesScreen()));
   }
 
   @override
@@ -160,12 +185,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perfil'),
+      appBar: VoxAppBar(
+        title: 'Perfil',
         actions: [
           IconButton(
+            onPressed: _openSettings,
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            tooltip: 'Configurações',
+          ),
+          IconButton(
             onPressed: _logout,
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             tooltip: 'Sair',
           ),
         ],
@@ -182,12 +212,25 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     children: [
                       CircleAvatar(
                         radius: 36,
+                        backgroundImage: _selectedPhotoBytes != null
+                            ? MemoryImage(_selectedPhotoBytes!)
+                            : (_user!.profilePhotoUrl != null
+                                      ? NetworkImage(_user!.profilePhotoUrl!)
+                                      : null)
+                                  as ImageProvider?,
                         child: Text(
-                          _user!.name.isNotEmpty
+                          (_selectedPhotoBytes == null &&
+                                  _user!.profilePhotoUrl == null &&
+                                  _user!.name.isNotEmpty)
                               ? _user!.name[0].toUpperCase()
                               : '?',
                           style: const TextStyle(fontSize: 28),
                         ),
+                      ),
+                      TextButton.icon(
+                        onPressed: _isSavingProfile ? null : _pickProfilePhoto,
+                        icon: const Icon(Icons.photo_camera_outlined),
+                        label: const Text('Escolher foto'),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -200,19 +243,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     ],
                   ),
                 ),
-                if (_user!.role == 'MODERATOR' ||
-                    _user!.role == 'ADMINISTRATOR') ...[
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ModeracaoScreen(),
-                      ),
-                    ),
-                    icon: const Icon(Icons.gavel_outlined),
-                    label: const Text('Moderação'),
-                  ),
-                ],
                 const SizedBox(height: 24),
                 Text(
                   'Dados pessoais',

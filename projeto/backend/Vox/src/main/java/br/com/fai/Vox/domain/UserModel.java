@@ -21,6 +21,7 @@ public class UserModel {
     private Integer municipalityId;
     private Boolean acceptedTerms;
     private Boolean acceptedPrivacyPolicy;
+    private String profilePhotoUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

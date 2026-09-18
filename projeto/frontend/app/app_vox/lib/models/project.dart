@@ -50,29 +50,61 @@ class Project {
   });
 
   factory Project.fromJson(Map<String, dynamic> json) => Project(
-        id: json['id'] as int,
-        municipalityId: json['municipalityId'] as int? ?? 0,
-        categoryId: json['categoryId'] as int? ?? 0,
-        type: json['type'] as String? ?? '',
-        title: json['title'] as String? ?? '',
-        description: json['description'] as String? ?? '',
-        status: json['status'] as String? ?? '',
-        authorId: json['authorId'] as int? ?? 0,
+    id: json['id'] as int,
+    municipalityId: json['municipalityId'] as int? ?? 0,
+    categoryId: json['categoryId'] as int? ?? 0,
+    type: json['type'] as String? ?? '',
+    title: json['title'] as String? ?? '',
+    description: json['description'] as String? ?? '',
+    status: json['status'] as String? ?? '',
+    authorId: json['authorId'] as int? ?? 0,
+    createdAt: json['createdAt'] as String? ?? '',
+    updatedAt: json['updatedAt'] as String? ?? '',
+    highlighted: json['highlighted'] as bool? ?? false,
+    isOfficial: json['isOfficial'] as bool? ?? false,
+    neighborhood: json['neighborhood'] as String? ?? '',
+    street: json['street'] as String? ?? '',
+    number: json['number'] as String? ?? '',
+    latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+    longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+    startDate: json['startDate'] as String? ?? '',
+    expectedEndDate: json['expectedEndDate'] as String? ?? '',
+    endDate: json['endDate'] as String?,
+    financialAnalysis: json['financialAnalysis'] as String?,
+    estimatedCost: (json['estimatedCost'] as num?)?.toDouble() ?? 0,
+    approvedBudget: (json['approvedBudget'] as num?)?.toDouble() ?? 0,
+  );
+}
+
+/// Entrada do histórico de mudança de status de um projeto.
+class ProjectHistoryEntry {
+  final int id;
+  final int projectId;
+  final String previousStatus;
+  final String newStatus;
+  final String note;
+  final int changedBy;
+  final String createdAt;
+
+  ProjectHistoryEntry({
+    required this.id,
+    required this.projectId,
+    required this.previousStatus,
+    required this.newStatus,
+    required this.note,
+    required this.changedBy,
+    required this.createdAt,
+  });
+
+  factory ProjectHistoryEntry.fromJson(Map<String, dynamic> json) =>
+      ProjectHistoryEntry(
+        id: json['id'] as int? ?? 0,
+        projectId: json['projectId'] as int? ?? 0,
+        previousStatus: json['previousStatus'] as String? ?? '',
+        newStatus: json['newStatus'] as String? ?? '',
+        note: json['note'] as String? ?? '',
+        changedBy: json['changedBy'] as int? ?? 0,
         createdAt: json['createdAt'] as String? ?? '',
-        updatedAt: json['updatedAt'] as String? ?? '',
-        highlighted: json['highlighted'] as bool? ?? false,
-        isOfficial: json['isOfficial'] as bool? ?? false,
-        neighborhood: json['neighborhood'] as String? ?? '',
-        street: json['street'] as String? ?? '',
-        number: json['number'] as String? ?? '',
-        latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
-        longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
-        startDate: json['startDate'] as String? ?? '',
-        expectedEndDate: json['expectedEndDate'] as String? ?? '',
-        endDate: json['endDate'] as String?,
-        financialAnalysis: json['financialAnalysis'] as String?,
-        estimatedCost: (json['estimatedCost'] as num?)?.toDouble() ?? 0,
-        approvedBudget: (json['approvedBudget'] as num?)?.toDouble() ?? 0,
       );
 }
 
@@ -82,10 +114,8 @@ class Category {
 
   const Category({required this.id, required this.name});
 
-  factory Category.fromJson(Map<String, dynamic> json) => Category(
-        id: json['id'] as int,
-        name: json['name'] as String,
-      );
+  factory Category.fromJson(Map<String, dynamic> json) =>
+      Category(id: json['id'] as int, name: json['name'] as String);
 }
 
 class ProjectImage {
@@ -96,8 +126,8 @@ class ProjectImage {
   ProjectImage({required this.id, required this.projectId, required this.url});
 
   factory ProjectImage.fromJson(Map<String, dynamic> json) => ProjectImage(
-        id: json['id'] as int,
-        projectId: json['projectId'] as int,
-        url: json['url'] as String,
-      );
+    id: json['id'] as int,
+    projectId: json['projectId'] as int,
+    url: json['url'] as String,
+  );
 }

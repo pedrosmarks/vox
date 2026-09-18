@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 
 export interface LoginResponse {
   token: string;
@@ -16,9 +16,48 @@ export interface UserProfile {
   phone?: string;
   cpf?: string;
   birthDate?: string;
+  profilePhotoUrl?: string | null;
 }
 
-export type UserRole = 'ADMINISTRATOR' | 'MODERATOR' | 'CITIZEN';
+export type UserRole = 'ADMINISTRATOR' | 'MODERATOR' | 'CITIZEN' | 'COUNCILOR';
+
+export interface LogEntry {
+  id: number;
+  action: string;
+  entity?: string;
+  entityId?: number;
+  message?: string;
+  description?: string;
+  userId?: number;
+  userName?: string;
+  createdAt: string;
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  cpf: string;
+  phone?: string;
+  password: string;
+  birthDate?: string;
+  municipalityId: number;
+  acceptedTerms?: boolean;
+  acceptedPrivacyPolicy?: boolean;
+  file?: File | null;
+}
+
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  cpf: string;
+  phone?: string;
+  password: string;
+  birthDate?: string;
+  role: UserRole | string;
+  municipalityId: number;
+  acceptedTerms?: boolean;
+  acceptedPrivacyPolicy?: boolean;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -39,8 +78,37 @@ export class AuthService {
     );
   }
 
+  /**
+   * Cadastro público de novo cidadão. O papel é sempre CITIZEN (não é
+   * escolhido pelo usuário). Retorna a resposta do POST /api/user.
+   */
+  register(payload: RegisterPayload): Observable<unknown> {
+    const formData = new FormData();
+    const fields = {
+      name: payload.name,
+      email: payload.email,
+      cpf: payload.cpf,
+      phone: payload.phone ?? '',
+      password: payload.password,
+      birthDate: payload.birthDate ?? null,
+      role: 'CITIZEN',
+      municipalityId: payload.municipalityId,
+      acceptedTerms: payload.acceptedTerms ?? true,
+      acceptedPrivacyPolicy: payload.acceptedPrivacyPolicy ?? true
+    };
+    Object.entries(fields).forEach(([key, value]) => formData.append(key, String(value)));
+    if (payload.file) formData.append('file', payload.file, payload.file.name);
+    return this.http.post(`${this.API_URL}/api/user`, formData);
+  }
+
   fetchCurrentUser(): Observable<UserProfile> {
-    return this.http.get<UserProfile>(`${this.API_URL}/api/auth/me`).pipe(
+    return this.http.get<Record<string, unknown>>(`${this.API_URL}/api/auth/me`).pipe(
+      map(data => ({
+        ...data,
+        profilePhotoUrl: this.normalizePhotoUrl(
+          data['profilePhotoUrl'] ?? data['profilePhoto'] ?? data['photoUrl']
+        )
+      } as UserProfile)),
       tap(user => {
         if (user?.id) {
           localStorage.setItem(this.USER_ID_KEY, String(user.id));
@@ -50,6 +118,12 @@ export class AuthService {
         }
       })
     );
+  }
+
+  private normalizePhotoUrl(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) return null;
+    if (/^https?:\/\//i.test(value)) return value;
+    return `${this.API_URL}/${value.replace(/^\/+/, '')}`;
   }
 
   private getEmailFromToken(): string | null {
@@ -122,13 +196,20 @@ export class AuthService {
     }
   }
 
-  updateProfile(id: number, data: Partial<UserProfile>): Observable<UserProfile> {
-    return this.http.put<UserProfile>(`${this.API_URL}/api/user/${id}`, data);
+  updateProfile(id: number, data: Partial<UserProfile>, file?: File | null): Observable<UserProfile> {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) formData.append(key, String(value));
+    });
+    if (file) formData.append('file', file, file.name);
+    return this.http.put<UserProfile>(`${this.API_URL}/api/user/${id}`, formData);
   }
 
-  updatePassword(currentPassword: string, newPassword: string): Observable<void> {
+  updatePassword(oldPassword: string, newPassword: string): Observable<void> {
+    const id = this.getUserId();
     return this.http.put<void>(`${this.API_URL}/api/user/update-password`, {
-      currentPassword,
+      ...(id != null ? { id } : {}),
+      oldPassword,
       newPassword
     });
   }
@@ -147,5 +228,37 @@ export class AuthService {
 
   getCouncilorById(id: number): Observable<UserProfile> {
     return this.http.get<UserProfile>(`${this.API_URL}/api/users/councilors/${id}`);
+  }
+
+  // ----- Administração de usuários -----
+
+  getAllUsers(): Observable<UserProfile[]> {
+    return this.http.get<UserProfile[]>(`${this.API_URL}/api/user`);
+  }
+
+  getUsersByRole(role: UserRole | string): Observable<UserProfile[]> {
+    return this.http.get<UserProfile[]>(`${this.API_URL}/api/user/role/${role}`);
+  }
+
+  getUserById(id: number): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.API_URL}/api/user/${id}`);
+  }
+
+  createUser(payload: CreateUserPayload): Observable<unknown> {
+    return this.http.post(`${this.API_URL}/api/user`, payload);
+  }
+
+  updateUser(id: number, data: Partial<UserProfile>): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, data);
+  }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/api/user/${id}`);
+  }
+
+  // ----- Auditoria / logs -----
+
+  getLogs(): Observable<LogEntry[]> {
+    return this.http.get<LogEntry[]>(`${this.API_URL}/api/logs`);
   }
 }

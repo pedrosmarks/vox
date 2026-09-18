@@ -66,9 +66,14 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         Project project = projectDao.findByid(projectId);
         if (project == null) return;
 
+        Project.ProjectStatus previousStatus = project.getStatus();
         project.setModerationStatus(ModerationStatus.APPROVED);
         project.setStatus(Project.ProjectStatus.PUBLISHED);
         projectDao.update(projectId, project);
+
+        // Registrar no histórico para que o feedback fique recuperável via GET .../history
+        projectStatusHistoryService.recordStatusChange(
+                projectId, previousStatus, Project.ProjectStatus.PUBLISHED, moderatorId, feedback);
 
         ProjectModeration moderation = new ProjectModeration();
         moderation.setProjectId(projectId);
@@ -125,9 +130,14 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         Project project = projectDao.findByid(projectId);
         if (project == null) return;
 
+        Project.ProjectStatus previousStatus = project.getStatus();
         project.setModerationStatus(ModerationStatus.REJECTED);
         project.setStatus(Project.ProjectStatus.REJECTED);
         projectDao.update(projectId, project);
+
+        // Registrar no histórico para que o motivo da rejeição fique recuperável via GET .../history
+        projectStatusHistoryService.recordStatusChange(
+                projectId, previousStatus, Project.ProjectStatus.REJECTED, moderatorId, feedback);
 
         ProjectModeration moderation = new ProjectModeration();
         moderation.setProjectId(projectId);

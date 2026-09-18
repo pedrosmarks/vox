@@ -1,0 +1,1707 @@
+# VOX — Documentação da API
+
+**Base URL:** `http://localhost:8080`  
+**Autenticação:** JWT Bearer Token (exceto `/authenticate` e `/api/auth/forgot-password`, `/api/auth/reset-password`)
+
+> Adicione o header `Authorization: Bearer <token>` em todas as requisições autenticadas.
+
+---
+
+## Sumário
+
+- [Autenticação](#autenticação)
+- [Usuários](#usuários)
+- [Municípios](#municípios)
+- [Categorias](#categorias)
+- [Vereadores](#vereadores)
+- [Projetos](#projetos)
+- [Imagens de Projetos](#imagens-de-projetos)
+- [Ocorrências](#ocorrências)
+- [Moderação](#moderação)
+- [Notificações](#notificações)
+- [Assinaturas](#assinaturas)
+- [Configurações do Usuário](#configurações-do-usuário)
+- [Salas de Conferência (LiveKit)](#salas-de-conferência-livekit)
+- [Dashboard Administrativo](#dashboard-administrativo)
+- [Logs de Auditoria](#logs-de-auditoria)
+
+---
+
+## Autenticação
+
+### Login
+```
+POST /authenticate
+```
+**Body:**
+```json
+{
+  "email": "usuario@email.com",
+  "password": "senha123"
+}
+```
+**Resposta `200`:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+---
+
+### Dados do usuário autenticado
+```
+GET /api/auth/me
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{
+  "id": 1,
+  "name": "Maria Silva",
+  "email": "maria@email.com",
+  "cpf": "000.000.000-00",
+  "phone": "(11) 99999-9999",
+  "birthDate": "1990-05-20",
+  "role": "MODERATOR",
+  "municipalityId": 1,
+  "acceptedTerms": true,
+  "acceptedPrivacyPolicy": true,
+  "profilePhotoUrl": "https://res.cloudinary.com/.../vox/user_maria@email.com_foto.jpg"
+}
+```
+> `profilePhotoUrl` é a URL pública da foto de perfil do usuário autenticado. Fica `null` quando não há foto.
+
+---
+
+### Esqueci minha senha
+```
+POST /api/auth/forgot-password
+```
+**Body:**
+```json
+{
+  "email": "usuario@email.com"
+}
+```
+**Resposta `200`** — se o e-mail existir, é enviado um e-mail contendo **apenas o token** de redefinição (não um link). O token é válido por 2 horas.
+
+---
+
+### Redefinir senha
+```
+POST /api/auth/reset-password
+```
+**Body:**
+```json
+{
+  "token": "uuid-do-token-de-reset",
+  "newPassword": "novaSenha123"
+}
+```
+> O `token` é o valor recebido por e-mail em "Esqueci minha senha".
+
+**Resposta `200`**
+
+---
+
+## Usuários
+
+> 🔒 Todos os endpoints de `/api/user` requerem role `ADMINISTRATOR`.
+
+### Listar todos os usuários
+```
+GET /api/user
+Authorization: Bearer <token>
+```
+**Resposta `200`:** array de `UserModel`
+
+---
+
+### Buscar usuário por ID
+```
+GET /api/user/{id}
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{
+  "id": 1,
+  "name": "João Silva",
+  "email": "joao@email.com",
+  "cpf": "111.222.333-44",
+  "phone": "(11) 98888-7777",
+  "role": "CITIZEN",
+  "municipalityId": 1,
+  "birthDate": "1985-03-10",
+  "profilePhotoUrl": "https://res.cloudinary.com/.../vox/user_joao@email.com_foto.jpg"
+}
+```
+> `profilePhotoUrl` é a URL pública da foto de perfil. Fica `null` quando o usuário não possui foto.
+
+---
+
+### Buscar usuário por e-mail
+```
+GET /api/user/email/{email}
+Authorization: Bearer <token>
+```
+
+---
+
+### Buscar usuários por papel (role)
+```
+GET /api/user/role/{role}
+Authorization: Bearer <token>
+```
+**Valores de `role`:** `CITIZEN`, `COUNCILOR`, `MODERATOR`, `ADMINISTRATOR`
+
+---
+
+### Criar usuário
+```
+POST /api/user
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+> Enviado como `multipart/form-data` (não JSON), pois aceita a foto de perfil.
+
+**Form fields:**
+
+| Campo | Tipo | Obrigatório | Descrição |
+|---|---|---|---|
+| `name` | texto | ✅ | Nome do usuário |
+| `email` | texto | ✅ | E-mail válido e único |
+| `password` | texto | ✅ | Senha (mín. 2 caracteres) |
+| `cpf` | texto | ❌ | CPF |
+| `phone` | texto | ❌ | Telefone |
+| `birthDate` | data (`yyyy-MM-dd`) | ❌ | Data de nascimento |
+| `role` | texto | ❌ | `CITIZEN`, `COUNCILOR`, `MODERATOR` ou `ADMINISTRATOR` |
+| `municipalityId` | número | ❌ | ID do município |
+| `acceptedTerms` | booleano | ❌ | Aceite dos termos |
+| `acceptedPrivacyPolicy` | booleano | ❌ | Aceite da política de privacidade |
+| `file` | imagem | ❌ | **Foto de perfil (opcional).** Sem arquivo, o usuário fica sem foto. |
+
+> A imagem, quando enviada, é armazenada no Cloudinary e a URL retornada é persistida em `profilePhotoUrl`.
+
+**Resposta `201`** com `Location: /api/user/{id}`
+
+---
+
+### Atualizar usuário
+```
+PUT /api/user/{id}
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+**Form fields:** mesmos campos da criação (todos opcionais na atualização — update parcial).
+- `file` (imagem, opcional): quando enviado, **substitui** a foto de perfil. Se omitido, a foto atual é **mantida**.
+
+**Resposta `204`**
+
+---
+
+### Atualizar senha
+```
+PUT /api/user/update-password
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "id": 1,
+  "oldPassword": "senhaAtual",
+  "newPassword": "novaSenha123"
+}
+```
+**Resposta `200`**
+
+---
+
+### Deletar usuário
+```
+DELETE /api/user/{id}
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+## Municípios
+
+### Criar município
+```
+POST /api/municipality
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "name": "São Paulo",
+  "state": "SP"
+}
+```
+**Resposta `201`** com `Location: /api/municipality/{id}`
+
+---
+
+### Listar municípios
+```
+GET /api/municipality
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+[
+  { "id": 1, "name": "São Paulo", "state": "SP" }
+]
+```
+
+---
+
+### Buscar município por ID
+```
+GET /api/municipality/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## Categorias
+
+### Listar categorias
+```
+GET /api/categories
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+[
+  { "id": 1, "name": "Infraestrutura", "description": "Obras e vias" }
+]
+```
+
+---
+
+### Buscar categoria por ID
+```
+GET /api/categories/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+### Criar categoria
+```
+POST /api/categories
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "name": "Saúde",
+  "description": "Serviços de saúde pública"
+}
+```
+**Resposta `201`**
+
+---
+
+### Atualizar categoria
+```
+PUT /api/categories/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:** mesmo formato da criação  
+**Resposta `204`**
+
+---
+
+### Deletar categoria
+```
+DELETE /api/categories/{id}
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+## Vereadores
+
+### Listar vereadores
+```
+GET /api/users/councilors
+Authorization: Bearer <token>
+```
+**Resposta `200`:** array de `UserModel` com `role: "COUNCILOR"`
+
+---
+
+### Buscar vereador por ID
+```
+GET /api/users/councilors/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## Projetos
+
+### Listar projetos do município
+```
+GET /api/project
+Authorization: Bearer <token>
+```
+**Query params opcionais:**
+- `page` (número da página, base 0)
+- `size` (itens por página, padrão `10`)
+
+**Exemplos:**
+```
+GET /api/project
+GET /api/project?page=0&size=10
+```
+
+**Resposta sem paginação `200`:** array de `Project`  
+**Resposta com paginação `200`:**
+```json
+{
+  "content": [...],
+  "page": 0,
+  "size": 10,
+  "totalElements": 42
+}
+```
+
+---
+
+### Meus projetos
+```
+GET /api/project/my
+Authorization: Bearer <token>
+```
+
+---
+
+### Buscar projeto por ID
+```
+GET /api/project/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+### Criar projeto
+```
+POST /api/project
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+**Form fields:**
+| Campo | Tipo | Obrigatório |
+|---|---|---|
+| `categoryId` | number | ✅ |
+| `type` | `CITIZEN` \| `CHAMBER` | ✅ |
+| `title` | string | ✅ |
+| `description` | string | ✅ |
+| `neighborhood` | string | ❌ |
+| `street` | string | ❌ |
+| `number` | string | ❌ |
+| `latitude` | decimal (entre -90 e 90) | ✅ |
+| `longitude` | decimal (entre -180 e 180) | ✅ |
+| `startDate` | `YYYY-MM-DD` | ❌ |
+| `expectedEndDate` | `YYYY-MM-DD` | ❌ |
+| `estimatedCost` | decimal | ❌ |
+| `file` | imagem | ❌ |
+
+> `latitude` e `longitude` são **obrigatórios** — usados no mapa de zonas quentes do dashboard.
+
+> **Limite semanal:** usuários com role `CITIZEN` podem criar no máximo **3 projetos por semana**. Ao exceder, a API retorna `400`. Os demais papéis (`COUNCILOR`, `MODERATOR`, `ADMINISTRATOR`) não têm esse limite.
+
+**Resposta `201`**
+
+---
+
+### Atualizar projeto
+```
+PUT /api/project/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:** objeto `Project` completo  
+**Resposta `204`**
+
+> Quando o status do projeto muda neste endpoint, o backend registra a transição no histórico e **notifica automaticamente** o autor, os assinantes do projeto (`SubscriptionType.PROJECT`) e os assinantes de todos os projetos (`SubscriptionType.ALL_PROJECTS`). Se o novo status for `PUBLISHED`, a notificação é de publicação.
+
+---
+
+### Deletar projeto
+```
+DELETE /api/project/{id}
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+### Histórico de status do projeto
+```
+GET /api/project/{id}/history
+Authorization: Bearer <token>
+```
+
+---
+
+### Imagens do projeto (via ProjectRestController)
+
+**Adicionar imagem:**
+```
+POST /api/project/{id}/image
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+Form field: `file` (imagem)
+
+**Listar imagens:**
+```
+GET /api/project/{id}/image
+Authorization: Bearer <token>
+```
+
+**Deletar imagem:**
+```
+DELETE /api/project/{id}/image/{imageId}
+Authorization: Bearer <token>
+```
+
+---
+
+### Opiniões do projeto
+
+**Registrar opinião:**
+```
+POST /api/project/{id}/opinion
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "opinion": "APPROVE"
+}
+```
+Valores: `APPROVE`, `NEUTRAL`
+
+**Listar opiniões:**
+```
+GET /api/project/{id}/opinion
+Authorization: Bearer <token>
+```
+
+**Contagem por tipo:**
+```
+GET /api/project/{id}/opinion/stats
+Authorization: Bearer <token>
+```
+**Resposta:**
+```json
+{ "APPROVE": 15, "NEUTRAL": 2 }
+```
+
+**Minha opinião:**
+```
+GET /api/project/{id}/opinion/me
+Authorization: Bearer <token>
+```
+
+---
+
+### Vereadores vinculados ao projeto
+
+**Vincular vereador:**
+```
+POST /api/project/{projectId}/councilor/{councilorId}
+Authorization: Bearer <token>
+```
+
+**Desvincular vereador:**
+```
+DELETE /api/project/{projectId}/councilor/{councilorId}
+Authorization: Bearer <token>
+```
+
+**Listar vereadores do projeto:**
+```
+GET /api/project/{projectId}/councilor
+Authorization: Bearer <token>
+```
+
+---
+
+### Assinaturas de apoio ao projeto
+
+> Assinaturas de apoio a projetos comunitários (petição de apoio). Diferente das [Assinaturas](#assinaturas) de acompanhamento/notificação.
+
+**Assinar (apoiar) projeto:**
+```
+POST /api/project/{id}/signature
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+**Remover assinatura:**
+```
+DELETE /api/project/{id}/signature
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+**Contagem de assinaturas:**
+```
+GET /api/project/{id}/signature/count
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{ "total": 42 }
+```
+
+**Verificar se eu assinei:**
+```
+GET /api/project/{id}/signature/me
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{ "signed": true }
+```
+
+**Listar assinaturas do projeto:**
+```
+GET /api/project/{id}/signature
+Authorization: Bearer <token>
+```
+**Resposta `200`:** array de `ProjectSignature`
+
+---
+
+## Imagens de Projetos
+
+> Endpoint alternativo ao sub-recurso em `/api/project/{id}/image`.
+
+### Listar todas as imagens
+```
+GET /api/project-image
+Authorization: Bearer <token>
+```
+
+### Buscar imagem por ID
+```
+GET /api/project-image/{id}
+Authorization: Bearer <token>
+```
+
+### Buscar imagens por projeto
+```
+GET /api/project-image/project-id/{projectId}
+Authorization: Bearer <token>
+```
+
+### Fazer upload de imagem
+```
+POST /api/project-image
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+Form fields: `projectId` (number), `file` (imagem)
+
+### Atualizar imagem
+```
+PUT /api/project-image/{id}
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+Form field: `file` (nova imagem)
+
+### Deletar imagem
+```
+DELETE /api/project-image/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## Ocorrências
+
+### Criar ocorrência
+```
+POST /api/issues
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+**Form fields:**
+| Campo | Tipo | Obrigatório |
+|---|---|---|
+| `categoryId` | number | ✅ |
+| `councilorId` | number | ❌ |
+| `title` | string | ✅ |
+| `description` | string | ✅ |
+| `neighborhood` | string | ❌ |
+| `street` | string | ❌ |
+| `number` | string | ❌ |
+| `latitude` | decimal (entre -90 e 90) | ✅ |
+| `longitude` | decimal (entre -180 e 180) | ✅ |
+| `file` | imagem | ❌ |
+
+> `latitude` e `longitude` são **obrigatórios** — usados no mapa de zonas quentes do dashboard.
+
+> **Limite semanal:** usuários com role `CITIZEN` podem criar no máximo **3 ocorrências por semana**. Ao exceder, a API retorna `400`. Os demais papéis (`COUNCILOR`, `MODERATOR`, `ADMINISTRATOR`) não têm esse limite.
+
+**Resposta `201`**
+
+---
+
+### Associar ocorrência ao vereador autenticado
+> 🔒 Acesso exclusivo para usuários com role `COUNCILOR`. O vereador só pode
+> associar ocorrências do próprio município que ainda não possuem vereador.
+
+```
+POST /api/issues/{id}/associar
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+Se a ocorrência já possuir vereador, não existir ou pertencer a outro município,
+a API retorna `400`.
+
+---
+
+### Listar ocorrências do município
+```
+GET /api/issues
+Authorization: Bearer <token>
+```
+**Query params:** `page`, `size`
+
+---
+
+### Minhas ocorrências
+```
+GET /api/issues/my
+Authorization: Bearer <token>
+```
+
+---
+
+### Buscar ocorrência por ID
+```
+GET /api/issues/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+### Atualizar ocorrência
+```
+PUT /api/issues/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:** objeto `IssueReport`  
+**Resposta `204`**
+
+---
+
+### Deletar ocorrência
+```
+DELETE /api/issues/{id}
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+### Histórico de status da ocorrência
+```
+GET /api/issues/{id}/history
+Authorization: Bearer <token>
+```
+
+---
+
+### Imagens da ocorrência
+
+**Adicionar imagem:**
+```
+POST /api/issues/{id}/images
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+Form field: `file`
+
+**Listar imagens:**
+```
+GET /api/issues/{id}/images
+Authorization: Bearer <token>
+```
+
+**Deletar imagem:**
+```
+DELETE /api/issues/{id}/images/{imageId}
+Authorization: Bearer <token>
+```
+
+---
+
+## Moderação
+
+> 🔒 Requer role `ADMINISTRATOR` ou `MODERATOR`.
+
+### Projetos pendentes de aprovação
+```
+GET /api/moderation/projects/pending
+Authorization: Bearer <token>
+```
+**Query params:** `page`, `size`
+
+---
+
+### Aprovar projeto
+```
+POST /api/moderation/projects/{id}/approve
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body (opcional):**
+```json
+{
+  "feedback": "Projeto aprovado conforme critérios."
+}
+```
+**Resposta `200`**
+
+---
+
+### Rejeitar projeto
+```
+POST /api/moderation/projects/{id}/reject
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body (opcional):**
+```json
+{
+  "feedback": "Projeto fora dos critérios estabelecidos."
+}
+```
+**Resposta `200`**
+
+> O `feedback` de aprovação e rejeição é registrado no histórico de status
+> do projeto (aparece em `GET /api/project/{id}/history` no campo `note`),
+> além de ficar salvo no registro de moderação.
+
+---
+
+### Atualizar status do projeto
+```
+PATCH /api/moderation/projects/{id}/status
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "status": "IN_EXECUTION",
+  "note": "Obras iniciadas em 01/09/2026."
+}
+```
+**Status disponíveis:** `PENDING_APPROVAL`, `REJECTED`, `PUBLISHED`, `IN_VOTING`, `SELECTED_BY_COUNCIL`, `APPROVED_BY_COUNCIL`, `IN_EXECUTION`, `COMPLETED`, `ARCHIVED`, `CANCELLED`  
+**Resposta `204`**
+
+---
+
+### Ocorrências pendentes de aprovação
+```
+GET /api/moderation/issues/pending
+Authorization: Bearer <token>
+```
+**Query params:** `page`, `size`
+
+---
+
+### Aprovar ocorrência
+```
+POST /api/moderation/issues/{id}/approve
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body (opcional):**
+```json
+{
+  "feedback": "Ocorrência verificada e aprovada."
+}
+```
+
+---
+
+### Rejeitar ocorrência
+```
+POST /api/moderation/issues/{id}/reject
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body (opcional):**
+```json
+{
+  "feedback": "Ocorrência duplicada."
+}
+```
+
+> Ao rejeitar, o status da ocorrência (`IssueStatus`) passa a `REJECTED` e o
+> `feedback` é registrado no histórico (aparece em `GET /api/issues/{id}/history`
+> no campo `note`), além do registro de moderação. O `feedback` de aprovação
+> também é registrado no histórico.
+
+---
+
+### Atualizar status da ocorrência
+```
+PATCH /api/moderation/issues/{id}/status
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "status": "IN_PROGRESS",
+  "note": "Equipe de campo acionada."
+}
+```
+**Status disponíveis:** `OPEN`, `UNDER_REVIEW`, `IN_PROGRESS`, `FORWARDED`, `RESOLVED`, `REJECTED`, `CLOSED`  
+**Resposta `204`**
+
+---
+
+## Notificações
+
+### Listar todas as notificações do usuário
+```
+GET /api/notifications
+Authorization: Bearer <token>
+```
+**Resposta `200`:** array de `Notification`
+
+---
+
+### Listar notificações não lidas
+```
+GET /api/notifications/unread
+Authorization: Bearer <token>
+```
+
+---
+
+### Contagem de não lidas
+```
+GET /api/notifications/count
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{ "count": 5 }
+```
+
+---
+
+### Marcar uma notificação como lida
+```
+PATCH /api/notifications/{id}/read
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+### Marcar todas como lidas
+```
+PATCH /api/notifications/read-all
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+## Assinaturas
+
+> Assinaturas permitem que o usuário receba notificações sobre recursos específicos.
+
+### Listar minhas assinaturas
+```
+GET /api/subscriptions
+Authorization: Bearer <token>
+```
+
+---
+
+### Assinar / Cancelar todos os projetos
+```
+POST   /api/subscriptions/all-projects
+DELETE /api/subscriptions/all-projects
+Authorization: Bearer <token>
+```
+
+### Assinar / Cancelar todas as ocorrências
+```
+POST   /api/subscriptions/all-issues
+DELETE /api/subscriptions/all-issues
+Authorization: Bearer <token>
+```
+
+### Assinar / Cancelar projeto específico
+```
+POST   /api/subscriptions/projects/{projectId}
+DELETE /api/subscriptions/projects/{projectId}
+Authorization: Bearer <token>
+```
+
+### Assinar / Cancelar ocorrência específica
+```
+POST   /api/subscriptions/issues/{issueId}
+DELETE /api/subscriptions/issues/{issueId}
+Authorization: Bearer <token>
+```
+
+### Assinar / Cancelar categoria
+```
+POST   /api/subscriptions/categories/{categoryId}
+DELETE /api/subscriptions/categories/{categoryId}
+Authorization: Bearer <token>
+```
+
+### Assinar / Cancelar vereador
+```
+POST   /api/subscriptions/councilors/{councilorId}
+DELETE /api/subscriptions/councilors/{councilorId}
+Authorization: Bearer <token>
+```
+
+---
+
+## Configurações do Usuário
+
+> Preferências de acessibilidade e personalização do usuário autenticado.
+
+### Obter minhas configurações
+```
+GET /api/settings
+Authorization: Bearer <token>
+```
+Se ainda não existirem configurações salvas, retorna os valores padrão (`fontSize=16`, `accessibilityMode=NONE`).
+
+**Resposta `200`:**
+```json
+{
+  "id": 1,
+  "userId": 1,
+  "fontSize": 16,
+  "accessibilityMode": "NONE"
+}
+```
+
+---
+
+### Atualizar minhas configurações
+```
+PUT /api/settings
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "fontSize": 18,
+  "accessibilityMode": "DARK"
+}
+```
+**Regras:**
+- `fontSize`: inteiro entre `15` e `30` (obrigatório).
+- `accessibilityMode`: apenas um modo ativo por vez (`NONE` desativa todos).
+
+**Valores de `accessibilityMode`:** `NONE`, `DARK`, `HIGH_CONTRAST`, `PROTANOPIA`, `DEUTERANOPIA`, `TRITANOPIA`
+
+**Resposta `204`**
+
+---
+
+## Salas de Conferência (LiveKit)
+
+> Audiências públicas e sessões de conferência com controle de permissões via LiveKit.
+
+### Fluxo completo
+
+```
+1. Moderador cria sala
+2. Cidadão solicita entrada
+3. Moderador lista e aprova solicitação
+4. Cidadão obtém token LiveKit → conecta ao LiveKit
+5. Moderador obtém token LiveKit → conecta ao LiveKit
+6. Moderador controla microfone/câmera conforme necessário
+7. Moderador encerra a sala
+```
+
+Depois de entrar na sala, o cidadão pode solicitar a palavra. O moderador da
+sala ou um administrador pode aprovar ou rejeitar essa solicitação. Quando
+aprovada, a permissão de publicação de áudio é aplicada no LiveKit.
+
+---
+
+### Criar sala
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`
+
+```
+POST /api/salas
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "name": "Audiência Pública 001",
+  "description": "Sessão ordinária da câmara municipal"
+}
+```
+**Resposta `201`** com `Location: /api/salas/{id}`
+
+---
+
+### Listar salas do município
+```
+GET /api/salas
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Audiência Pública 001",
+    "description": "Sessão ordinária",
+    "moderatorId": 5,
+    "municipalityId": 1,
+    "status": "OPEN",
+    "createdAt": "2026-08-15T10:00:00"
+  }
+]
+```
+
+---
+
+### Buscar sala por ID
+```
+GET /api/salas/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+### Encerrar sala
+> 🔒 Apenas o moderador da sala ou `ADMINISTRATOR`
+
+```
+DELETE /api/salas/{id}
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+### Solicitar entrada na sala
+> Qualquer usuário autenticado (tipicamente um cidadão)
+
+```
+POST /api/salas/{id}/solicitacoes-entrada
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+---
+
+### Listar solicitações de entrada
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`
+
+```
+GET /api/salas/{id}/solicitacoes-entrada
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+[
+  {
+    "id": 10,
+    "roomId": 1,
+    "userId": 7,
+    "status": "PENDING",
+    "canPublishAudio": false,
+    "canPublishVideo": false,
+    "requestedAt": "2026-08-15T10:05:00"
+  }
+]
+```
+**Status possíveis:** `PENDING`, `APPROVED`, `REJECTED`, `REMOVED`
+
+---
+
+### Solicitar para falar
+> O usuário precisa estar aprovado na sala.
+
+```
+POST /api/salas/{id}/solicitacoes-fala
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+> Permite **reabrir** um novo pedido mesmo que já exista um registro anterior
+> `APPROVED` ou `REJECTED` (o status volta para `PENDING`). Só é bloqueado
+> (`400`) se já houver um pedido `PENDING` em aberto. Ao reabrir, as permissões
+> de áudio/vídeo são zeradas e propagadas ao LiveKit.
+
+### Listar solicitações de fala
+> Requer role `MODERATOR` ou `ADMINISTRATOR`. Retorna apenas solicitações pendentes.
+
+```
+GET /api/salas/{id}/solicitacoes-fala
+Authorization: Bearer <token>
+```
+
+### Aceitar solicitação de fala
+> Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+
+```
+POST /api/salas/{id}/solicitacoes-fala/{participanteId}/aprovar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+### Recusar solicitação de fala
+> Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+> Só recusa solicitações que estejam `PENDING`.
+
+```
+POST /api/salas/{id}/solicitacoes-fala/{participanteId}/rejeitar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+### Revogar fala já aprovada
+> Requer o moderador da sala ou `ADMINISTRATOR`. `participanteId` é o `userId`.
+> Encerra uma fala que estava `APPROVED`: muda o status para `REJECTED`,
+> bloqueia microfone e câmera e propaga a revogação ao LiveKit imediatamente.
+> Depois disso o cidadão pode enviar um novo pedido de fala.
+
+```
+POST /api/salas/{id}/solicitacoes-fala/{participanteId}/revogar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+**Status de fala:** `NOT_REQUESTED`, `PENDING`, `APPROVED`, `REJECTED`
+
+> Bloquear microfone **e** câmera (ambos) de um participante com fala aprovada
+> também encerra a aprovação de fala (status volta para `REJECTED`).
+
+---
+
+### Aprovar solicitação de entrada
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`
+
+```
+POST /api/salas/{id}/solicitacoes-entrada/{participanteId}/aprovar
+Authorization: Bearer <token>
+```
+> `participanteId` é o **userId** do cidadão (não o id da solicitação).
+
+**Resposta `200`**
+
+---
+
+### Rejeitar solicitação de entrada
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`
+
+```
+POST /api/salas/{id}/solicitacoes-entrada/{participanteId}/rejeitar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+---
+
+### Liberar microfone
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`  
+> Aplica a permissão imediatamente no LiveKit se o participante estiver conectado.
+
+```
+POST /api/salas/{id}/participantes/{participanteId}/microfone/liberar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+---
+
+### Bloquear microfone
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`
+
+```
+POST /api/salas/{id}/participantes/{participanteId}/microfone/bloquear
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+---
+
+### Liberar câmera
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`  
+> Microfone e câmera são permissões independentes.
+
+```
+POST /api/salas/{id}/participantes/{participanteId}/camera/liberar
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+---
+
+### Bloquear câmera
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`
+
+```
+POST /api/salas/{id}/participantes/{participanteId}/camera/bloquear
+Authorization: Bearer <token>
+```
+**Resposta `200`**
+
+---
+
+### Expulsar participante
+> 🔒 Requer role `MODERATOR` ou `ADMINISTRATOR`  
+> Remove o participante do banco e desconecta do LiveKit.
+
+```
+DELETE /api/salas/{id}/participantes/{participanteId}
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+### Gerar token LiveKit
+> Cidadão: deve estar com status `APPROVED` para receber token.  
+> Moderador: recebe token com permissões administrativas completas.  
+> O token gerado é usado pelo frontend para conectar diretamente ao LiveKit.
+
+```
+POST /api/salas/{id}/token
+Authorization: Bearer <token>
+```
+**Resposta `200`:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE..."
+}
+```
+
+**Permissões no token por papel:**
+
+| Permissão | MODERATOR / ADMIN | CITIZEN aprovado |
+|---|---|---|
+| Entrar na sala | ✅ | ✅ |
+| Assinar tracks (ouvir/ver) | ✅ | ✅ |
+| Publicar áudio | ✅ | Somente se liberado |
+| Publicar vídeo | ✅ | Somente se liberado |
+| Publicar dados | ✅ | ❌ |
+| Administrar sala | ✅ | ❌ |
+
+---
+
+## Dashboard Administrativo
+
+> 🔒 Todos os endpoints requerem role `ADMINISTRATOR`.
+> Todas as métricas são sempre escopadas ao **município do administrador
+> autenticado** (obtido do token) — não há como consultar outro município.
+> As agregações de mapa consideram apenas registros aprovados na moderação
+> (`moderation_status = APPROVED`).
+
+### Filtro de data (comum a todos os endpoints)
+Todos os endpoints do dashboard aceitam um filtro opcional de intervalo de
+datas aplicado sobre a data de criação (`created_at`) dos registros:
+
+| Param | Formato | Obrigatório | Descrição |
+|---|---|---|---|
+| `from` | `yyyy-MM-dd` (ISO) | ❌ | Início do período (inclusive). Normalizado para o começo do dia (`00:00:00`). |
+| `to` | `yyyy-MM-dd` (ISO) | ❌ | Fim do período (inclusive). Normalizado para o fim do dia (`23:59:59`). |
+
+Comportamento:
+- **Apenas `from`**: traz os dados daquela data **até hoje** (caso de uso típico: última semana, último mês, último bimestre, etc.).
+- **`from` e `to`**: traz os dados exatamente no intervalo `[from, to]`.
+- **Nenhum informado**: nenhum filtro de data é aplicado (todos os registros).
+
+Erros: se `from` for posterior a `to`, a resposta é `400`. Datas fora do
+formato ISO `yyyy-MM-dd` também retornam `400`.
+
+Exemplos:
+```
+?from=2026-08-16              # de 16/08/2026 até hoje
+?from=2026-07-01&to=2026-08-31  # somente julho e agosto de 2026
+```
+
+### Visão geral (KPIs)
+```
+GET /api/admin/dashboard/overview?from=2026-08-16&to=2026-09-16
+Authorization: Bearer <token>
+```
+**Query params:** `from`, `to` (ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints)).
+
+**Resposta `200`:**
+```json
+{
+  "totalIssues": 120,
+  "approvedIssues": 90,
+  "pendingModerationIssues": 20,
+  "resolvedIssues": 35,
+  "issuesByStatus": { "OPEN": 40, "IN_PROGRESS": 15, "RESOLVED": 35 },
+  "issuesByModeration": { "PENDING": 20, "APPROVED": 90, "REJECTED": 10 },
+  "totalProjects": 60,
+  "publishedProjects": 45,
+  "pendingModerationProjects": 8,
+  "projectsByStatus": { "PENDING_APPROVAL": 8, "PUBLISHED": 45, "IN_EXECUTION": 7 },
+  "projectsByModeration": { "PENDING": 8, "APPROVED": 45, "REJECTED": 7 },
+  "totalUsers": 500,
+  "usersByRole": { "CITIZEN": 480, "COUNCILOR": 12, "MODERATOR": 7, "ADMINISTRATOR": 1 },
+  "issueResolutionRate": 38.9
+}
+```
+- `issueResolutionRate`: percentual (0–100) de issues aprovadas que estão `RESOLVED`.
+
+---
+
+### Mapa de zonas quentes — por coordenada
+> Heatmap: agrupa issues e projetos aprovados por coordenada arredondada
+> em uma grade.
+
+```
+GET /api/admin/dashboard/mapa/coordenadas?precision=3&from=2026-08-16
+Authorization: Bearer <token>
+```
+**Query params:**
+- `precision` (opcional): casas decimais no arredondamento das coordenadas.
+  Padrão `3` (~1 km por célula). Limitado ao intervalo `0`–`6`
+  (maior = células menores / mais granular).
+- `from`, `to` (opcionais): ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints).
+
+**Resposta `200`:**
+```json
+[
+  {
+    "latitude": -23.550,
+    "longitude": -46.633,
+    "issueCount": 12,
+    "projectCount": 3,
+    "total": 15
+  }
+]
+```
+Ordenado por `total` decrescente (zonas mais quentes primeiro).
+
+---
+
+### Mapa de zonas quentes — por bairro
+```
+GET /api/admin/dashboard/mapa/bairros?from=2026-08-16
+Authorization: Bearer <token>
+```
+**Query params:** `from`, `to` (ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints)).
+
+**Resposta `200`:**
+```json
+[
+  {
+    "neighborhood": "Centro",
+    "issueCount": 22,
+    "projectCount": 5,
+    "total": 27
+  }
+]
+```
+Registros sem bairro informado são agrupados como `"Não informado"`.
+
+---
+
+### Detalhe de uma zona (drill-down por bairro)
+> Lista as issues e projetos aprovados de um bairro específico.
+
+```
+GET /api/admin/dashboard/mapa/bairros/detalhe?bairro=Centro&from=2026-08-16
+Authorization: Bearer <token>
+```
+**Query params:**
+- `bairro` (obrigatório): nome do bairro (use `Não informado` para os sem bairro).
+- `from`, `to` (opcionais): ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints).
+
+**Resposta `200`:**
+```json
+{
+  "issues": [
+    {
+      "id": 101,
+      "title": "Buraco na via",
+      "status": "OPEN",
+      "category": "Infraestrutura",
+      "neighborhood": "Centro"
+    }
+  ],
+  "projects": [
+    {
+      "id": 55,
+      "title": "Revitalização da praça",
+      "status": "PUBLISHED",
+      "category": "Urbanismo",
+      "neighborhood": "Centro"
+    }
+  ]
+}
+```
+
+---
+
+### Saúde da moderação
+```
+GET /api/admin/dashboard/moderacao?from=2026-08-16
+Authorization: Bearer <token>
+```
+**Query params:** `from`, `to` (ver [Filtro de data](#filtro-de-data-comum-a-todos-os-endpoints)).
+
+**Resposta `200`:**
+```json
+{
+  "pendingIssues": 20,
+  "pendingProjects": 8,
+  "approvedIssues": 90,
+  "rejectedIssues": 10,
+  "approvedProjects": 45,
+  "rejectedProjects": 7,
+  "issueApprovalRate": 90.0,
+  "projectApprovalRate": 86.5,
+  "avgIssueDecisionHours": 12.5,
+  "avgProjectDecisionHours": 30.2,
+  "topModerators": [
+    { "moderatorId": 5, "moderatorName": "Maria Silva", "decisions": 74 }
+  ]
+}
+```
+- `issueApprovalRate` / `projectApprovalRate`: percentual (0–100) de aprovações sobre o total de decisões.
+- `avgIssueDecisionHours` / `avgProjectDecisionHours`: tempo médio, em horas, entre a criação do registro e a decisão de moderação. Pode ser `null` se ainda não houver decisões.
+- `topModerators`: ranking (até 10) de moderadores por volume de decisões no município.
+
+---
+
+### Engajamento cidadão
+```
+GET /api/admin/dashboard/engajamento?from=2026-08-16&to=2026-09-16
+Authorization: Bearer <token>
+```
+Projetos mais apoiados/opinados, distribuição de opiniões, ocorrências mais acompanhadas e usuários mais ativos.
+
+**Resposta `200`:**
+```json
+{
+  "topSignedProjects": [
+    { "projectId": 12, "title": "Revitalização da praça", "count": 87 }
+  ],
+  "topOpinedProjects": [
+    { "projectId": 12, "title": "Revitalização da praça", "count": 40 }
+  ],
+  "opinionDistribution": { "APPROVE": 120, "NEUTRAL": 18 },
+  "topFollowedIssues": [
+    { "issueId": 55, "title": "Buraco na via", "count": 23 }
+  ],
+  "topActiveUsers": [
+    { "userId": 7, "userName": "João Ribeiro", "projectsCreated": 4, "issuesCreated": 9, "total": 13 }
+  ]
+}
+```
+- `opinionDistribution`: distribuição de opiniões por tipo. Os valores possíveis são apenas `APPROVE` e `NEUTRAL`.
+- Cada ranking retorna até 10 itens, ordenados por `count`/`total` decrescente.
+
+---
+
+### Análise por categoria
+```
+GET /api/admin/dashboard/categorias?from=2026-08-16
+Authorization: Bearer <token>
+```
+Ranking de categorias com mais issues/projetos e cruzamento categoria × status.
+
+**Resposta `200`:**
+```json
+{
+  "categories": [
+    {
+      "categoryId": 1,
+      "categoryName": "Infraestrutura",
+      "issueCount": 40,
+      "projectCount": 12,
+      "total": 52,
+      "openIssues": 18,
+      "issuesByStatus": { "OPEN": 18, "IN_PROGRESS": 10, "RESOLVED": 12 },
+      "projectsByStatus": { "PUBLISHED": 8, "IN_EXECUTION": 4 }
+    }
+  ]
+}
+```
+Ordenado por `total` (issues + projetos) decrescente. `openIssues` destaca as ocorrências ainda `OPEN` — proxy de "onde o município mais precisa agir".
+
+---
+
+### Séries temporais
+```
+GET /api/admin/dashboard/series-temporais?granularidade=month&from=2026-01-01&to=2026-09-16
+Authorization: Bearer <token>
+```
+Volume de issues e projetos criados ao longo do tempo.
+
+**Query params:**
+- `granularidade` (opcional): `day` (padrão), `week` ou `month`. Valor inválido retorna `400`.
+- `from` / `to`: intervalo de datas (recomendado informar em séries longas).
+
+**Resposta `200`:**
+```json
+{
+  "granularity": "month",
+  "points": [
+    { "period": "2026-07-01", "issueCount": 30, "projectCount": 8, "total": 38 },
+    { "period": "2026-08-01", "issueCount": 42, "projectCount": 11, "total": 53 }
+  ]
+}
+```
+`period` é o início de cada bucket (ISO `yyyy-MM-dd`), ordenado crescente.
+
+---
+
+### Ciclo de vida dos projetos
+```
+GET /api/admin/dashboard/projetos/ciclo-vida?from=2026-08-16
+Authorization: Bearer <token>
+```
+Distribuição dos projetos por status, tempo médio em cada etapa (via histórico de status) e execução orçamentária.
+
+**Resposta `200`:**
+```json
+{
+  "projectsByStatus": {
+    "PENDING_APPROVAL": 8,
+    "PUBLISHED": 45,
+    "IN_EXECUTION": 7,
+    "COMPLETED": 5
+  },
+  "avgTimePerStage": [
+    { "status": "PENDING_APPROVAL", "avgHours": 36.5 },
+    { "status": "IN_VOTING", "avgHours": 120.0 }
+  ],
+  "totalEstimatedCost": 1250000.00,
+  "totalApprovedBudget": 980000.00,
+  "budgetExecutionRate": 78.4
+}
+```
+- `avgTimePerStage`: tempo médio (horas) que os projetos permaneceram em cada etapa, calculado pelas transições consecutivas do histórico de status.
+- `budgetExecutionRate`: percentual do orçamento aprovado sobre o custo estimado. Pode ser `null` se não houver custo estimado no período.
+
+---
+
+## Logs de Auditoria
+
+> 🔒 Requer role `ADMINISTRATOR`. Sempre escopado ao município do administrador autenticado (via token).
+
+O backend registra automaticamente as **ações de escrita** e a **autenticação**:
+
+- São auditadas as chamadas `POST`, `PUT`, `PATCH` e `DELETE` (inclui o login em `POST /authenticate`).
+- **Não** são auditados: chamadas `GET` e a documentação (`/swagger-ui`, `/v3/api-docs`).
+- Chamadas não autenticadas (ex.: login, recuperação de senha) são registradas com `userId` nulo.
+- Tentativas negadas (`401`/`403`) e erros (`500`) também são registrados (via `statusCode`/`success`).
+- **Não** é guardado o corpo da requisição — apenas os metadados da atividade.
+- A gravação é assíncrona (não afeta o tempo de resposta) e os registros são mantidos por **90 dias** (limpeza automática diária).
+
+### Listar logs de auditoria
+```
+GET /api/admin/logs?page=0&size=20&userId=7&method=POST&from=2026-09-01&to=2026-09-16
+Authorization: Bearer <token>
+```
+**Query params (todos opcionais, exceto paginação):**
+- `page` (padrão `0`), `size` (padrão `20`, máx. `200`)
+- `userId`: filtra por usuário
+- `method`: `POST`, `PUT`, `PATCH` ou `DELETE`
+- `from` / `to`: intervalo de datas (ISO `yyyy-MM-dd`), sobre a data do registro
+
+**Resposta `200`:**
+```json
+{
+  "content": [
+    {
+      "id": 1024,
+      "userId": 7,
+      "userRole": "CITIZEN",
+      "municipalityId": 1,
+      "httpMethod": "POST",
+      "path": "/api/issues",
+      "queryString": null,
+      "statusCode": 201,
+      "success": true,
+      "durationMs": 143,
+      "ipAddress": "203.0.113.10",
+      "userAgent": "Mozilla/5.0 ...",
+      "errorMessage": null,
+      "createdAt": "2026-09-16T10:32:15"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 342
+}
+```
+Ordenado do mais recente para o mais antigo. `userId`, `userRole` e `municipalityId` ficam `null` em chamadas não autenticadas; `errorMessage` é preenchido quando a requisição falhou.
+
+---
+
+## Códigos de Resposta
+
+| Código | Significado |
+|---|---|
+| `200` | OK |
+| `201` | Criado com sucesso |
+| `204` | Sem conteúdo (operação realizada) |
+| `400` | Requisição inválida (ver campo `message`) |
+| `401` | Não autenticado |
+| `403` | Sem permissão |
+| `404` | Recurso não encontrado |
+| `500` | Erro interno |
+
+**Formato de erro:**
+```json
+{
+  "status": 400,
+  "message": "Descrição do erro"
+}
+```
+
+---
+
+## Roles do Sistema
+
+| Role | Descrição |
+|---|---|
+| `CITIZEN` | Cidadão — acesso básico |
+| `COUNCILOR` | Vereador |
+| `MODERATOR` | Moderador — gerencia salas e conteúdo |
+| `ADMINISTRATOR` | Administrador — acesso total |

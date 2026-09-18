@@ -1,7 +1,6 @@
 package br.com.fai.Vox.controller;
 
 import br.com.fai.Vox.domain.Municipality;
-import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.port.service.municipality.MunicipalityService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

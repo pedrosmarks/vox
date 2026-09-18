@@ -10,6 +10,7 @@ import '../theme/vox_badges.dart';
 import '../theme/vox_colors.dart';
 import '../utils/fallback_categories.dart';
 import '../utils/status_labels.dart';
+import '../widgets/map_picker_field.dart';
 
 class SugestoesScreen extends StatefulWidget {
   const SugestoesScreen({super.key});
@@ -23,6 +24,7 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
   final _projectService = ProjectService();
 
   List<Project> _mine = [];
+  final Map<int, String> _rejectionNotes = {};
   bool _isLoading = true;
   String? _error;
 
@@ -43,10 +45,22 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
       _mine = userId != null
           ? projects.where((p) => p.authorId == userId).toList()
           : projects;
+      unawaited(_loadRejectionNotes());
     } catch (_) {
       _error = 'Erro ao carregar suas sugestões.';
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  /// Busca no histórico o motivo da rejeição de cada sugestão rejeitada.
+  Future<void> _loadRejectionNotes() async {
+    for (final p in _mine) {
+      if (p.status != 'REJECTED' && p.status != 'CANCELLED') continue;
+      final note = await _projectService.getRejectionNote(p.id);
+      if (note.isNotEmpty && mounted) {
+        setState(() => _rejectionNotes[p.id] = note);
+      }
     }
   }
 
@@ -90,24 +104,77 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
                       itemCount: _mine.length,
                       itemBuilder: (context, index) {
                         final p = _mine[index];
+                        final isRejected =
+                            p.status == 'REJECTED' || p.status == 'CANCELLED';
+                        final note = _rejectionNotes[p.id] ?? '';
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            title: Text(
-                              p.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                title: Text(
+                                  p.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  p.description,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: VoxBadgeColors.projectStatus(
+                                  p.status,
+                                  StatusLabels.project(p.status),
+                                ),
                               ),
-                            ),
-                            subtitle: Text(
-                              p.description,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: VoxBadgeColors.projectStatus(
-                              p.status,
-                              StatusLabels.project(p.status),
-                            ),
+                              if (isRejected)
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    12,
+                                    0,
+                                    12,
+                                    12,
+                                  ),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFEF2F2),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: const Border(
+                                        left: BorderSide(
+                                          color: Color(0xFFDC2626),
+                                          width: 4,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          '💬 Motivo da rejeição',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            color: Color(0xFFB91C1C),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          note.isNotEmpty
+                                              ? note
+                                              : 'A moderação não informou um comentário.',
+                                          style: const TextStyle(
+                                            color: Color(0xFF7F1D1D),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         );
                       },
@@ -137,6 +204,8 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
 
   List<Category> _categories = fallbackCategories;
   int? _categoryId;
+  double? _latitude;
+  double? _longitude;
   XFile? _pickedImage;
   bool _isSubmitting = false;
   String? _error;
@@ -192,6 +261,8 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
           'number': _numberController.text.trim(),
         if (_neighborhoodController.text.isNotEmpty)
           'neighborhood': _neighborhoodController.text.trim(),
+        if (_latitude != null) 'latitude': _latitude.toString(),
+        if (_longitude != null) 'longitude': _longitude.toString(),
       };
 
       final files = <http.MultipartFile>[];
@@ -254,6 +325,26 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
               maxLines: 4,
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Obrigatório' : null,
+            ),
+            const SizedBox(height: 12),
+            MapPickerField(
+              initialLatitude: _latitude,
+              initialLongitude: _longitude,
+              onLocationChanged: (point) => setState(() {
+                _latitude = point.latitude;
+                _longitude = point.longitude;
+              }),
+              onAddressChanged: (address) => setState(() {
+                if (address.street.isNotEmpty) {
+                  _streetController.text = address.street;
+                }
+                if (address.number.isNotEmpty) {
+                  _numberController.text = address.number;
+                }
+                if (address.neighborhood.isNotEmpty) {
+                  _neighborhoodController.text = address.neighborhood;
+                }
+              }),
             ),
             const SizedBox(height: 12),
             Row(

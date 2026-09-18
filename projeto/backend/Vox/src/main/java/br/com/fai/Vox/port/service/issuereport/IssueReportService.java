@@ -3,12 +3,12 @@ package br.com.fai.Vox.port.service.issuereport;
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
 import br.com.fai.Vox.domain.dto.PageResponse;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
 
 import java.util.List;
 
 public interface IssueReportService {
     int create(CreateIssueReportDto dto);
+    void validateCitizenWeeklyCreateLimit(int authorId);
     void delete(int id);
     IssueReport findByid(int id);
     List<IssueReport> findByMunicipalityId(int municipalityId);
@@ -17,5 +17,6 @@ public interface IssueReportService {
     List<IssueReport> findPendingByMunicipalityId(int municipalityId);
     PageResponse<IssueReport> findPendingByMunicipalityId(int municipalityId, int page, int size);
     void update(int id, IssueReport entity, int changedBy);
+    void assignCouncilor(int issueId, int councilorId, int municipalityId);
     void updateStatus(int id, IssueReport.IssueStatus status, int changedBy, String note);
 }
