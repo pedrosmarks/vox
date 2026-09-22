@@ -8,6 +8,7 @@ class UserProfile {
   final String? phone;
   final String? cpf;
   final String? birthDate;
+  final String? profilePhotoUrl;
 
   UserProfile({
     required this.id,
@@ -19,31 +20,36 @@ class UserProfile {
     this.phone,
     this.cpf,
     this.birthDate,
+    this.profilePhotoUrl,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
-        id: json['id'] as int,
-        email: json['email'] as String,
-        name: json['name'] as String,
-        fullname: json['fullname'] as String?,
-        role: json['role'] as String,
-        municipalityId: json['municipalityId'] as int? ?? 0,
-        phone: json['phone'] as String?,
-        cpf: json['cpf'] as String?,
-        birthDate: json['birthDate'] as String?,
-      );
+    id: json['id'] as int,
+    email: json['email'] as String,
+    name: json['name'] as String,
+    fullname: json['fullname'] as String?,
+    role: json['role'] as String,
+    municipalityId: json['municipalityId'] as int? ?? 0,
+    phone: json['phone'] as String?,
+    cpf: json['cpf'] as String?,
+    birthDate: json['birthDate'] as String?,
+    profilePhotoUrl:
+        (json['profilePhotoUrl'] ?? json['profilePhoto'] ?? json['photoUrl'])
+            as String?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'email': email,
-        'name': name,
-        if (fullname != null) 'fullname': fullname,
-        'role': role,
-        'municipalityId': municipalityId,
-        if (phone != null) 'phone': phone,
-        if (cpf != null) 'cpf': cpf,
-        if (birthDate != null) 'birthDate': birthDate,
-      };
+    'id': id,
+    'email': email,
+    'name': name,
+    if (fullname != null) 'fullname': fullname,
+    'role': role,
+    'municipalityId': municipalityId,
+    if (phone != null) 'phone': phone,
+    if (cpf != null) 'cpf': cpf,
+    if (birthDate != null) 'birthDate': birthDate,
+    if (profilePhotoUrl != null) 'profilePhotoUrl': profilePhotoUrl,
+  };
 }
 
 /// Representação reduzida de usuário, usada em referências (autor, etc).
@@ -55,8 +61,8 @@ class UserSummary {
   UserSummary({required this.id, required this.name, this.fullname});
 
   factory UserSummary.fromJson(Map<String, dynamic> json) => UserSummary(
-        id: json['id'] as int,
-        name: json['name'] as String,
-        fullname: json['fullname'] as String?,
-      );
+    id: json['id'] as int,
+    name: json['name'] as String,
+    fullname: json['fullname'] as String?,
+  );
 }

@@ -13,6 +13,7 @@ public class IssueReport {
 
     private Integer id;
     private Integer municipalityId;
+    private Integer categoryId;
     private Integer authorId;
     private Integer councilorId;
     private String title;
@@ -29,8 +30,11 @@ public class IssueReport {
 
     public enum IssueStatus {
         OPEN,
+        UNDER_REVIEW,
         IN_PROGRESS,
+        FORWARDED,
         RESOLVED,
+        REJECTED,
         CLOSED
     }
 

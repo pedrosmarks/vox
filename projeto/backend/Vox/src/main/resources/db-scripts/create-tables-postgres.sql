@@ -1,5 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+DROP TABLE IF EXISTS audit_log CASCADE;
+DROP TABLE IF EXISTS user_settings CASCADE;
+DROP TABLE IF EXISTS project_signature CASCADE;
 DROP TABLE IF EXISTS notification CASCADE;
 DROP TABLE IF EXISTS project_status_history CASCADE;
 DROP TABLE IF EXISTS project_moderation CASCADE;
@@ -14,6 +17,8 @@ DROP TABLE IF EXISTS issue_status_history CASCADE;
 DROP TABLE IF EXISTS category CASCADE;
 DROP TABLE IF EXISTS subscription CASCADE;
 DROP TABLE IF EXISTS password_reset_token CASCADE;
+DROP TABLE IF EXISTS room_participant CASCADE;
+DROP TABLE IF EXISTS conference_room CASCADE;
 DROP TABLE IF EXISTS user_model CASCADE;
 DROP TABLE IF EXISTS municipality CASCADE;
 
@@ -26,6 +31,10 @@ DROP TYPE IF EXISTS issue_status CASCADE;
 DROP TYPE IF EXISTS notification_type CASCADE;
 DROP TYPE IF EXISTS vote_type CASCADE;
 DROP TYPE IF EXISTS subscription_type CASCADE;
+DROP TYPE IF EXISTS room_status CASCADE;
+DROP TYPE IF EXISTS participant_status CASCADE;
+DROP TYPE IF EXISTS accessibility_mode CASCADE;
+DROP TYPE IF EXISTS speech_request_status CASCADE;
 
 CREATE TYPE user_role AS ENUM (
     'CITIZEN',
@@ -66,7 +75,7 @@ CREATE TYPE moderation_status AS ENUM (
 CREATE TYPE issue_status AS ENUM (
     'OPEN',
     'UNDER_REVIEW',
-    'IN_PROGRESS'
+    'IN_PROGRESS',
     'FORWARDED',
     'RESOLVED',
     'REJECTED',
@@ -88,7 +97,6 @@ CREATE TYPE notification_type AS ENUM (
 
 CREATE TYPE vote_type AS ENUM (
     'APPROVE',
-    'DISAPPROVE',
     'NEUTRAL'
 );
 
@@ -99,6 +107,15 @@ CREATE TYPE subscription_type AS ENUM (
     'ISSUE',
     'CATEGORY',
     'COUNCILOR'
+);
+
+CREATE TYPE accessibility_mode AS ENUM (
+    'NONE',
+    'DARK',
+    'HIGH_CONTRAST',
+    'PROTANOPIA',
+    'DEUTERANOPIA',
+    'TRITANOPIA'
 );
 
 CREATE TABLE municipality (
@@ -123,6 +140,7 @@ CREATE TABLE user_model (
     accepted_terms BOOLEAN DEFAULT FALSE,
     accepted_privacy_policy BOOLEAN DEFAULT FALSE,
     terms_accepted_at TIMESTAMP,
+    profile_photo_url TEXT,
     municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -148,19 +166,22 @@ CREATE TABLE category (
 CREATE TABLE issue_report (
     id SERIAL PRIMARY KEY,
     municipality_id INTEGER NOT NULL REFERENCES municipality(id),
+    category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
     author_id INTEGER NOT NULL REFERENCES user_model(id),
-    councilor_id INTEGER NOT NULL REFERENCES user_model(id),
+    councilor_id INTEGER REFERENCES user_model(id),
     title VARCHAR(255) NOT NULL,
     description TEXT,
     neighborhood VARCHAR(255),
     street VARCHAR(255),
     number VARCHAR(50),
-    latitude DECIMAL(10,8),
-    longitude DECIMAL(11,8),
+    latitude DECIMAL(10,8) NOT NULL,
+    longitude DECIMAL(11,8) NOT NULL,
     status issue_status NOT NULL DEFAULT 'OPEN',
     moderation_status moderation_status NOT NULL DEFAULT 'PENDING',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (latitude BETWEEN -90 AND 90),
+    CHECK (longitude BETWEEN -180 AND 180)
 );
 
 CREATE TABLE issue_image (
@@ -203,8 +224,8 @@ CREATE TABLE project (
                          neighborhood VARCHAR(255),
                          street VARCHAR(255),
                          number VARCHAR(50),
-                         latitude DECIMAL(10,8),
-                         longitude DECIMAL(11,8),
+                         latitude DECIMAL(10,8) NOT NULL,
+                         longitude DECIMAL(11,8) NOT NULL,
                          start_date DATE,
                          expected_end_date DATE,
                          end_date DATE,
@@ -215,8 +236,8 @@ CREATE TABLE project (
                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                          CHECK (end_date IS NULL OR end_date >= start_date),
-                         CHECK (latitude BETWEEN -90 AND 90 OR latitude IS NULL),
-                         CHECK (longitude BETWEEN -180 AND 180 OR longitude IS NULL)
+                         CHECK (latitude BETWEEN -90 AND 90),
+                         CHECK (longitude BETWEEN -180 AND 180)
 );
 
 CREATE TABLE project_image (
@@ -288,11 +309,112 @@ CREATE TABLE notification (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- =============================================
+-- Salas de conferência / audiências públicas
+-- =============================================
 
---CREATE INDEX idx_projects_status_municipality ON project(status, municipality_id);
---CREATE INDEX idx_projects_type ON project(type);
---CREATE INDEX idx_votes_project ON project_opinion(project_id);
---CREATE INDEX idx_votes_user ON project_opinion(user_id);
---CREATE INDEX idx_status_history_project ON project_status_history(project_id);
---CREATE INDEX idx_project_status ON project(status);
---CREATE INDEX idx_project_author ON project(author_id);
+CREATE TYPE room_status AS ENUM (
+    'OPEN',
+    'CLOSED'
+);
+
+CREATE TYPE participant_status AS ENUM (
+    'PENDING',
+    'APPROVED',
+    'REJECTED',
+    'REMOVED'
+);
+
+CREATE TYPE speech_request_status AS ENUM (
+    'NOT_REQUESTED',
+    'PENDING',
+    'APPROVED',
+    'REJECTED'
+);
+
+CREATE TABLE conference_room (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    moderator_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+    municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
+    status room_status NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE room_participant (
+    id SERIAL PRIMARY KEY,
+    room_id INTEGER NOT NULL REFERENCES conference_room(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+    status participant_status NOT NULL DEFAULT 'PENDING',
+    speech_request_status speech_request_status NOT NULL DEFAULT 'NOT_REQUESTED',
+    can_publish_audio BOOLEAN NOT NULL DEFAULT FALSE,
+    can_publish_video BOOLEAN NOT NULL DEFAULT FALSE,
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    decided_at TIMESTAMP,
+    speech_requested_at TIMESTAMP,
+    speech_decided_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--CREATE INDEX idx_conference_room_municipality ON conference_room(municipality_id);
+--CREATE INDEX idx_conference_room_moderator ON conference_room(moderator_id);
+--CREATE INDEX idx_room_participant_room ON room_participant(room_id);
+--CREATE INDEX idx_room_participant_user ON room_participant(user_id);
+
+-- =============================================
+-- Assinaturas de projetos comunitários
+-- =============================================
+
+CREATE TABLE project_signature (
+    id SERIAL PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES project(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(project_id, user_id)
+);
+
+-- =============================================
+-- Personalização / Acessibilidade do usuário
+-- =============================================
+
+CREATE TABLE user_settings (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES user_model(id) ON DELETE CASCADE UNIQUE,
+    font_size INTEGER NOT NULL DEFAULT 16
+        CHECK (font_size BETWEEN 15 AND 30),
+    accessibility_mode accessibility_mode NOT NULL DEFAULT 'NONE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- Log de auditoria de chamadas (mutações + login)
+-- =============================================
+-- Registra ações de escrita (POST/PUT/PATCH/DELETE) e autenticação.
+-- GETs e Swagger não são registrados. Não guarda corpo da requisição.
+-- user_id fica NULL em chamadas não autenticadas (ex.: login, forgot-password).
+
+CREATE TABLE audit_log (
+    id BIGSERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES user_model(id) ON DELETE SET NULL,
+    user_role VARCHAR(20),
+    municipality_id INTEGER,
+    http_method VARCHAR(10) NOT NULL,
+    path VARCHAR(512) NOT NULL,
+    query_string VARCHAR(1024),
+    status_code INTEGER NOT NULL,
+    success BOOLEAN NOT NULL,
+    duration_ms BIGINT,
+    ip_address VARCHAR(64),
+    user_agent VARCHAR(512),
+    error_message VARCHAR(1024),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_audit_log_created_at ON audit_log(created_at);
+CREATE INDEX idx_audit_log_user ON audit_log(user_id);
+CREATE INDEX idx_audit_log_municipality ON audit_log(municipality_id);

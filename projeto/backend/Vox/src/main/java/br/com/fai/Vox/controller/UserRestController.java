@@ -1,10 +1,13 @@
 package br.com.fai.Vox.controller;
 
 import br.com.fai.Vox.domain.UserModel;
+import br.com.fai.Vox.domain.dto.CreateUserDto;
 import br.com.fai.Vox.domain.dto.UpdatePasswordDto;
 import br.com.fai.Vox.port.service.user.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.validation.Valid;
@@ -42,8 +45,14 @@ public class UserRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping
-    public ResponseEntity<UserModel> create(@RequestBody final UserModel data) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<UserModel> create(
+            @Valid @ModelAttribute final CreateUserDto data,
+            MultipartHttpServletRequest request) {
+
+        final MultipartFile file = request.getFile("file");
+        data.setFile(file);
+
         final int id = userService.create(data);
 
         final URI uri = ServletUriComponentsBuilder
@@ -54,10 +63,13 @@ public class UserRestController {
         return ResponseEntity.created(uri).build();
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserModel> update(@PathVariable final int id, @RequestBody final UserModel data) {
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<UserModel> update(@PathVariable final int id,
+                                            @ModelAttribute final UserModel data,
+                                            MultipartHttpServletRequest request) {
 
-        userService.update(id, data);
+        final MultipartFile file = request.getFile("file");
+        userService.update(id, data, file);
 
         return ResponseEntity.noContent().build();
     }
@@ -90,24 +102,6 @@ public class UserRestController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().body(entity);
-    }
-
-    @PutMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@RequestBody final String email) {
-
-        final boolean response = userService.forgotPassword(email);
-
-        return response ? ResponseEntity.ok().build()
-                : ResponseEntity.badRequest().build();
-    }
-
-    @PutMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@RequestBody final String token, @RequestBody final String newPassword) {
-
-        final boolean response = userService.resetPassword(token, newPassword);
-
-        return response ? ResponseEntity.ok().build()
-                : ResponseEntity.badRequest().build();
     }
 
 }

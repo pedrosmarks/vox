@@ -7,6 +7,7 @@ import { ProjectService, Category } from '../../services/project.service';
 import { IssueService, IssueReport } from '../../services/issue.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { MapPickerComponent, LatLng, AddressResult } from '../../components/map-picker/map-picker.component';
+import { issueStatusLabel, statusClass } from '../../utils/status-labels';
 
 const FALLBACK_CATEGORIES: Category[] = [
   { id: 1, name: 'Infraestrutura' },
@@ -176,25 +177,11 @@ export class RelatarProblemaComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'Em análise',
-      APPROVED:          'Aprovada',
-      REJECTED:          'Rejeitada',
-      IN_ANALYSIS:       'Em análise',
-      RESOLVED:          'Resolvida'
-    };
-    return map[status] ?? status;
+    return issueStatusLabel(status);
   }
 
   getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'status-analise',
-      APPROVED:          'status-aprovado',
-      REJECTED:          'status-rejeitado',
-      IN_ANALYSIS:       'status-analise',
-      RESOLVED:          'status-concluido'
-    };
-    return map[status] ?? 'status-analise';
+    return statusClass(status);
   }
 
   formatDate(dateStr: string): string {

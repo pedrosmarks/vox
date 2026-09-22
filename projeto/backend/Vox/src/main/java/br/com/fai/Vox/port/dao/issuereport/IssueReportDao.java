@@ -13,10 +13,12 @@ public interface IssueReportDao {
     List<IssueReport> findAll();
     List<IssueReport> findByMunicipalityId(int municipalityId);
     List<IssueReport> findByAuthorId(int authorId);
+    long countCreatedInLastWeek(int authorId);
     List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus);
     List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus, int limit, int offset);
     long countByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus);
     void update(int id, IssueReport entity);
+    boolean assignCouncilor(int issueId, int councilorId, int municipalityId);
     void updateModerationStatus(int id, ModerationStatus status);
     void updateStatus(int id, IssueReport.IssueStatus status);
 }

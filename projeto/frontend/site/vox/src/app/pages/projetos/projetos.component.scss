@@ -278,3 +278,29 @@ $border:    #e5e7eb;
     border-color: $accent;
   }
 }
+
+// ── Apoios (opinion APPROVE) ──────────────────────────────
+.support-count {
+  font-weight: 600;
+  color: $primary;
+}
+
+.btn-support-card {
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid $accent;
+  border-radius: 8px;
+  background: $white;
+  color: $accent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) { background: #eaf1fc; }
+  &:disabled { opacity: 0.6; cursor: default; }
+
+  &.supported {
+    background: $accent;
+    color: $white;
+  }
+}

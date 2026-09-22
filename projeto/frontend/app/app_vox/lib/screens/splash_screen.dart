@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../services/auth_service.dart';
+import '../services/settings_service.dart';
 import '../theme/vox_colors.dart';
 import 'home_shell.dart';
 import 'login_screen.dart';
@@ -20,6 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Timer(const Duration(seconds: 2), () async {
       final loggedIn = await _authService.isLoggedIn();
+      // Carrega e aplica as preferências de acessibilidade se já logado.
+      if (loggedIn) await SettingsController.instance.load();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(

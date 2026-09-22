@@ -13,6 +13,7 @@ public interface ProjectDao {
     List<Project> findByMunicipalityId(int municipalityId);
     List<Project> findByMunicipalityId(int municipalityId, int limit, int offset);
     long countByMunicipalityId(int municipalityId);
+    long countCreatedInLastWeek(int authorId);
     List<Project> findByAuthorId(int authorId);
     void update(int id, Project entity);
 }

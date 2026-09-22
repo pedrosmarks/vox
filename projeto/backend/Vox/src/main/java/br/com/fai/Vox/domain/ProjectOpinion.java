@@ -18,7 +18,6 @@ public class ProjectOpinion {
 
     public enum OpinionType {
         APPROVE,
-        DISAPPROVE,
         NEUTRAL
     }
 
