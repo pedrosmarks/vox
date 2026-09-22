@@ -107,7 +107,8 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
                         dateClause("created_at", dateRange) + " " +
                 ") grid " +
                 "GROUP BY lat, lng " +
-                "ORDER BY (issue_count + project_count) DESC";
+                "ORDER BY (SUM(CASE WHEN src = 'issue' THEN 1 ELSE 0 END) " +
+                "        + SUM(CASE WHEN src = 'project' THEN 1 ELSE 0 END)) DESC";
 
         final List<MapPointDto> points = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -155,7 +156,8 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
                         dateClause("created_at", dateRange) + " " +
                 ") agg " +
                 "GROUP BY neighborhood " +
-                "ORDER BY (issue_count + project_count) DESC";
+                "ORDER BY (SUM(CASE WHEN src = 'issue' THEN 1 ELSE 0 END) " +
+                "        + SUM(CASE WHEN src = 'project' THEN 1 ELSE 0 END)) DESC";
 
         final List<NeighborhoodHotspotDto> list = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -398,7 +400,8 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
                 "   WHERE municipality_id = ?" + dateClause("created_at", dateRange) + " " +
                 ") a JOIN user_model u ON u.id = a.author_id " +
                 "GROUP BY u.id, u.name " +
-                "ORDER BY (projects_created + issues_created) DESC LIMIT 10";
+                "ORDER BY (SUM(CASE WHEN src = 'project' THEN 1 ELSE 0 END) " +
+                "        + SUM(CASE WHEN src = 'issue' THEN 1 ELSE 0 END)) DESC LIMIT 10";
 
         final List<EngagementDto.ActiveUserDto> list = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
