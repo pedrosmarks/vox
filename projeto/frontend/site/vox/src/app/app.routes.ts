@@ -41,7 +41,7 @@ export const routes: Routes = [
   { path: 'audiencia/:id', component: AudienciaSalaComponent },
   { path: 'configuracoes', component: ConfiguracoesComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } },
-  { path: 'logs', component: LogsComponent },
+  { path: 'logs', component: LogsComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } },
   { path: 'usuarios', component: UsuariosComponent },
   { path: '**', redirectTo: 'projetos' }
 ];
