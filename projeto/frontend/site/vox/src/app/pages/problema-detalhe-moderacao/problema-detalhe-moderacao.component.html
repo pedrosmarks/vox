@@ -1,0 +1,38 @@
+<app-navbar></app-navbar>
+<main class="moderation-detail">
+  <button class="back" (click)="back()">← Voltar para moderação</button>
+  <div *ngIf="loading" class="state">Carregando ocorrência...</div>
+  <div *ngIf="!loading && error" class="state error">{{ error }}</div>
+  <section *ngIf="!loading && issue" class="review-panel">
+    <p class="eyebrow">Revisão de ocorrência</p>
+    <div *ngIf="images.length" class="gallery">
+      <img class="gallery-main" [src]="selectedImage" alt="Imagem da ocorrência para moderação" />
+      <div *ngIf="images.length > 1" class="thumbs">
+        <img *ngFor="let image of images" [src]="image.url" [class.active]="image.url === selectedImage" (click)="selectImage(image.url)" alt="Miniatura da ocorrência" />
+      </div>
+    </div>
+    <h1>{{ issue.title }}</h1>
+    <p class="description">{{ issue.description }}</p>
+    <div class="facts">
+      <div><span>Relatado por</span><strong>#{{ issue.authorId }}</strong></div>
+      <div><span>Bairro</span><strong>{{ issue.neighborhood || '—' }}</strong></div>
+      <div><span>Status recebido</span><strong>{{ issue.status }}</strong></div>
+      <div><span>Endereço</span><strong>{{ issue.street || '—' }} {{ issue.number }}</strong></div>
+      <div><span>Vereador responsável</span><strong>#{{ issue.councilorId || 'Nenhum' }}</strong></div>
+    </div>
+    <div class="actions">
+      <button class="approve" [disabled]="saving" (click)="approve()">✓ Aceitar ocorrência</button>
+      <button class="reject" [disabled]="saving" (click)="openReject()">✕ Negar ocorrência</button>
+    </div>
+  </section>
+  <div *ngIf="rejectModalOpen" class="modal-backdrop">
+    <section class="modal">
+      <h2>Negar ocorrência</h2>
+      <textarea [(ngModel)]="rejectNote" rows="5" placeholder="Motivo da negativa *"></textarea>
+      <div class="modal-actions">
+        <button (click)="rejectModalOpen = false" [disabled]="saving">Cancelar</button>
+        <button class="reject" (click)="reject()" [disabled]="saving || !rejectNote.trim()">Confirmar negativa</button>
+      </div>
+    </section>
+  </div>
+</main>

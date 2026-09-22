@@ -26,6 +26,7 @@ export class ProjetoDetalheComponent implements OnInit {
   selectedImage = '';
   isModerator = false;
   isCitizen = false;
+  isModerationContext = false;
   signed = false;
   signing = false;
   signatureCount = 0;
@@ -74,6 +75,7 @@ export class ProjetoDetalheComponent implements OnInit {
     const role = this.authService.getUserRole();
     this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
     this.isCitizen = role === 'CITIZEN';
+    this.isModerationContext = this.route.snapshot.url[0]?.path === 'moderacao';
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
       this.router.navigate(['/projetos']);
@@ -147,7 +149,7 @@ export class ProjetoDetalheComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate([this.isModerator ? '/moderacao' : '/projetos']);
+    this.router.navigate([this.isModerationContext ? '/moderacao' : '/projetos']);
   }
 
   promoteProject(): void {

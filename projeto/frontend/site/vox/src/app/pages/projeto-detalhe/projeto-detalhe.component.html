@@ -1,4 +1,4 @@
-<app-navbar></app-navbar>
+<app-navbar *ngIf="!isModerationContext"></app-navbar>
 
 <main class="detalhe-page">
 
@@ -21,7 +21,7 @@
     <div class="detalhe-header">
       <button class="btn-back" (click)="goBack()">← Voltar</button>
       <div class="header-badges">
-        <span class="badge-status" [ngClass]="getStatusClass(project.status)">
+        <span *ngIf="!isModerationContext" class="badge-status" [ngClass]="getStatusClass(project.status)">
           {{ getStatusLabel(project.status) }}
         </span>
         <span class="badge-type" [ngClass]="getTypeClass(project)">
@@ -74,7 +74,7 @@
         <!-- Info cards -->
         <div class="info-grid">
 
-          <div class="info-card">
+          <div class="info-card" *ngIf="!isModerationContext">
             <span class="info-label">Status</span>
             <span class="info-value status-value" [ngClass]="getStatusClass(project.status)">
               {{ getStatusLabel(project.status) }}
@@ -127,11 +127,18 @@
       <!-- Coluna lateral: financeiro -->
       <aside class="col-aside">
 
-        <div class="aside-card" *ngIf="isModerator">
+        <div class="aside-card" *ngIf="isModerator && isModerationContext">
           <h3 class="aside-title">Moderação</h3>
           <div class="moderation-actions">
             <button class="btn-save-status" [disabled]="savingStatus" (click)="acceptProject()">✓ Aceitar</button>
             <button class="btn-reject" [disabled]="savingStatus" (click)="openDecisionModal('REJECTED')">✕ Negar</button>
+          </div>
+        </div>
+
+        <div class="aside-card" *ngIf="isModerator && !isModerationContext">
+          <h3 class="aside-title">Status do projeto</h3>
+          <div class="moderation-actions">
+            <button class="btn-save-status" [disabled]="savingStatus" (click)="openStatusModal()">Atualizar status</button>
           </div>
         </div>
 
@@ -171,12 +178,19 @@
   <!-- Modal: atualizar status (moderador) -->
   <div *ngIf="statusModalOpen" class="status-modal-overlay" (click)="closeStatusModal()">
     <div class="status-modal" (click)="$event.stopPropagation()">
-      <h3 class="status-modal-title">Negar projeto</h3>
+      <h3 class="status-modal-title">Atualizar status do projeto</h3>
 
       <div *ngIf="statusError" class="alert alert-error">{{ statusError }}</div>
 
       <label class="status-modal-label">
-        Motivo da negativa <span class="required">*</span>
+        Novo status
+      </label>
+      <select class="status-modal-select" [(ngModel)]="selectedStatus" [disabled]="savingStatus">
+        <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+      </select>
+
+      <label class="status-modal-label">
+        Comentário para o cidadão <span *ngIf="requiresNote" class="required">*</span>
       </label>
       <textarea
         class="status-modal-textarea"

@@ -59,9 +59,6 @@
     </section>
 
     <div class="config-actions">
-      <button class="btn-save" [disabled]="saving" (click)="save()">
-        {{ saving ? 'Salvando...' : 'Salvar configurações' }}
-      </button>
       <span *ngIf="message" class="save-msg" [class.ok]="messageOk">{{ message }}</span>
     </div>
 

@@ -1,0 +1,45 @@
+<app-navbar></app-navbar>
+
+<main class="moderation-detail">
+  <button class="back" (click)="back()">← Voltar para moderação</button>
+
+  <div *ngIf="loading" class="state">Carregando projeto...</div>
+  <div *ngIf="!loading && error" class="state error">{{ error }}</div>
+
+  <section *ngIf="!loading && project" class="review-panel">
+    <p class="eyebrow">Revisão de sugestão</p>
+    <div *ngIf="images.length" class="gallery">
+      <img class="gallery-main" [src]="selectedImage" alt="Imagem do projeto para moderação" />
+      <div *ngIf="images.length > 1" class="thumbs">
+        <img *ngFor="let image of images" [src]="image.url" [class.active]="image.url === selectedImage" (click)="selectImage(image.url)" alt="Miniatura do projeto" />
+      </div>
+    </div>
+    <h1>{{ project.title }}</h1>
+    <p class="description">{{ project.description }}</p>
+
+    <div class="facts">
+      <div><span>Autor</span><strong>#{{ project.authorId }}</strong></div>
+      <div><span>Bairro</span><strong>{{ project.neighborhood || '—' }}</strong></div>
+      <div><span>Orçamento estimado</span><strong>{{ project.estimatedCost | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></div>
+      <div><span>Endereço</span><strong>{{ project.street || '—' }} {{ project.number }}</strong></div>
+      <div><span>Datas</span><strong>{{ project.startDate | date:'dd/MM/yyyy' }} até {{ project.expectedEndDate | date:'dd/MM/yyyy' }}</strong></div>
+    </div>
+
+    <div class="actions">
+      <button class="approve" [disabled]="saving" (click)="approve()">✓ Aceitar projeto</button>
+      <button class="reject" [disabled]="saving" (click)="openReject()">✕ Negar projeto</button>
+    </div>
+  </section>
+
+  <div *ngIf="rejectModalOpen" class="modal-backdrop">
+    <section class="modal">
+      <h2>Negar projeto</h2>
+      <p>Explique ao cidadão o motivo da negativa.</p>
+      <textarea [(ngModel)]="rejectNote" rows="5" placeholder="Motivo da negativa *"></textarea>
+      <div class="modal-actions">
+        <button (click)="rejectModalOpen = false" [disabled]="saving">Cancelar</button>
+        <button class="reject" (click)="reject()" [disabled]="saving || !rejectNote.trim()">Confirmar negativa</button>
+      </div>
+    </section>
+  </div>
+</main>

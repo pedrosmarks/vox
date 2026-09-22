@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -65,7 +66,6 @@ export class ModeracaoComponent implements OnInit {
     categoryId: '',
     type: 'CHAMBER',
     status: 'PUBLISHED',
-    highlighted: false,
     isOfficial: true,
     neighborhood: '',
     street: '',
@@ -100,6 +100,7 @@ export class ModeracaoComponent implements OnInit {
     private authService: AuthService,
     private projectService: ProjectService,
     private issueService: IssueService,
+    private location: Location,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -134,9 +135,11 @@ export class ModeracaoComponent implements OnInit {
     });
   }
 
-  openProject(id: number): void { this.router.navigate(['/projetos', id]); }
+  openProject(id: number): void {
+    this.router.navigate(['/moderacao/projetos', id]);
+  }
 
-  openIssue(id: number): void { this.router.navigate(['/problemas', id]); }
+  openIssue(id: number): void { this.router.navigate(['/moderacao/problemas', id]); }
 
   // ── Aba: Pendentes ────────────────────────────────────────
 
@@ -234,7 +237,6 @@ export class ModeracaoComponent implements OnInit {
       categoryId:      project.categoryId ? String(project.categoryId) : '',
       type:            'CHAMBER',
       status:          'PUBLISHED',
-      highlighted:     false,
       isOfficial:      true,
       neighborhood:    project.neighborhood ?? '',
       street:          project.street      ?? '',
@@ -301,7 +303,6 @@ export class ModeracaoComponent implements OnInit {
     fd.append('categoryId', String(this.form.categoryId));
     fd.append('type', this.form.type);
     fd.append('status', this.form.status);
-    fd.append('highlighted', String(this.form.highlighted));
     fd.append('isOfficial', 'true');
     fd.append('neighborhood', this.form.neighborhood);
     fd.append('street', this.form.street);
@@ -335,6 +336,7 @@ export class ModeracaoComponent implements OnInit {
           this.isSubmitting = false;
           this.submitSuccess = true;
           this.resetForm();
+          this.location.back();
         },
         error: (err) => {
           this.isSubmitting = false;
@@ -350,7 +352,7 @@ export class ModeracaoComponent implements OnInit {
       title: '', description: '',
       municipalityId: this.authService.getMunicipalityId(),
       categoryId: '', type: 'CHAMBER', status: 'PUBLISHED',
-      highlighted: false, isOfficial: true,
+      isOfficial: true,
       neighborhood: '', street: '', number: '',
       latitude: null, longitude: null,
       startDate: '', expectedEndDate: '', endDate: '',

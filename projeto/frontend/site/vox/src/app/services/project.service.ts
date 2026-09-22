@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 
 export interface Project {
   id: number;
@@ -183,7 +183,9 @@ export class ProjectService {
     if (page !== undefined) params.push(`page=${page}`);
     if (size !== undefined) params.push(`size=${size}`);
     const query = params.length ? `?${params.join('&')}` : '';
-    return this.http.get<Project[]>(`${this.API_URL}/api/moderation/projects/pending${query}`);
+    return this.http.get<Project[]>(`${this.API_URL}/api/moderation/projects/pending${query}`).pipe(
+      map(projects => projects.filter(project => project.status === 'PENDING_APPROVAL'))
+    );
   }
 
   createProject(formData: FormData): Observable<Project> {

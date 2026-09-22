@@ -61,11 +61,12 @@ export class ProjetosComponent implements OnInit {
   }
 
   private isVisible(p: Project): boolean {
-    // Rejeitados/cancelados nunca aparecem na listagem pública.
-    if (p.status === 'REJECTED' || p.status === 'CANCELLED') return false;
-    // Projetos de cidadão só aparecem depois de aprovados (não pendentes/em análise).
-    const isCitizen = !p.isOfficial && p.type === 'CITIZEN';
-    return !isCitizen || (p.status !== 'PENDING_APPROVAL' && p.status !== 'IN_ANALYSIS');
+    // Projetos rejeitados, cancelados ou ainda em análise ficam fora do
+    // catálogo público; aparecem apenas na fila de moderação.
+    return p.status !== 'REJECTED' &&
+      p.status !== 'CANCELLED' &&
+      p.status !== 'PENDING_APPROVAL' &&
+      p.status !== 'IN_ANALYSIS';
   }
 
   loadProjects(): void {

@@ -245,11 +245,23 @@ export class AuthService {
   }
 
   createUser(payload: CreateUserPayload): Observable<unknown> {
-    return this.http.post(`${this.API_URL}/api/user`, payload);
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+    return this.http.post(`${this.API_URL}/api/user`, formData);
   }
 
   updateUser(id: number, data: Partial<UserProfile>): Observable<void> {
-    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, data);
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, formData);
   }
 
   deleteUser(id: number): Observable<void> {

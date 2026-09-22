@@ -1,9 +1,149 @@
 <app-navbar></app-navbar>
 
-<main class="placeholder-page">
-  <div class="placeholder-card">
-    <div class="placeholder-icon">📊</div>
-    <h1 class="placeholder-title">Dashboard</h1>
-    <p class="placeholder-text">Vai ser implementado.</p>
-  </div>
+<main class="dashboard-page">
+  <section class="dashboard-heading">
+    <div>
+      <p class="eyebrow">GESTÃO MUNICIPAL</p>
+      <h1>Dashboard</h1>
+      <p class="subtitle">Indicadores de participação, projetos e moderação</p>
+    </div>
+    <form class="date-filter" (ngSubmit)="load()">
+      <label>De <input type="date" name="from" [(ngModel)]="from" required></label>
+      <label>Até <input type="date" name="to" [(ngModel)]="to" required></label>
+      <button type="submit" [disabled]="isLoading" aria-label="Atualizar indicadores" title="Atualizar indicadores">
+        <span class="material-symbols-rounded">refresh</span>
+      </button>
+    </form>
+  </section>
+
+  <p class="error-banner" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+  <div class="loading-line" *ngIf="isLoading"><span></span>Atualizando dados…</div>
+
+  <section class="kpi-grid" aria-label="Indicadores principais">
+    <article class="kpi-card kpi-issues">
+      <span class="kpi-label">Ocorrências registradas</span>
+      <strong>{{ data?.overview?.totalIssues ?? '—' }}</strong>
+      <span class="kpi-note">{{ data?.overview?.pendingModerationIssues ?? 0 }} aguardando moderação</span>
+    </article>
+    <article class="kpi-card kpi-projects">
+      <span class="kpi-label">Projetos publicados</span>
+      <strong>{{ data?.overview?.publishedProjects ?? '—' }}</strong>
+      <span class="kpi-note">{{ data?.overview?.totalProjects ?? 0 }} no total</span>
+    </article>
+    <article class="kpi-card kpi-users">
+      <span class="kpi-label">Cidadãos participantes</span>
+      <strong>{{ data?.overview?.totalUsers ?? '—' }}</strong>
+      <span class="kpi-note">Contas no município</span>
+    </article>
+    <article class="kpi-card kpi-resolution">
+      <span class="kpi-label">Taxa de resolução</span>
+      <strong>{{ data?.overview ? (data?.overview?.issueResolutionRate | number:'1.0-1') + '%' : '—' }}</strong>
+      <span class="kpi-note">Ocorrências aprovadas resolvidas</span>
+    </article>
+  </section>
+
+  <section class="chart-grid">
+    <article class="panel status-panel">
+      <div class="panel-heading">
+        <div><h2>Situação das ocorrências</h2><p>{{ statusTotal }} ocorrências no período</p></div>
+        <div class="segmented" role="group" aria-label="Tipo de gráfico de ocorrências">
+          <button type="button" [class.active]="statusChart === 'bars'" (click)="statusChart = 'bars'" title="Gráfico de barras">Barras</button>
+          <button type="button" [class.active]="statusChart === 'donut'" (click)="statusChart = 'donut'" title="Gráfico de rosca">Rosca</button>
+        </div>
+      </div>
+      <div class="status-content" *ngIf="statusChart === 'bars'; else statusDonutView">
+        <div class="bar-row" *ngFor="let item of issueStatuses">
+          <span>{{ item.label }}</span><div class="bar-track"><i [style.width.%]="statusTotal ? item.value / statusTotal * 100 : 0" [style.background]="item.color"></i></div><b>{{ item.value }}</b>
+        </div>
+        <p class="empty-note" *ngIf="!issueStatuses.length">Sem ocorrências no intervalo selecionado.</p>
+      </div>
+      <ng-template #statusDonutView>
+        <div class="donut-layout">
+          <div class="donut" [style.background]="statusDonut"><span><b>{{ statusTotal }}</b><small>total</small></span></div>
+          <div class="legend-list"><div *ngFor="let item of issueStatuses"><i [style.background]="item.color"></i><span>{{ item.label }}</span><b>{{ item.value }}</b></div></div>
+        </div>
+      </ng-template>
+    </article>
+
+    <article class="panel timeline-panel">
+      <div class="panel-heading">
+        <div><h2>Atividade ao longo do tempo</h2><p>Novas ocorrências e projetos</p></div>
+        <div class="segmented" role="group" aria-label="Tipo de gráfico temporal">
+          <button type="button" [class.active]="timelineChart === 'bars'" (click)="timelineChart = 'bars'" title="Gráfico de barras">Barras</button>
+          <button type="button" [class.active]="timelineChart === 'line'" (click)="timelineChart = 'line'" title="Gráfico de linha">Linha</button>
+        </div>
+      </div>
+      <div class="timeline-bars" *ngIf="timelineChart === 'bars'; else timelineLineView">
+        <div class="time-column" *ngFor="let point of timelinePoints" [title]="point.label + ': ' + point.total + ' registros'">
+          <div class="stacked-bar"><i [style.height.%]="point.total ? point.issues / point.total * 100 : 0"></i><b [style.height.%]="point.total ? point.projects / point.total * 100 : 0"></b></div>
+          <small>{{ point.label }}</small>
+        </div>
+        <p class="empty-note" *ngIf="!timelinePoints.length">Sem atividade no intervalo selecionado.</p>
+      </div>
+      <ng-template #timelineLineView>
+        <div class="line-chart" *ngIf="timelinePoints.length; else noTimeline">
+          <svg viewBox="0 0 300 170" role="img" aria-label="Evolução de registros no tempo">
+            <path class="line-grid" d="M10 25H290 M10 85H290 M10 150H290"></path>
+            <polyline class="line-path" [attr.points]="timelineLinePoints"></polyline>
+            <circle *ngFor="let point of timelinePoints" [attr.cx]="point.x" [attr.cy]="point.y" r="3.5"></circle>
+          </svg>
+          <div class="line-labels"><small *ngFor="let point of timelinePoints">{{ point.label }}</small></div>
+        </div>
+        <ng-template #noTimeline><p class="empty-note">Sem atividade no intervalo selecionado.</p></ng-template>
+      </ng-template>
+      <div class="chart-legend"><span><i class="legend-issues"></i>Ocorrências</span><span><i class="legend-projects"></i>Projetos</span></div>
+    </article>
+
+    <article class="panel category-panel">
+      <div class="panel-heading">
+        <div><h2>Temas em destaque</h2><p>Volume por categoria</p></div>
+        <div class="segmented" role="group" aria-label="Métrica por categoria">
+          <button type="button" [class.active]="categoryMetric === 'issues'" (click)="categoryMetric = 'issues'">Ocorrências</button>
+          <button type="button" [class.active]="categoryMetric === 'projects'" (click)="categoryMetric = 'projects'">Projetos</button>
+        </div>
+      </div>
+      <div class="category-list">
+        <div class="category-row" *ngFor="let item of categoryItems">
+          <div><span>{{ item.name }}</span><b>{{ item.value }}</b></div>
+          <div class="bar-track"><i [style.width.%]="item.value / categoryMax * 100"></i></div>
+        </div>
+        <p class="empty-note" *ngIf="!categoryItems.length">Sem dados de categoria neste período.</p>
+      </div>
+    </article>
+
+    <article class="panel moderation-panel">
+      <div class="panel-heading">
+        <div><h2>Moderação</h2><p>Decisões e fila de análise</p></div>
+        <div class="segmented" role="group" aria-label="Visualização da moderação">
+          <button type="button" [class.active]="moderationChart === 'volume'" (click)="moderationChart = 'volume'">Volume</button>
+          <button type="button" [class.active]="moderationChart === 'rates'" (click)="moderationChart = 'rates'">Taxas</button>
+        </div>
+      </div>
+      <div class="moderation-list">
+        <div class="bar-row" *ngFor="let item of moderationValues">
+          <span>{{ item.label }}</span><div class="bar-track"><i [style.width.%]="moderationChart === 'rates' ? item.value : item.value / moderationMax * 100" [style.background]="item.color"></i></div><b>{{ item.value | number:'1.0-1' }}{{ moderationChart === 'rates' ? '%' : '' }}</b>
+        </div>
+      </div>
+      <p class="panel-footnote">Tempo médio de decisão: ocorrências {{ (data?.moderation?.['avgIssueDecisionHours'] ?? '—') }}h · projetos {{ (data?.moderation?.['avgProjectDecisionHours'] ?? '—') }}h</p>
+    </article>
+
+    <article class="panel neighborhood-panel">
+      <div class="panel-heading"><div><h2>Regiões com mais registros</h2><p>Ocorrências e projetos aprovados</p></div><span class="material-symbols-rounded panel-icon">location_on</span></div>
+      <div class="rank-list"><div *ngFor="let item of neighborhoods; let i = index"><span class="rank-index">{{ (i + 1).toString().padStart(2, '0') }}</span><span class="rank-name">{{ item.name }}</span><b>{{ item.total }}</b></div></div>
+      <p class="empty-note" *ngIf="!neighborhoods.length">Sem registros geográficos neste período.</p>
+    </article>
+
+    <article class="panel engagement-panel">
+      <div class="panel-heading"><div><h2>Participação cidadã</h2><p>Contas mais ativas no período</p></div><span class="material-symbols-rounded panel-icon">groups</span></div>
+      <div class="rank-list"><div *ngFor="let user of topActiveUsers; let i = index"><span class="rank-index">{{ (i + 1).toString().padStart(2, '0') }}</span><span class="rank-name">{{ user.name }}</span><b>{{ user.total }} <small>registros</small></b></div></div>
+      <p class="empty-note" *ngIf="!topActiveUsers.length">Sem atividade cidadã neste período.</p>
+    </article>
+  </section>
+
+  <section class="bottom-summary" *ngIf="data?.overview">
+    <div><span>Projetos aguardando moderação</span><b>{{ data?.overview?.pendingModerationProjects ?? 0 }}</b></div>
+    <div><span>Projetos publicados</span><b>{{ data?.overview?.publishedProjects ?? 0 }}</b></div>
+    <div><span>Usuários por perfil</span><p><span *ngFor="let role of usersByRole">{{ role.label }} <b>{{ role.value }}</b></span></p></div>
+    <div><span>Execução orçamentária</span><b>{{ data?.projectLifecycle?.['budgetExecutionRate'] ?? '—' }}{{ data?.projectLifecycle?.['budgetExecutionRate'] != null ? '%' : '' }}</b></div>
+  </section>
 </main>

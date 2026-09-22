@@ -89,13 +89,13 @@ html[data-a11y='DARK'] {
   [class*='card'],
   [class*='sidebar'],
   .detalhe-content, .config-content, .tab-content, .tab-panel,
+  .moderation-detail, .review-panel, .modal,
   .mode-option, .queue-item, .identity-info,
   .form-input, .form-textarea, .export-menu {
     background: #121212 !important;
     color: #e6e8ec !important;
     border-color: #2a2a2a !important;
   }
-
   // Campos desabilitados (perfil) — não deixar cinza-claro
   .form-input.disabled, .form-input:disabled,
   input:disabled, textarea:disabled {
@@ -174,6 +174,12 @@ html[data-a11y='DARK'] {
 
   // Modais (rejeição na moderação, atualizar status no detalhe)
   .status-modal, .reject-modal {
+      .moderation-detail { background: #000 !important; }
+      .review-panel, .modal { background: #121212 !important; color: #e6e8ec !important; border-color: #2a2a2a !important; }
+      .review-panel h1, .review-panel h2, .review-panel strong,
+      .modal h1, .modal h2 { color: #f5f6f8 !important; }
+      .review-panel .description, .review-panel span, .modal p { color: #c3c8d0 !important; }
+      .facts div { background: #1a1a1a !important; border-color: #2a2a2a !important; }
     background: #121212 !important;
     color: #e6e8ec !important;
     border: 1px solid #2a2a2a !important;
@@ -228,6 +234,11 @@ html[data-a11y='HIGH_CONTRAST'] {
     color: #fff !important;
     border: 2px solid #fff !important;
   }
+  .review-panel, .modal { background: #000 !important; color: #fff !important; border: 2px solid #fff !important; }
+  .review-panel h1, .review-panel h2, .review-panel strong,
+  .modal h1, .modal h2, .modal p,
+  .review-panel .description, .review-panel span { color: #fff !important; }
+  .facts div { background: #000 !important; border: 2px solid #fff !important; }
 
   // Campos desabilitados
   .form-input.disabled, .form-input:disabled,
