@@ -211,6 +211,24 @@ public class ProjectRestController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * DELETE /api/project/{projectId}/councilor/me
+     * O próprio vereador autenticado se desvincula do projeto.
+     * O vereador é identificado pelo token (não por parâmetro), evitando que
+     * um usuário desvincule outro.
+     */
+    @DeleteMapping("/{projectId}/councilor/me")
+    public ResponseEntity<Void> unlinkSelf(@PathVariable final int projectId,
+                                           HttpServletRequest request) {
+        String role = authHelper.getRole(request);
+        if (!"COUNCILOR".equalsIgnoreCase(role)) {
+            throw new SecurityException("Acesso negado: apenas vereadores podem se desvincular de um projeto");
+        }
+        int councilorId = authHelper.getUserId(request);
+        projectCouncilorService.remove(projectId, councilorId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{projectId}/councilor")
     public ResponseEntity<List<ProjectCouncilor>> getCouncilors(@PathVariable final int projectId) {
         return ResponseEntity.ok(projectCouncilorService.findByProjectId(projectId));

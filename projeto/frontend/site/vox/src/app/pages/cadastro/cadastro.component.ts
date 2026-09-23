@@ -14,6 +14,7 @@ import { MunicipalityService, Municipality } from '../../services/municipality.s
   styleUrls: ['./cadastro.component.scss']
 })
 export class CadastroComponent implements OnInit {
+  legalDocument: 'terms' | 'privacy' | null = null;
   name = '';
   email = '';
   cpf = '';
@@ -63,6 +64,14 @@ export class CadastroComponent implements OnInit {
   onPhotoChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.profilePhoto = input.files?.[0] ?? null;
+  }
+
+  openLegalDocument(document: 'terms' | 'privacy'): void {
+    this.legalDocument = document;
+  }
+
+  closeLegalDocument(): void {
+    this.legalDocument = null;
   }
 
   onSubmit(): void {

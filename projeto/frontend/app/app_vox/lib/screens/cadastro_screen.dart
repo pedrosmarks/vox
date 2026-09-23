@@ -152,6 +152,110 @@ class _CadastroScreenState extends State<CadastroScreen> {
     }
   }
 
+  Future<void> _showLegalDocument({required bool privacy}) async {
+    final title = privacy ? 'Política de privacidade' : 'Termos de uso';
+    final sections = privacy
+        ? const [
+            (
+              '1. Dados tratados',
+              'Para criar e manter sua conta, a plataforma pode tratar nome, e-mail, CPF, telefone, data de nascimento, município e foto de perfil, conforme os campos que você fornecer. Também são tratados dados de uso necessários ao funcionamento e à segurança do serviço.',
+            ),
+            (
+              '2. Finalidades',
+              'Os dados são utilizados para autenticar sua conta, disponibilizar as funcionalidades, associar sua participação ao município, enviar comunicações relacionadas ao serviço, prevenir uso indevido e cumprir obrigações legais.',
+            ),
+            (
+              '3. Conteúdo e visibilidade',
+              'O conteúdo que você publicar em projetos, sugestões, ocorrências ou audiências pode ser visível a outros usuários conforme as configurações e regras da funcionalidade. Evite incluir informações pessoais desnecessárias no conteúdo público.',
+            ),
+            (
+              '4. Compartilhamento e operadores',
+              'Os dados podem ser acessados por administradores e moderadores autorizados para operar a plataforma e atender às finalidades acima. Prestadores de serviço envolvidos na hospedagem e no funcionamento podem tratar dados sob instruções e medidas de proteção apropriadas.',
+            ),
+            (
+              '5. Armazenamento e segurança',
+              'São adotadas medidas técnicas e organizacionais destinadas a proteger os dados contra acesso não autorizado, perda ou alteração. Os dados são mantidos pelo período necessário às finalidades do serviço e às obrigações aplicáveis.',
+            ),
+            (
+              '6. Seus direitos',
+              'Você pode solicitar confirmação do tratamento, acesso, correção e informações sobre seus dados, além de exercer os demais direitos previstos na legislação aplicável, pelos canais oficiais de atendimento.',
+            ),
+            (
+              '7. Alterações e contato',
+              'Esta política pode ser atualizada quando houver mudanças no serviço ou nas práticas de tratamento. Para dúvidas ou solicitações relacionadas à privacidade, utilize os canais oficiais de atendimento disponibilizados pelo município ou pela plataforma.',
+            ),
+          ]
+        : const [
+            (
+              '1. Sobre a plataforma',
+              'A VOX Cidadão é uma plataforma de participação pública. Ela permite acompanhar projetos, registrar sugestões e ocorrências e participar de audiências relacionadas ao município selecionado.',
+            ),
+            (
+              '2. Cadastro e responsabilidade da conta',
+              'Ao criar uma conta, você concorda em fornecer informações verdadeiras, manter seus dados atualizados e proteger suas credenciais. A conta é pessoal; atividades feitas nela são atribuídas ao titular.',
+            ),
+            (
+              '3. Uso respeitoso',
+              'Use a plataforma de forma lícita e respeitosa. Não publique conteúdo ilegal, discriminatório, ameaçador, enganoso, que viole direitos de terceiros ou que exponha dados pessoais de outras pessoas sem autorização.',
+            ),
+            (
+              '4. Conteúdo enviado',
+              'Você continua responsável pelo conteúdo que envia e declara ter direito de compartilhá-lo. Ao publicá-lo, autoriza a VOX Cidadão a armazená-lo e exibi-lo dentro das funcionalidades da plataforma para viabilizar a participação pública.',
+            ),
+            (
+              '5. Moderação e disponibilidade',
+              'Conteúdos e participações podem passar por moderação conforme as regras da plataforma e do município. A disponibilidade dos serviços pode ser interrompida temporariamente para manutenção ou por motivos de segurança.',
+            ),
+            (
+              '6. Atualizações destes termos',
+              'Estes termos podem ser atualizados para refletir mudanças na plataforma ou em suas regras. Quando uma alteração exigir novo aceite, isso será solicitado no próprio serviço.',
+            ),
+            (
+              '7. Contato',
+              'Para dúvidas sobre estes termos, utilize os canais oficiais de atendimento disponibilizados pelo município ou pela plataforma.',
+            ),
+          ];
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'VOX Cidadão · versão de 22 de setembro de 2026',
+                  style: Theme.of(dialogContext).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(dialogContext).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final section in sections) ...[
+                  Text(
+                    section.$1,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(section.$2),
+                  const SizedBox(height: 12),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Entendi'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -288,22 +392,64 @@ class _CadastroScreenState extends State<CadastroScreen> {
                 final photo = await ImagePicker().pickImage(
                   source: ImageSource.gallery,
                 );
-                if (photo != null && mounted)
+                if (photo != null && mounted) {
                   setState(() => _profilePhoto = photo);
+                }
               },
               child: const Text('Escolher'),
             ),
           ),
-          CheckboxListTile(
-            value: _acceptedTerms,
-            onChanged: (v) => setState(() => _acceptedTerms = v ?? false),
-            controlAffinity: ListTileControlAffinity.leading,
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: const Text(
-              'Li e aceito os termos de uso e a política de privacidade.',
-              style: TextStyle(fontSize: 13, color: Color(0xFF555555)),
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Checkbox(
+                value: _acceptedTerms,
+                onChanged: (value) =>
+                    setState(() => _acceptedTerms = value ?? false),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 3,
+                    runSpacing: 0,
+                    children: [
+                      const Text(
+                        'Li e aceito os',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      InkWell(
+                        onTap: () => _showLegalDocument(privacy: false),
+                        child: const Text(
+                          'Termos de uso',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: VoxColors.accent,
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const Text('e a', style: TextStyle(fontSize: 13)),
+                      InkWell(
+                        onTap: () => _showLegalDocument(privacy: true),
+                        child: const Text(
+                          'Política de privacidade',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: VoxColors.accent,
+                            decoration: TextDecoration.underline,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const Text('.', style: TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
 
           if (_errorMessage != null) ...[

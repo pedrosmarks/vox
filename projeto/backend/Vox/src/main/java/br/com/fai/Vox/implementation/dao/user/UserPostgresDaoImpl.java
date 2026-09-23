@@ -71,12 +71,24 @@ public class UserPostgresDaoImpl implements UserDao {
     public void delete(int id) {
         final String sql = "DELETE FROM user_model WHERE id = ?";
         try {
+            connection.setAutoCommit(false);
+
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
             ps.execute();
             ps.close();
+            connection.commit();
             logger.log(Level.INFO, "Usuário removido com sucesso.");
         } catch (SQLException e) {
+            // Sem o rollback, uma transação abortada (ex.: violação de FK) permanece
+            // aberta na conexão compartilhada e derruba todas as consultas seguintes
+            // com "transação atual foi interrompida" (inclusive o login/findByEmail).
+            logger.log(Level.SEVERE, "Erro ao remover usuário. Realizando rollback.");
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
             throw new RuntimeException(e);
         }
     }

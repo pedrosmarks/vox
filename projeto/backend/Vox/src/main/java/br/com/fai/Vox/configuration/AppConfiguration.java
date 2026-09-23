@@ -8,6 +8,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import br.com.fai.Vox.implementation.dao.auditlog.AuditLogPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.category.CategoryPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.dashboard.DashboardPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.event.EventPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.eventcategory.EventCategoryPostgresDaoImpl;
+import br.com.fai.Vox.implementation.dao.eventimage.EventImagePostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.conferenceroom.ConferenceRoomPostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.issueimage.IssueImagePostgresDaoImpl;
 import br.com.fai.Vox.implementation.dao.issuemoderation.IssueModerationPostgresDaoImpl;
@@ -33,6 +36,9 @@ import br.com.fai.Vox.implementation.service.livekit.LiveKitServiceImpl;
 import br.com.fai.Vox.port.dao.auditlog.AuditLogDao;
 import br.com.fai.Vox.port.dao.category.CategoryDao;
 import br.com.fai.Vox.port.dao.dashboard.DashboardDao;
+import br.com.fai.Vox.port.dao.event.EventDao;
+import br.com.fai.Vox.port.dao.eventcategory.EventCategoryDao;
+import br.com.fai.Vox.port.dao.eventimage.EventImageDao;
 import br.com.fai.Vox.port.dao.conferenceroom.ConferenceRoomDao;
 import br.com.fai.Vox.port.dao.issueimage.IssueImageDao;
 import br.com.fai.Vox.port.dao.issuemoderation.IssueModerationDao;
@@ -246,6 +252,21 @@ public class AppConfiguration {
     @Bean
     public AuditLogDao getAuditLogDao(final Connection connection) {
         return new AuditLogPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public EventCategoryDao getEventCategoryDao(final Connection connection) {
+        return new EventCategoryPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public EventDao getEventDao(final Connection connection) {
+        return new EventPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public EventImageDao getEventImageDao(final Connection connection) {
+        return new EventImagePostgresDaoImpl(connection);
     }
 
     // --- Authentication ---

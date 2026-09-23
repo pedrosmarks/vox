@@ -1,9 +1,53 @@
 <app-navbar></app-navbar>
 
-<main class="placeholder-page">
-  <div class="placeholder-card">
-    <div class="placeholder-icon">🧾</div>
-    <h1 class="placeholder-title">Logs do Sistema</h1>
-    <p class="placeholder-text">Vai ser implementado.</p>
-  </div>
+<main class="logs-page">
+  <section class="logs-heading">
+    <div>
+      <p class="eyebrow">ADMINISTRAÇÃO</p>
+      <h1>Atividades recentes</h1>
+      <p class="subtitle">Acompanhe o que acontece no município</p>
+    </div>
+    <button class="refresh-button" type="button" (click)="loadActivities(page)" [disabled]="isLoading" title="Atualizar atividades" aria-label="Atualizar atividades">
+      <span class="material-symbols-rounded">refresh</span>
+    </button>
+  </section>
+
+  <form class="filters" (ngSubmit)="loadActivities()">
+    <label>De<input type="date" name="from" [(ngModel)]="from"></label>
+    <label>Até<input type="date" name="to" [(ngModel)]="to"></label>
+    <div class="filter-actions">
+      <button class="clear-button" type="button" (click)="clearPeriod()" title="Limpar período" aria-label="Limpar período"><span class="material-symbols-rounded">restart_alt</span></button>
+      <button class="apply-button" type="submit" [disabled]="isLoading">Aplicar período</button>
+    </div>
+  </form>
+
+  <p class="error-banner" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
+  <div class="loading-line" *ngIf="isLoading"><span></span>Carregando atividades…</div>
+
+  <section class="activity-list" aria-label="Atividades recentes" [attr.aria-busy]="isLoading">
+    <article class="activity-item" *ngFor="let log of logs">
+      <span class="activity-icon" [class.not-completed]="!log.success">
+        <span class="material-symbols-rounded">{{ activityIcon(log) }}</span>
+      </span>
+      <div class="activity-content">
+        <p class="activity-description"><strong>{{ actorLabel(log) }}</strong> {{ actionLabel(log) }}</p>
+        <p class="activity-meta">{{ formatDate(log.createdAt) }} <span aria-hidden="true">·</span> {{ log.success ? 'Concluído' : 'Não concluído' }}</p>
+      </div>
+    </article>
+
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && logs.length === 0">
+      <span class="material-symbols-rounded">event_note</span>
+      <strong>Nenhuma atividade neste período</strong>
+      <p>Escolha outro intervalo de datas.</p>
+    </div>
+  </section>
+
+  <footer class="pagination" *ngIf="totalElements > 0">
+    <span>{{ totalElements }} atividades</span>
+    <div class="page-controls">
+      <button type="button" (click)="loadActivities(page - 1)" [disabled]="page === 0 || isLoading" title="Atividades mais recentes" aria-label="Atividades mais recentes"><span class="material-symbols-rounded">arrow_back</span></button>
+      <span>{{ firstResult }}–{{ lastResult }}</span>
+      <button type="button" (click)="loadActivities(page + 1)" [disabled]="page + 1 >= totalPages || isLoading" title="Atividades anteriores" aria-label="Atividades anteriores"><span class="material-symbols-rounded">arrow_forward</span></button>
+    </div>
+  </footer>
 </main>
