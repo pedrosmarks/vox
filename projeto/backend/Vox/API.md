@@ -535,6 +535,16 @@ DELETE /api/project/{projectId}/councilor/{councilorId}
 Authorization: Bearer <token>
 ```
 
+**Desvincular-se do projeto (o próprio vereador):**
+> 🔒 Requer role `COUNCILOR`. O vereador é identificado pelo token (não por parâmetro),
+> portanto só pode desvincular a si mesmo.
+
+```
+DELETE /api/project/{projectId}/councilor/me
+Authorization: Bearer <token>
+```
+**Resposta `204`.** Se o usuário autenticado não for `COUNCILOR`, retorna `403`.
+
 **Listar vereadores do projeto:**
 ```
 GET /api/project/{projectId}/councilor
