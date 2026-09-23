@@ -58,7 +58,7 @@ export class SugestoesComponent implements OnInit {
     private authService: AuthService,
     private projectService: ProjectService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     if (!this.authService.isLoggedIn()) {
@@ -142,7 +142,6 @@ export class SugestoesComponent implements OnInit {
     if (this.userId !== null) {
       fd.append('authorId', String(this.userId));
     }
-    fd.append('highlighted', 'false');
     fd.append('isOfficial', 'false');
     if (this.form.latitude !== null && this.form.longitude !== null) {
       fd.append('latitude', String(this.form.latitude));

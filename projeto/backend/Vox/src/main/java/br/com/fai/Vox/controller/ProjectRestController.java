@@ -115,6 +115,13 @@ public class ProjectRestController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping()
+    public ResponseEntity<List<Project>> getEntities() {
+        List<Project> entities = projectService.findAll();
+
+        return ResponseEntity.ok(entities);
+    }
+
     // --- MEUS PROJETOS ---
 
     @GetMapping("/my")

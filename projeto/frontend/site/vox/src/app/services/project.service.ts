@@ -14,7 +14,6 @@ export interface Project {
   authorId: number;
   createdAt: string;
   updatedAt: string;
-  highlighted: boolean;
   isOfficial: boolean;
   neighborhood: string;
   street: string;
@@ -113,7 +112,7 @@ export interface ProjectHistoryEntry {
 export class ProjectService {
   private readonly API_URL = 'http://localhost:8080';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getProjects(status?: string): Observable<Project[]> {
     const url = status
