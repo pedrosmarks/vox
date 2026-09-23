@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
 
 export interface LoginResponse {
@@ -23,14 +23,35 @@ export type UserRole = 'ADMINISTRATOR' | 'MODERATOR' | 'CITIZEN' | 'COUNCILOR';
 
 export interface LogEntry {
   id: number;
-  action: string;
-  entity?: string;
-  entityId?: number;
-  message?: string;
-  description?: string;
-  userId?: number;
-  userName?: string;
+  userId: number | null;
+  userRole: string | null;
+  municipalityId: number | null;
+  httpMethod: string;
+  path: string;
+  queryString: string | null;
+  statusCode: number;
+  success: boolean;
+  durationMs: number;
+  ipAddress: string | null;
+  userAgent: string | null;
+  errorMessage: string | null;
   createdAt: string;
+}
+
+export interface LogPage {
+  content: LogEntry[];
+  page: number;
+  size: number;
+  totalElements: number;
+}
+
+export interface LogFilters {
+  page: number;
+  size: number;
+  userId?: number;
+  method?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface RegisterPayload {
@@ -196,13 +217,13 @@ export class AuthService {
     }
   }
 
-  updateProfile(id: number, data: Partial<UserProfile>, file?: File | null): Observable<UserProfile> {
+  updateProfile(id: number, data: Partial<UserProfile>, file?: File | null): Observable<void> {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) formData.append(key, String(value));
     });
     if (file) formData.append('file', file, file.name);
-    return this.http.put<UserProfile>(`${this.API_URL}/api/user/${id}`, formData);
+    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, formData);
   }
 
   updatePassword(oldPassword: string, newPassword: string): Observable<void> {
@@ -245,11 +266,23 @@ export class AuthService {
   }
 
   createUser(payload: CreateUserPayload): Observable<unknown> {
-    return this.http.post(`${this.API_URL}/api/user`, payload);
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+    return this.http.post(`${this.API_URL}/api/user`, formData);
   }
 
   updateUser(id: number, data: Partial<UserProfile>): Observable<void> {
-    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, data);
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, formData);
   }
 
   deleteUser(id: number): Observable<void> {
@@ -258,7 +291,14 @@ export class AuthService {
 
   // ----- Auditoria / logs -----
 
-  getLogs(): Observable<LogEntry[]> {
-    return this.http.get<LogEntry[]>(`${this.API_URL}/api/logs`);
+  getLogs(filters: LogFilters): Observable<LogPage> {
+    let params = new HttpParams()
+      .set('page', filters.page)
+      .set('size', filters.size);
+    if (filters.userId != null) params = params.set('userId', filters.userId);
+    if (filters.method) params = params.set('method', filters.method);
+    if (filters.from) params = params.set('from', filters.from);
+    if (filters.to) params = params.set('to', filters.to);
+    return this.http.get<LogPage>(`${this.API_URL}/api/admin/logs`, { params });
   }
 }

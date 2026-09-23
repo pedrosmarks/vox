@@ -396,16 +396,7 @@ $muted:      rgba(255,255,255,0.55);
 }
 .participant-control { background: rgba(255,255,255,0.1) !important; color: #86efac !important; border: 1px solid rgba(255,255,255,0.12) !important; border-radius: 5px; width: 34px; height: 32px; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; &:hover { background: rgba(255,255,255,0.22) !important; } .material-symbols-rounded { font-size: 19px; line-height: 1; } &.off { color: #fca5a5 !important; } }
 .participant-control.revoke { color: #fca5a5 !important; &.revoking { opacity: 0.55; cursor: wait; } }
-.btn-kick {
-  background: rgba(220,38,38,0.2);
-  color: #fca5a5;
-  border: none;
-  border-radius: 5px;
-  width: 24px; height: 24px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  &:hover { background: $live; color: #fff; }
-}
+.participant-control.kick { background: rgba(220,38,38,0.2) !important; color: #fca5a5 !important; &:hover { background: $live !important; color: #fff !important; } }
 
 @media (max-width: 880px) {
   .sala-body { flex-direction: column; }

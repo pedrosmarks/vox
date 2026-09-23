@@ -52,7 +52,7 @@
         </div>
       </div>
       <div class="pending-card-actions">
-        <button class="btn-approve" (click)="$event.stopPropagation(); openProject(project.id)">Revisar projeto</button>
+        <button class="btn-review" (click)="$event.stopPropagation(); openProject(project.id)">Revisar</button>
       </div>
     </div>
   </div>
@@ -125,11 +125,6 @@
           </div>
         </div>
 
-        <div class="form-row checkboxes">
-          <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="form.highlighted" /> Em destaque
-          </label>
-        </div>
       </div>
 
       <div class="form-section">

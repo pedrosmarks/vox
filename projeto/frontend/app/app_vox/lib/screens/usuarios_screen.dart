@@ -70,6 +70,14 @@ class _UsuariosScreenState extends State<UsuariosScreen>
     final passwordCtrl = TextEditingController();
     final birthCtrl = TextEditingController(text: editing?.birthDate ?? '');
     String? errorText;
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    InputDecoration userFieldDecoration(String label) => InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: isDarkTheme
+          ? const Color(0xFF0A0A0A)
+          : const Color(0xFFFAFBFF),
+    );
 
     await showDialog<void>(
       context: context,
@@ -95,28 +103,43 @@ class _UsuariosScreenState extends State<UsuariosScreen>
                     ),
                   TextField(
                     controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Nome'),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    decoration: userFieldDecoration('Nome'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: emailCtrl,
-                    decoration: const InputDecoration(labelText: 'E-mail'),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    decoration: userFieldDecoration('E-mail'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: cpfCtrl,
-                    decoration: const InputDecoration(labelText: 'CPF'),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    decoration: userFieldDecoration('CPF'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: phoneCtrl,
-                    decoration: const InputDecoration(labelText: 'Telefone'),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    decoration: userFieldDecoration('Telefone'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: birthCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Data de nascimento (AAAA-MM-DD)',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    decoration: userFieldDecoration(
+                      'Data de nascimento (AAAA-MM-DD)',
                     ),
                   ),
                   if (editing == null) const SizedBox(height: 12),
@@ -124,68 +147,79 @@ class _UsuariosScreenState extends State<UsuariosScreen>
                     TextField(
                       controller: passwordCtrl,
                       obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Senha'),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      decoration: userFieldDecoration('Senha'),
                     ),
                 ],
               ),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                if (nameCtrl.text.trim().isEmpty ||
-                    emailCtrl.text.trim().isEmpty ||
-                    cpfCtrl.text.trim().isEmpty) {
-                  setDialogState(
-                    () => errorText = 'Preencha os campos obrigatórios.',
-                  );
-                  return;
-                }
-                if (editing == null && passwordCtrl.text.trim().isEmpty) {
-                  setDialogState(
-                    () => errorText = 'Informe uma senha para o novo usuário.',
-                  );
-                  return;
-                }
-                final municipalityId = await _authService.getMunicipalityId();
-                try {
-                  if (editing != null) {
-                    await _authService.updateUser(editing.id, {
-                      'name': nameCtrl.text.trim(),
-                      'email': emailCtrl.text.trim(),
-                      'cpf': cpfCtrl.text.trim(),
-                      'phone': phoneCtrl.text.trim(),
-                      'birthDate': birthCtrl.text.trim(),
-                      'role': _activeRole,
-                      'municipalityId': municipalityId,
-                    });
-                  } else {
-                    await _authService.createUser({
-                      'name': nameCtrl.text.trim(),
-                      'email': emailCtrl.text.trim(),
-                      'cpf': cpfCtrl.text.trim(),
-                      'phone': phoneCtrl.text.trim(),
-                      'password': passwordCtrl.text,
-                      'birthDate': birthCtrl.text.trim(),
-                      'role': _activeRole,
-                      'municipalityId': municipalityId,
-                      'acceptedTerms': true,
-                      'acceptedPrivacyPolicy': true,
-                    });
-                  }
-                  if (context.mounted) Navigator.of(context).pop();
-                  _load();
-                } catch (_) {
-                  setDialogState(
-                    () => errorText = 'Erro ao salvar. Verifique os dados.',
-                  );
-                }
-              },
-              child: const Text('Salvar'),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                const SizedBox(width: 24),
+                FilledButton(
+                  onPressed: () async {
+                    if (nameCtrl.text.trim().isEmpty ||
+                        emailCtrl.text.trim().isEmpty ||
+                        cpfCtrl.text.trim().isEmpty) {
+                      setDialogState(
+                        () => errorText = 'Preencha os campos obrigatórios.',
+                      );
+                      return;
+                    }
+                    if (editing == null && passwordCtrl.text.trim().isEmpty) {
+                      setDialogState(
+                        () => errorText =
+                            'Informe uma senha para o novo usuário.',
+                      );
+                      return;
+                    }
+                    final municipalityId = await _authService
+                        .getMunicipalityId();
+                    try {
+                      if (editing != null) {
+                        await _authService.updateUser(editing.id, {
+                          'name': nameCtrl.text.trim(),
+                          'email': emailCtrl.text.trim(),
+                          'cpf': cpfCtrl.text.trim(),
+                          'phone': phoneCtrl.text.trim(),
+                          'birthDate': birthCtrl.text.trim(),
+                          'role': _activeRole,
+                          'municipalityId': municipalityId,
+                        });
+                      } else {
+                        await _authService.createUser({
+                          'name': nameCtrl.text.trim(),
+                          'email': emailCtrl.text.trim(),
+                          'cpf': cpfCtrl.text.trim(),
+                          'phone': phoneCtrl.text.trim(),
+                          'password': passwordCtrl.text,
+                          'birthDate': birthCtrl.text.trim(),
+                          'role': _activeRole,
+                          'municipalityId': municipalityId,
+                          'acceptedTerms': true,
+                          'acceptedPrivacyPolicy': true,
+                        });
+                      }
+                      if (context.mounted) Navigator.of(context).pop();
+                      _load();
+                    } catch (_) {
+                      setDialogState(
+                        () => errorText = 'Erro ao salvar. Verifique os dados.',
+                      );
+                    }
+                  },
+                  child: const Text('Salvar'),
+                ),
+              ],
             ),
           ],
         ),

@@ -189,6 +189,17 @@ class AuthService {
     );
   }
 
+  Future<UserProfile> getUserById(int id) async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/api/user/$id'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   // ── Administração de usuários (somente ADMINISTRATOR) ──────
 
   Future<List<UserProfile>> getAllUsers() async {
@@ -250,14 +261,28 @@ class AuthService {
 
   // ── Logs (somente ADMINISTRATOR) ────────────────────────────
 
-  Future<List<Map<String, dynamic>>> getLogs() async {
+  Future<Map<String, dynamic>> getLogs({
+    int page = 0,
+    int size = 20,
+    int? userId,
+    String? method,
+    String? from,
+    String? to,
+  }) async {
+    final query = <String, String>{
+      'page': page.toString(),
+      'size': size.toString(),
+      if (userId != null) 'userId': userId.toString(),
+      if (method != null && method.isNotEmpty) 'method': method,
+      if (from != null && from.isNotEmpty) 'from': from,
+      if (to != null && to.isNotEmpty) 'to': to,
+    };
     final response = await http.get(
-      Uri.parse('$_baseUrl/api/logs'),
+      Uri.parse('$_baseUrl/api/admin/logs').replace(queryParameters: query),
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    final list = jsonDecode(response.body) as List;
-    return list.cast<Map<String, dynamic>>();
+    return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
   }
 
   Future<void> logout() async {
