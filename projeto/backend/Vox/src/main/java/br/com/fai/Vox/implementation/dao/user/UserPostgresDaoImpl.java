@@ -23,8 +23,8 @@ public class UserPostgresDaoImpl implements UserDao {
     public int create(UserModel entity) {
         logger.log(Level.INFO, "Inserindo usuário no banco de dados.");
 
-        final String sql = "INSERT INTO user_model (name, email, cpf, phone, password, role, municipality_id, accepted_terms, accepted_privacy_policy, birth_date) " +
-                "VALUES (?, ?, ?, ?, crypt(?, gen_salt('bf')), CAST(? AS user_role), ?, ?, ?, ?)";
+        final String sql = "INSERT INTO user_model (name, email, cpf, phone, password, role, municipality_id, accepted_terms, accepted_privacy_policy, birth_date, profile_photo_url) " +
+                "VALUES (?, ?, ?, ?, crypt(?, gen_salt('bf')), CAST(? AS user_role), ?, ?, ?, ?, ?)";
 
         try {
             connection.setAutoCommit(false);
@@ -40,6 +40,7 @@ public class UserPostgresDaoImpl implements UserDao {
             ps.setBoolean(8, entity.getAcceptedTerms() != null && entity.getAcceptedTerms());
             ps.setBoolean(9, entity.getAcceptedPrivacyPolicy() != null && entity.getAcceptedPrivacyPolicy());
             ps.setObject(10, entity.getBirthDate());
+            ps.setString(11, entity.getProfilePhotoUrl());
 
             ps.executeUpdate();
 
@@ -120,7 +121,7 @@ public class UserPostgresDaoImpl implements UserDao {
     @Override
     public void update(int id, UserModel entity) {
         final String sql = "UPDATE user_model SET name = ?, cpf = ?, email = ?, phone = ?, municipality_id = ?, " +
-                "accepted_terms = ?, accepted_privacy_policy = ?, birth_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+                "accepted_terms = ?, accepted_privacy_policy = ?, birth_date = ?, profile_photo_url = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {
             connection.setAutoCommit(false);
 
@@ -129,11 +130,16 @@ public class UserPostgresDaoImpl implements UserDao {
             ps.setString(2, entity.getCpf());
             ps.setString(3, entity.getEmail());
             ps.setString(4, entity.getPhone());
-            ps.setInt(5, entity.getMunicipalityId());
+            if (entity.getMunicipalityId() != null) {
+                ps.setInt(5, entity.getMunicipalityId());
+            } else {
+                ps.setNull(5, Types.INTEGER);
+            }
             ps.setBoolean(6, entity.getAcceptedTerms() != null && entity.getAcceptedTerms());
             ps.setBoolean(7, entity.getAcceptedPrivacyPolicy() != null && entity.getAcceptedPrivacyPolicy());
             ps.setObject(8, entity.getBirthDate());
-            ps.setInt(9, id);
+            ps.setString(9, entity.getProfilePhotoUrl());
+            ps.setInt(10, id);
 
             ps.executeUpdate();
             ps.close();
@@ -213,20 +219,11 @@ public class UserPostgresDaoImpl implements UserDao {
         user.setMunicipalityId(rs.getInt("municipality_id"));
         user.setAcceptedTerms(rs.getBoolean("accepted_terms"));
         user.setAcceptedPrivacyPolicy(rs.getBoolean("accepted_privacy_policy"));
+        user.setProfilePhotoUrl(rs.getString("profile_photo_url"));
         Date birthDate = rs.getDate("birth_date");
         if (birthDate != null) user.setBirthDate(birthDate.toLocalDate());
         return user;
     }
 
-    // Criar o fluxo para poder resetar a senha do usuário
-
-    @Override
-    public Boolean forgotPassword(String email) {
-        return null;
-    }
-
-    @Override
-    public Boolean resetPassword(String token, String newPassword) {
-        return null;
-    }
 }
+

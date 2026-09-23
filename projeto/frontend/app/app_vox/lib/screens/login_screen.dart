@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'dashboard_screen.dart';
+import '../services/settings_service.dart';
+import '../theme/vox_colors.dart';
+import 'cadastro_screen.dart';
+import 'recuperar_senha_screen.dart';
+import 'home_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,12 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
 
   final _authService = AuthService();
-
-  // Cores do tema Vox
-  // Novas cores do tema Vox
-  static const _primary = Color(0xFF1B3A6B);
-  static const _accent = Color(0xFF2B5BA8);
-  static const _secondary = Color(0xFFF5A800);
 
   @override
   void dispose() {
@@ -50,14 +48,24 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
+      try {
+        // Busca o perfil para armazenar userId/municipalityId (necessários nas demais chamadas).
+        await _authService.fetchCurrentUser();
+      } catch (_) {
+        // segue mesmo se a busca do perfil falhar
+      }
+      // Carrega as preferências de acessibilidade do usuário.
+      await SettingsController.instance.load();
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeShell()));
     } on AuthException catch (e) {
       setState(() => _errorMessage = e.message);
     } catch (_) {
-      setState(() => _errorMessage = 'Erro ao conectar ao servidor. Tente novamente.');
+      setState(
+        () => _errorMessage = 'Erro ao conectar ao servidor. Tente novamente.',
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -67,14 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            stops: [0.0, 0.6, 1.0],
-            colors: [_primary, _accent, _secondary],
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: VoxColors.gradient),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -107,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 blurRadius: 60,
                 offset: const Offset(0, 20),
               ),
@@ -123,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
               errorBuilder: (_, _, _) => const Icon(
                 Icons.record_voice_over,
                 size: 52,
-                color: _primary,
+                color: VoxColors.primary,
               ),
             ),
           ),
@@ -141,10 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 4),
         const Text(
           'A política de volta para o cidadão',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white,
-          ),
+          style: TextStyle(fontSize: 16, color: Colors.white),
         ),
       ],
     );
@@ -159,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 50,
             offset: const Offset(0, 25),
           ),
@@ -177,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: _primary,
+                color: VoxColors.primary,
               ),
             ),
             const SizedBox(height: 28),
@@ -215,7 +213,9 @@ class _LoginScreenState extends State<LoginScreen> {
             if (_errorMessage != null) ...[
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF1F2),
                   border: Border.all(color: const Color(0xFFFECDD3)),
@@ -235,7 +235,30 @@ class _LoginScreenState extends State<LoginScreen> {
             // Botão Entrar
             _buildSubmitButton(),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+
+            // Esqueci minha senha
+            Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RecuperarSenhaScreen(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Esqueci minha senha',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: VoxColors.accent,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
 
             // Rodapé do card
             Row(
@@ -247,14 +270,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    // TODO: navegar para cadastro
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CadastroScreen()),
+                    );
                   },
                   child: const Text(
                     'Cadastre-se',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: _primary,
+                      color: VoxColors.primary,
                     ),
                   ),
                 ),
@@ -301,15 +326,21 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.black.withOpacity(0.1), width: 1.5),
+          borderSide: BorderSide(
+            color: Colors.black.withValues(alpha: 0.1),
+            width: 1.5,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.black.withOpacity(0.1), width: 1.5),
+          borderSide: BorderSide(
+            color: Colors.black.withValues(alpha: 0.1),
+            width: 1.5,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _primary, width: 1.5),
+          borderSide: const BorderSide(color: VoxColors.primary, width: 1.5),
         ),
       ),
     );
@@ -321,12 +352,12 @@ class _LoginScreenState extends State<LoginScreen> {
       height: 52,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [_primary, Color(0xFF162d6e)],
+          colors: [VoxColors.primary, Color(0xFF162d6e)],
         ),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: _primary.withOpacity(0.4),
+            color: VoxColors.primary.withValues(alpha: 0.4),
             blurRadius: 15,
             offset: const Offset(0, 4),
           ),
@@ -365,10 +396,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return const Text(
       '© 2026 Vox Cidadão — Todos os direitos reservados',
       textAlign: TextAlign.center,
-      style: TextStyle(
-        color: Colors.white70,
-        fontSize: 12,
-      ),
+      style: TextStyle(color: Colors.white70, fontSize: 12),
     );
   }
 }

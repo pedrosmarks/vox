@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 $primary:    #1b3f8b;
 $accent:     #2d6fcc;
 $secondary:  #f5a800;
@@ -57,6 +59,10 @@ $border:     #e5e7eb;
 
 .header-actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .btn-action {
@@ -67,6 +73,62 @@ $border:     #e5e7eb;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s, color 0.15s;
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.header-actions .btn-status,
+.header-actions .btn-reject {
+  min-width: 112px;
+  min-height: 40px;
+}
+
+.moderation-actions {
+  display: flex;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.moderation-actions .btn-save-status,
+.moderation-actions .btn-reject {
+  flex: 1;
+  width: auto;
+  min-height: 42px;
+  margin: 0;
+}
+
+.moderation-actions .btn-save-status {
+  padding: 0.6rem;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover:not(:disabled) { filter: brightness(1.08); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.moderation-actions .btn-reject {
+  padding: 0.6rem;
+  background: #f59e0b;
+  color: #111827;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover:not(:disabled) { background: #d97706; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.status-value {
+  align-self: flex-start;
+  padding: 0.15rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.8rem;
 }
 
 .btn-promote {
@@ -136,6 +198,36 @@ $border:     #e5e7eb;
   @media (max-width: 768px) {
     width: 100%;
   }
+}
+
+:host-context(html[data-a11y='DARK']) {
+  .detalhe-description {
+    background: #121212;
+    color: #e6e8ec;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+
+  .btn-back {
+    background: #121212;
+    color: #e6e8ec;
+    border-color: #2a2a2a;
+    &:hover { background: #1f2633; border-color: #3d75c9; }
+  }
+
+  .badge-status.status-analise {
+    background: #3a2915;
+    color: #fbbf24;
+  }
+
+  .badge-type {
+    background: #172b46;
+    color: #93c5fd;
+  }
+
+  .fin-label,
+  .fin-value { color: #c3c8d0; }
 }
 
 // ── Gallery ───────────────────────────────────────────────
@@ -294,3 +386,115 @@ $border:     #e5e7eb;
 .type-sugerido { background: #f0f9ff; color: #0369a1; }
 
 .badge-destaque { background: #fef9c3; color: #854d0e; }
+
+// ── Botão atualizar status ────────────────────────────────
+.btn-status {
+  background: $accent;
+  color: $white;
+  &:hover { background: color.adjust($accent, $lightness: -6%); }
+}
+
+// ── Comentário da moderação (visível ao cidadão) ──────────
+.moderator-comment {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid #dc2626;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+.moderator-comment-title {
+  display: block;
+  font-weight: 700;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+.moderator-comment-text {
+  margin: 0;
+  color: #7f1d1d;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
+// ── Modal de status ───────────────────────────────────────
+.status-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+.status-modal {
+  background: $white;
+  border-radius: 12px;
+  padding: 1.75rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+.status-modal-title {
+  margin: 0 0 1rem;
+  color: $primary;
+  font-size: 1.15rem;
+}
+.status-modal-label {
+  display: block;
+  margin: 0.85rem 0 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $text;
+
+  .required { color: #dc2626; }
+  .optional { color: $text-muted; font-weight: 400; }
+}
+.status-modal-select,
+.status-modal-textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: $text;
+  box-sizing: border-box;
+
+  &:focus { outline: none; border-color: $accent; }
+}
+.status-modal-textarea { resize: vertical; }
+.status-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+.status-modal .alert-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+.status-modal .btn-reject,
+.status-modal .btn-submit {
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.status-modal .btn-reject {
+  background: #f3f4f6;
+  color: $text;
+  &:hover { background: color.adjust(#f3f4f6, $lightness: -5%); }
+}
+.status-modal .btn-submit {
+  background: $primary;
+  color: $white;
+  &:hover { background: color.adjust($primary, $lightness: -6%); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}

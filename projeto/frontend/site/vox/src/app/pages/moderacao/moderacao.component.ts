@@ -6,8 +6,10 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { ProjectService, Project, Category } from '../../services/project.service';
+import { IssueService, IssueReport } from '../../services/issue.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { MapPickerComponent, LatLng, AddressResult } from '../../components/map-picker/map-picker.component';
+import { projectStatusLabel } from '../../utils/status-labels';
 
 const FALLBACK_CATEGORIES: Category[] = [
   { id: 1, name: 'Infraestrutura' },
@@ -19,7 +21,7 @@ const FALLBACK_CATEGORIES: Category[] = [
   { id: 7, name: 'Segurança Pública' }
 ];
 
-type ActiveTab = 'pendentes' | 'novo';
+type ActiveTab = 'pendentes' | 'issues' | 'novo';
 
 @Component({
   selector: 'app-moderacao',
@@ -38,6 +40,15 @@ export class ModeracaoComponent implements OnInit {
   pendingError = '';
   actionInProgress: number | null = null;
   actionSuccess = '';
+  pendingIssues: IssueReport[] = [];
+  isLoadingIssues = true;
+  issuesError = '';
+
+  // Modal de rejeição (comentário obrigatório para o cidadão)
+  rejectModalOpen = false;
+  rejectTarget: Project | null = null;
+  rejectComment = '';
+  rejectError = '';
 
   // Novo projeto
   editingProjectId: number | null = null; // se !== null, está editando projeto existente
@@ -88,6 +99,7 @@ export class ModeracaoComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private projectService: ProjectService,
+    private issueService: IssueService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -100,6 +112,7 @@ export class ModeracaoComponent implements OnInit {
     }
     this.form.municipalityId = this.authService.getMunicipalityId();
     this.loadPendingProjects();
+    this.loadPendingIssues();
     this.loadCategories();
 
     // Verifica se veio da página de projetos com um projeto para oficializar
@@ -112,12 +125,25 @@ export class ModeracaoComponent implements OnInit {
     }
   }
 
+  loadPendingIssues(): void {
+    this.isLoadingIssues = true;
+    this.issuesError = '';
+    this.issueService.getPendingIssues().subscribe({
+      next: issues => { this.pendingIssues = issues; this.isLoadingIssues = false; },
+      error: () => { this.issuesError = 'Erro ao carregar ocorrências pendentes.'; this.isLoadingIssues = false; }
+    });
+  }
+
+  openProject(id: number): void { this.router.navigate(['/projetos', id]); }
+
+  openIssue(id: number): void { this.router.navigate(['/problemas', id]); }
+
   // ── Aba: Pendentes ────────────────────────────────────────
 
   loadPendingProjects(): void {
     this.isLoadingPending = true;
     this.pendingError = '';
-    this.projectService.getProjects('PENDING_APPROVAL').subscribe({
+    this.projectService.getPendingProjects().subscribe({
       next: (projects) => {
         this.pendingProjects = projects;
         this.isLoadingPending = false;
@@ -158,16 +184,41 @@ export class ModeracaoComponent implements OnInit {
     });
   }
 
-  reject(project: Project): void {
+  /** Abre o modal para o moderador escrever o comentário da rejeição. */
+  openRejectModal(project: Project): void {
+    this.rejectTarget = project;
+    this.rejectComment = '';
+    this.rejectError = '';
+    this.rejectModalOpen = true;
+  }
+
+  closeRejectModal(): void {
+    this.rejectModalOpen = false;
+    this.rejectTarget = null;
+  }
+
+  confirmReject(): void {
+    const project = this.rejectTarget;
+    if (!project) return;
+    if (!this.rejectComment.trim()) {
+      this.rejectError = 'Escreva um comentário explicando o motivo para o cidadão.';
+      return;
+    }
+
     this.actionInProgress = project.id;
     this.actionSuccess = '';
-    this.projectService.rejectProject(project.id).subscribe({
+    this.rejectError = '';
+    this.projectService.rejectProject(project.id, this.rejectComment.trim()).subscribe({
       next: () => {
         this.actionInProgress = null;
         this.actionSuccess = `Projeto "${project.title}" rejeitado.`;
         this.pendingProjects = this.pendingProjects.filter(p => p.id !== project.id);
+        this.closeRejectModal();
       },
-      error: () => { this.actionInProgress = null; }
+      error: () => {
+        this.actionInProgress = null;
+        this.rejectError = 'Não foi possível rejeitar. Tente novamente.';
+      }
     });
   }
 
@@ -309,14 +360,6 @@ export class ModeracaoComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'Aguardando aprovação',
-      IN_VOTING: 'Em votação',
-      APPROVED: 'Aprovado',
-      REJECTED: 'Rejeitado',
-      IN_ANALYSIS: 'Em análise',
-      COMPLETED: 'Concluído'
-    };
-    return map[status] ?? status;
+    return projectStatusLabel(status);
   }
 }

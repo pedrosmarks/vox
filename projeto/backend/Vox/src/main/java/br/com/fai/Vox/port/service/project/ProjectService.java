@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ProjectService {
     int create(CreateProjectDto dto);
+    void validateCitizenWeeklyCreateLimit(int authorId);
     void delete(int id);
     Project findByid(int id);
     List<Project> findAll();

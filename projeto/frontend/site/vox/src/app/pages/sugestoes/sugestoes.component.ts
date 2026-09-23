@@ -3,9 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { ProjectService, Project, Category } from '../../services/project.service';
+import { ProjectService, Project, Category, latestRejectionNote } from '../../services/project.service';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { MapPickerComponent, LatLng, AddressResult } from '../../components/map-picker/map-picker.component';
+import { projectStatusLabel, statusClass } from '../../utils/status-labels';
 
 const FALLBACK_CATEGORIES: Category[] = [
   { id: 1, name: 'Infraestrutura' },
@@ -34,6 +37,8 @@ export class SugestoesComponent implements OnInit {
 
   mySuggestions: Project[] = [];
   categories: Category[] = [];
+  /** Comentário de rejeição por projeto (id → note), lido do histórico. */
+  rejectionNotes: Map<number, string> = new Map();
 
   form = {
     title: '',
@@ -81,6 +86,7 @@ export class SugestoesComponent implements OnInit {
           ? projects.filter(p => p.authorId === this.userId)
           : projects;
         this.isLoadingSuggestions = false;
+        this.loadRejectionNotes();
       },
       error: () => {
         this.loadError = 'Erro ao carregar suas sugestões.';
@@ -167,27 +173,36 @@ export class SugestoesComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'Em análise',
-      IN_VOTING: 'Em votação',
-      APPROVED: 'Aprovada para votação',
-      REJECTED: 'Rejeitada',
-      IN_ANALYSIS: 'Em análise',
-      COMPLETED: 'Concluída'
-    };
-    return map[status] ?? status;
+    return projectStatusLabel(status);
   }
 
   getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'status-analise',
-      IN_VOTING: 'status-votacao',
-      APPROVED: 'status-aprovado',
-      REJECTED: 'status-rejeitado',
-      IN_ANALYSIS: 'status-analise',
-      COMPLETED: 'status-concluido'
-    };
-    return map[status] ?? 'status-analise';
+    return statusClass(status);
+  }
+
+  /** True quando a sugestão foi rejeitada/cancelada. */
+  isRejected(p: Project): boolean {
+    return p.status === 'REJECTED' || p.status === 'CANCELLED';
+  }
+
+  /** Comentário do moderador (lido do histórico do projeto). */
+  moderatorComment(p: Project): string {
+    return this.rejectionNotes.get(p.id) ?? '';
+  }
+
+  /** Busca no histórico o motivo da rejeição de cada sugestão rejeitada. */
+  private loadRejectionNotes(): void {
+    this.mySuggestions
+      .filter(p => this.isRejected(p))
+      .forEach(p => {
+        this.projectService
+          .getProjectHistory(p.id)
+          .pipe(catchError(() => of([])))
+          .subscribe(history => {
+            const note = latestRejectionNote(history);
+            if (note) this.rejectionNotes.set(p.id, note);
+          });
+      });
   }
 
   formatDate(dateStr: string): string {

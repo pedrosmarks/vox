@@ -65,6 +65,12 @@ public class IssueModerationServiceImpl implements IssueModerationService {
 
         issueReportDao.updateModerationStatus(issueId, ModerationStatus.APPROVED);
 
+        // Registrar no histórico para que o feedback fique recuperável via GET /api/issues/{id}/history.
+        // Aprovar não altera o IssueStatus (a ocorrência permanece no estado atual), então
+        // previousStatus e newStatus são iguais; o objetivo é apenas persistir o feedback/decisão.
+        issueStatusHistoryService.recordStatusChange(
+                issueId, issue.getStatus(), issue.getStatus(), moderatorId, feedback);
+
         IssueModeration moderation = new IssueModeration();
         moderation.setIssueId(issueId);
         moderation.setModeratorId(moderatorId);
@@ -101,7 +107,14 @@ public class IssueModerationServiceImpl implements IssueModerationService {
         IssueReport issue = issueReportDao.findByid(issueId);
         if (issue == null) return;
 
+        IssueReport.IssueStatus previousStatus = issue.getStatus();
         issueReportDao.updateModerationStatus(issueId, ModerationStatus.REJECTED);
+        // Espelha o comportamento de projetos: rejeitar também reflete no status da ocorrência.
+        issueReportDao.updateStatus(issueId, IssueReport.IssueStatus.REJECTED);
+
+        // Registrar no histórico para que o motivo da rejeição fique recuperável via GET /api/issues/{id}/history
+        issueStatusHistoryService.recordStatusChange(
+                issueId, previousStatus, IssueReport.IssueStatus.REJECTED, moderatorId, feedback);
 
         IssueModeration moderation = new IssueModeration();
         moderation.setIssueId(issueId);

@@ -4,8 +4,6 @@ import br.com.fai.Vox.domain.IssueImage;
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.IssueStatusHistory;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
-import br.com.fai.Vox.domain.dto.PageResponse;
-import br.com.fai.Vox.domain.dto.UpdateIssueStatusDto;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
 import br.com.fai.Vox.port.service.issueimage.IssueImageService;
 import br.com.fai.Vox.port.service.issuereport.IssueReportService;
@@ -46,11 +44,16 @@ public class IssueReportRestController {
             MultipartHttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         int municipalityId = authHelper.getMunicipalityId(request);
+        String role = authHelper.getRole(request);
         data.setAuthorId(userId);
         data.setMunicipalityId(municipalityId);
 
         MultipartFile file = request.getFile("file");
         data.setFile(file);
+
+        if ("CITIZEN".equalsIgnoreCase(role)) {
+            issueReportService.validateCitizenWeeklyCreateLimit(userId);
+        }
 
         final int id = issueReportService.create(data);
         if (id < 0) return ResponseEntity.badRequest().build();
@@ -84,9 +87,23 @@ public class IssueReportRestController {
         return entity == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(entity);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}/associar")
+    public ResponseEntity<Void> assignToCouncilor(@PathVariable final int id,
+                                                    HttpServletRequest request) {
+        if (!"COUNCILOR".equalsIgnoreCase(authHelper.getRole(request))) {
+            throw new SecurityException("Acesso negado: apenas vereadores podem se associar a denúncias");
+        }
+
+        issueReportService.assignCouncilor(
+                id,
+                authHelper.getUserId(request),
+                authHelper.getMunicipalityId(request));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> update(@PathVariable final int id,
-                                        @RequestBody final IssueReport data,
+                                        @ModelAttribute final IssueReport data,
                                         HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         issueReportService.update(id, data, userId);

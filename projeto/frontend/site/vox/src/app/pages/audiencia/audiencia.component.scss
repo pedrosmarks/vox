@@ -228,3 +228,42 @@ $live:       #dc2626;
   color: #9ca3af;
   font-style: italic;
 }
+
+// ── Estados / erros ───────────────────────────────────────
+.error-banner {
+  max-width: 1100px;
+  margin: 0 auto 1.25rem;
+  padding: 0.75rem 1rem;
+  background: #fee2e2;
+  color: $live;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.state-msg {
+  max-width: 1100px;
+  margin: 2.5rem auto;
+  text-align: center;
+  color: $text-muted;
+  font-size: 0.95rem;
+}
+
+.btn-close-sala {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid $border;
+  background: $white;
+  color: $live;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  &:hover { background: #fee2e2; }
+}
+
+:host ::ng-deep .form-actions .btn-submit[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

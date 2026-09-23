@@ -17,7 +17,9 @@ import br.com.fai.Vox.port.service.subscription.SubscriptionService;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,9 +49,15 @@ public class IssueReportServiceImpl implements IssueReportService {
         this.subscriptionService = subscriptionService;
     }
 
+    private static final int CITIZEN_WEEKLY_LIMIT = 3;
+
     @Override
     public int create(CreateIssueReportDto dto) {
         if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) return -1;
+
+        // O limite semanal é aplicado apenas para CITIZEN, e essa checagem de role
+        // é feita no controller antes de chamar create(). Os demais papéis
+        // (COUNCILOR, MODERATOR, ADMINISTRATOR) não têm limite.
 
         final int issueId = issueReportDao.create(dto);
         logger.log(Level.INFO, "IssueReport criada. ID: " + issueId);
@@ -69,6 +77,17 @@ public class IssueReportServiceImpl implements IssueReportService {
         }
 
         return issueId;
+    }
+
+    @Override
+    public void validateCitizenWeeklyCreateLimit(int authorId) {
+        if (authorId <= 0) return;
+
+        long createdThisWeek = issueReportDao.countCreatedInLastWeek(authorId);
+        if (createdThisWeek >= CITIZEN_WEEKLY_LIMIT) {
+            throw new IllegalArgumentException(
+                    "Você atingiu o limite de 3 sugestões por semana. Aguarde até a próxima semana para criar mais.");
+        }
     }
 
     @Override
@@ -125,6 +144,11 @@ public class IssueReportServiceImpl implements IssueReportService {
         IssueReport existing = findByid(id);
         if (existing == null) return;
 
+        // latitude/longitude são obrigatórios: em updates parciais que não os enviem,
+        // preserva os valores atuais para não violar o NOT NULL da coluna.
+        if (entity.getLatitude() == null) entity.setLatitude(existing.getLatitude());
+        if (entity.getLongitude() == null) entity.setLongitude(existing.getLongitude());
+
         if (existing.getStatus() != entity.getStatus()) {
             issueStatusHistoryService.recordStatusChange(
                     id, existing.getStatus(), entity.getStatus(), changedBy, null);
@@ -139,8 +163,14 @@ public class IssueReportServiceImpl implements IssueReportService {
 
         issueReportDao.update(id, entity);
 
-        // Notificar assinantes da ocorrência
-        List<Integer> subscribers = subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.ISSUE, id);
+        // Notificar assinantes da ocorrência e da sua categoria
+        Set<Integer> subscribers = new HashSet<>(
+                subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.ISSUE, id));
+        Integer categoryId = existing.getCategoryId();
+        if (categoryId != null) {
+            subscribers.addAll(
+                    subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.CATEGORY, categoryId));
+        }
         for (int userId : subscribers) {
             if (userId != changedBy) {
                 notificationService.send(userId,
@@ -149,6 +179,20 @@ public class IssueReportServiceImpl implements IssueReportService {
                         Notification.NotificationType.ISSUE_UPDATED);
             }
         }
+    }
+
+    @Override
+    public void assignCouncilor(int issueId, int councilorId, int municipalityId) {
+        if (issueId <= 0 || councilorId <= 0 || municipalityId <= 0) {
+            throw new IllegalArgumentException("Dados inválidos para associação da denúncia");
+        }
+
+        if (!issueReportDao.assignCouncilor(issueId, councilorId, municipalityId)) {
+            throw new IllegalArgumentException(
+                    "Denúncia não encontrada, pertence a outro município ou já possui vereador associado");
+        }
+        logger.log(Level.INFO, "Vereador associado à denúncia. issueId=" + issueId +
+                " councilorId=" + councilorId);
     }
 
     @Override
@@ -166,5 +210,22 @@ public class IssueReportServiceImpl implements IssueReportService {
                 "Status da ocorrência atualizado",
                 "O status da sua ocorrência \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
                 Notification.NotificationType.ISSUE_STATUS_CHANGED);
+
+        // Notificar assinantes da ocorrência e da sua categoria
+        Set<Integer> subscribers = new HashSet<>(
+                subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.ISSUE, id));
+        Integer categoryId = existing.getCategoryId();
+        if (categoryId != null) {
+            subscribers.addAll(
+                    subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.CATEGORY, categoryId));
+        }
+        for (int userId : subscribers) {
+            if (userId != changedBy && userId != existing.getAuthorId()) {
+                notificationService.send(userId,
+                        "Status da ocorrência atualizado",
+                        "O status da ocorrência \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
+                        Notification.NotificationType.ISSUE_STATUS_CHANGED);
+            }
+        }
     }
 }

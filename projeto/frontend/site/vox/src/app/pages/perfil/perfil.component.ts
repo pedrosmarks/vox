@@ -25,6 +25,7 @@ export class PerfilComponent implements OnInit {
   isSavingProfile = false;
   profileSuccess = '';
   profileError = '';
+  selectedPhoto: File | null = null;
 
   // Formulário de senha
   passwordForm = { current: '', newPass: '', confirm: '' };
@@ -80,6 +81,11 @@ export class PerfilComponent implements OnInit {
     return map[role] ?? 'role-citizen';
   }
 
+  onPhotoChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedPhoto = input.files?.[0] ?? null;
+  }
+
   saveProfile(): void {
     if (!this.user) return;
     if (!this.editForm.name.trim()) {
@@ -93,9 +99,10 @@ export class PerfilComponent implements OnInit {
     this.authService.updateProfile(this.user.id, {
       name:  this.editForm.name.trim(),
       phone: this.editForm.phone.trim() || undefined
-    }).subscribe({
+    }, this.selectedPhoto).subscribe({
       next: (updated) => {
         this.user = { ...this.user!, ...updated };
+        this.selectedPhoto = null;
         this.profileSuccess = 'Dados atualizados com sucesso!';
         this.isSavingProfile = false;
       },

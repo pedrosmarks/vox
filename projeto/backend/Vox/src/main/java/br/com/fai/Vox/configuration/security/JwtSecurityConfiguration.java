@@ -1,11 +1,11 @@
 package br.com.fai.Vox.configuration.security;
 
-import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.implementation.service.authentication.jwt.JwtRequestFilter;
 import br.com.fai.Vox.implementation.service.authentication.jwt.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -41,9 +41,13 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                         "/api/auth/**",
                                         "/error"
                                 ).permitAll()
-                                .requestMatchers("/api/user/**").hasAuthority("ADMINISTRATOR")
+                                .requestMatchers(HttpMethod.POST, "/api/user/**").permitAll()
+                                .requestMatchers("/api/user/**").hasAnyAuthority("ADMINISTRATOR", "MODERATOR", "CITIZEN", "COUNCILOR")
+                                .requestMatchers("/api/admin/**").hasAuthority("ADMINISTRATOR")
                                 .requestMatchers("/api/moderation/**").hasAnyAuthority("ADMINISTRATOR", "MODERATOR")
                                 .requestMatchers("/api/councilor/**").hasAuthority("ADMINISTRATOR")
+                                .requestMatchers("/api/salas/**").authenticated()
+                                .requestMatchers("/api/municipality/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

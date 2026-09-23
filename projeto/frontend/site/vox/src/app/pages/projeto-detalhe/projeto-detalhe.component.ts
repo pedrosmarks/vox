@@ -1,16 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ProjectService, Project, ProjectImage } from '../../services/project.service';
+import { FormsModule } from '@angular/forms';
+import { ProjectService, Project, ProjectImage, latestRejectionNote } from '../../services/project.service';
 import { AuthService } from '../../services/auth.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { projectStatusLabel, statusClass } from '../../utils/status-labels';
 
 @Component({
   selector: 'app-projeto-detalhe',
   standalone: true,
-  imports: [CommonModule, NavbarComponent, DatePipe, CurrencyPipe],
+  imports: [CommonModule, FormsModule, NavbarComponent, DatePipe, CurrencyPipe],
   templateUrl: './projeto-detalhe.component.html',
   styleUrls: ['./projeto-detalhe.component.scss']
 })
@@ -23,9 +25,45 @@ export class ProjetoDetalheComponent implements OnInit {
   errorMessage = '';
   selectedImage = '';
   isModerator = false;
+  isCitizen = false;
   signed = false;
+  signing = false;
+  signatureCount = 0;
+  exportMenuOpen = false;
+
+  /** Comentário de rejeição/cancelamento lido do histórico do projeto. */
+  rejectionNote = '';
+
+  // ── Atualização de status (moderador) ──────────────────────
+  statusModalOpen = false;
+  selectedStatus = '';
+  statusNote = '';
+  savingStatus = false;
+  statusError = '';
+
+  readonly statusOptions = [
+    { value: 'PENDING_APPROVAL',    label: 'Aguardando aprovação' },
+    { value: 'PUBLISHED',           label: 'Publicado' },
+    { value: 'IN_VOTING',           label: 'Em votação' },
+    { value: 'SELECTED_BY_COUNCIL', label: 'Selecionado pelo conselho' },
+    { value: 'APPROVED_BY_COUNCIL', label: 'Aprovado pelo conselho' },
+    { value: 'IN_EXECUTION',        label: 'Em execução' },
+    { value: 'COMPLETED',           label: 'Concluído' },
+    { value: 'REJECTED',            label: 'Rejeitado' },
+    { value: 'ARCHIVED',            label: 'Arquivado' },
+    { value: 'CANCELLED',           label: 'Cancelado' }
+  ];
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.exportMenuOpen) return;
+    if (!this.elementRef.nativeElement.contains(event.target as Node)) {
+      this.exportMenuOpen = false;
+    }
+  }
 
   constructor(
+    private elementRef: ElementRef,
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectService,
@@ -35,6 +73,7 @@ export class ProjetoDetalheComponent implements OnInit {
   ngOnInit(): void {
     const role = this.authService.getUserRole();
     this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
+    this.isCitizen = role === 'CITIZEN';
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
       this.router.navigate(['/projetos']);
@@ -73,6 +112,34 @@ export class ProjetoDetalheComponent implements OnInit {
       this.authorName = (author as any)?.name ?? '';
       this.isLoading = false;
     });
+
+    this.loadSignatureState(project.id);
+    this.loadRejectionNote(project);
+  }
+
+  /** Carrega o comentário de rejeição do histórico, se o projeto estiver rejeitado/cancelado. */
+  private loadRejectionNote(project: Project): void {
+    if (project.status !== 'REJECTED' && project.status !== 'CANCELLED') {
+      this.rejectionNote = '';
+      return;
+    }
+    this.projectService
+      .getProjectHistory(project.id)
+      .pipe(catchError(() => of([])))
+      .subscribe(history => (this.rejectionNote = latestRejectionNote(history)));
+  }
+
+  /** Carrega se o usuário assinou e a contagem total de assinaturas. */
+  private loadSignatureState(id: number): void {
+    this.projectService
+      .hasSignedProject(id)
+      .pipe(catchError(() => of({ signed: false })))
+      .subscribe(res => (this.signed = res.signed));
+
+    this.projectService
+      .getSignatureCount(id)
+      .pipe(catchError(() => of({ total: 0 })))
+      .subscribe(res => (this.signatureCount = res.total));
   }
 
   selectImage(url: string): void {
@@ -80,7 +147,7 @@ export class ProjetoDetalheComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/projetos']);
+    this.router.navigate([this.isModerator ? '/moderacao' : '/projetos']);
   }
 
   promoteProject(): void {
@@ -89,33 +156,246 @@ export class ProjetoDetalheComponent implements OnInit {
     }
   }
 
+  // ── Atualização de status (moderador) ──────────────────────
+
+  openStatusModal(): void {
+    if (!this.project) return;
+    this.selectedStatus = this.project.status;
+    this.statusNote = '';
+    this.statusError = '';
+    this.statusModalOpen = true;
+  }
+
+  openDecisionModal(status: 'PUBLISHED' | 'REJECTED'): void {
+    if (!this.project) return;
+    this.selectedStatus = status;
+    this.statusNote = '';
+    this.statusError = '';
+    this.statusModalOpen = true;
+  }
+
+  acceptProject(): void {
+    this.selectedStatus = 'PUBLISHED';
+    this.statusNote = '';
+    this.saveStatus();
+  }
+
+  closeStatusModal(): void {
+    this.statusModalOpen = false;
+  }
+
+  /** True quando o status escolhido é de rejeição (exige comentário). */
+  get requiresNote(): boolean {
+    return this.selectedStatus === 'REJECTED' || this.selectedStatus === 'CANCELLED';
+  }
+
+  saveStatus(): void {
+    if (!this.project || this.savingStatus) return;
+    if (!this.selectedStatus) {
+      this.statusError = 'Selecione um status.';
+      return;
+    }
+    if (this.requiresNote && !this.statusNote.trim()) {
+      this.statusError = 'Escreva um comentário explicando o motivo para o cidadão.';
+      return;
+    }
+
+    this.savingStatus = true;
+    this.statusError = '';
+    const id = this.project.id;
+    const note = this.statusNote.trim();
+
+    // Todas as mudanças (inclusive rejeição) usam PATCH /status, que grava o note no histórico.
+    this.projectService.updateProjectStatus(id, this.selectedStatus, note).subscribe({
+      next: () => {
+        this.savingStatus = false;
+        this.statusModalOpen = false;
+        if (this.project) {
+          this.project.status = this.selectedStatus;
+        }
+        // Atualiza o comentário exibido ao cidadão a partir do novo status.
+        if (this.selectedStatus === 'REJECTED' || this.selectedStatus === 'CANCELLED') {
+          this.rejectionNote = note;
+        } else {
+          this.rejectionNote = '';
+        }
+        this.router.navigate(['/moderacao']);
+      },
+      error: () => {
+        this.savingStatus = false;
+        this.statusError = 'Não foi possível atualizar o status. Tente novamente.';
+      }
+    });
+  }
+
+  /** Comentário do moderador exibido ao cidadão (lido do histórico). */
+  get moderatorComment(): string {
+    return this.rejectionNote;
+  }
+
+  /** Só destaca o comentário quando o projeto foi rejeitado/cancelado. */
+  get isRejected(): boolean {
+    return this.project?.status === 'REJECTED' || this.project?.status === 'CANCELLED';
+  }
+
   toggleSign(): void {
-    // TODO: POST /api/project/{id}/sign quando backend suportar
-    this.signed = !this.signed;
+    if (!this.project || this.signing) return;
+    const id = this.project.id;
+    const wasSigned = this.signed;
+    this.signing = true;
+
+    // Atualização otimista.
+    this.signed = !wasSigned;
+    this.signatureCount += wasSigned ? -1 : 1;
+
+    const request$ = wasSigned
+      ? this.projectService.unsignProject(id)
+      : this.projectService.signProject(id);
+
+    request$.subscribe({
+      next: () => (this.signing = false),
+      error: () => {
+        // Reverte em caso de falha.
+        this.signed = wasSigned;
+        this.signatureCount += wasSigned ? 1 : -1;
+        this.signing = false;
+      }
+    });
+  }
+
+  // ── Exportação ─────────────────────────────────────────────
+
+  toggleExportMenu(): void {
+    this.exportMenuOpen = !this.exportMenuOpen;
+  }
+
+  /** Pares rótulo/valor usados nos dois formatos de exportação. */
+  private buildExportRows(): { label: string; value: string }[] {
+    const p = this.project;
+    if (!p) return [];
+    const fmtDate = (d?: string | null) =>
+      d ? new Date(d).toLocaleDateString('pt-BR') : '—';
+    const fmtMoney = (v?: number | null) =>
+      v != null && v > 0
+        ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        : '—';
+
+    return [
+      { label: 'ID', value: String(p.id) },
+      { label: 'Título', value: p.title },
+      { label: 'Descrição', value: p.description },
+      { label: 'Status', value: this.getStatusLabel(p.status) },
+      { label: 'Tipo', value: this.getTypeLabel(p) },
+      { label: 'Categoria', value: this.categoryName || '—' },
+      { label: 'Autor', value: this.authorName || `Usuário #${p.authorId}` },
+      { label: 'Bairro', value: p.neighborhood || '—' },
+      {
+        label: 'Endereço',
+        value: p.street ? `${p.street}${p.number ? ', ' + p.number : ''}` : '—'
+      },
+      { label: 'Data de início', value: fmtDate(p.startDate) },
+      { label: 'Previsão de término', value: fmtDate(p.expectedEndDate) },
+      { label: 'Data de conclusão', value: fmtDate(p.endDate) },
+      { label: 'Criado em', value: fmtDate(p.createdAt) },
+      { label: 'Custo estimado', value: fmtMoney(p.estimatedCost) },
+      { label: 'Orçamento aprovado', value: fmtMoney(p.approvedBudget) },
+      { label: 'Assinaturas de apoio', value: String(this.signatureCount) }
+    ];
+  }
+
+  private safeFileName(): string {
+    const base = (this.project?.title || 'projeto')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .toLowerCase();
+    return `projeto_${this.project?.id ?? ''}_${base}`.replace(/_+$/g, '');
+  }
+
+  exportCsv(): void {
+    this.exportMenuOpen = false;
+    const rows = this.buildExportRows();
+    if (rows.length === 0) return;
+
+    const escape = (v: string) => `"${(v ?? '').replace(/"/g, '""')}"`;
+    const lines = [
+      `${escape('Campo')},${escape('Valor')}`,
+      ...rows.map(r => `${escape(r.label)},${escape(r.value)}`)
+    ];
+    // BOM para o Excel reconhecer UTF-8 (acentuação).
+    const csv = '\uFEFF' + lines.join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    this.triggerDownload(blob, `${this.safeFileName()}.csv`);
+  }
+
+  exportPdf(): void {
+    this.exportMenuOpen = false;
+    const p = this.project;
+    if (!p) return;
+    const rows = this.buildExportRows();
+
+    const esc = (s: string) =>
+      (s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    const rowsHtml = rows
+      .map(
+        r => `<tr><th>${esc(r.label)}</th><td>${esc(r.value)}</td></tr>`
+      )
+      .join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8" />
+<title>${esc(p.title)}</title>
+<style>
+  * { font-family: Arial, Helvetica, sans-serif; color: #1b3f8b; }
+  body { padding: 32px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #6b7280; font-size: 12px; margin: 0 0 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
+  th { width: 200px; color: #1b3f8b; background: #f0f4ff; }
+  td { color: #111827; }
+  .foot { margin-top: 24px; font-size: 11px; color: #9ca3af; }
+</style></head>
+<body>
+  <h1>${esc(p.title)}</h1>
+  <p class="sub">VOX — Detalhes do Projeto</p>
+  <table>${rowsHtml}</table>
+  <p class="foot">Exportado em ${new Date().toLocaleString('pt-BR')}</p>
+  <script>window.onload = function () { window.print(); };</script>
+</body></html>`;
+
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('Habilite pop-ups para exportar o PDF.');
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
+  private triggerDownload(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'Em análise',
-      IN_VOTING:        'Em votação',
-      APPROVED:         'Aprovado',
-      REJECTED:         'Rejeitado',
-      IN_ANALYSIS:      'Em análise',
-      COMPLETED:        'Concluído'
-    };
-    return map[status] ?? status;
+    return projectStatusLabel(status);
   }
 
   getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      PENDING_APPROVAL: 'status-analise',
-      IN_VOTING:        'status-votacao',
-      APPROVED:         'status-aprovado',
-      REJECTED:         'status-rejeitado',
-      IN_ANALYSIS:      'status-analise',
-      COMPLETED:        'status-concluido'
-    };
-    return map[status] ?? 'status-analise';
+    return statusClass(status);
   }
 
   getTypeLabel(project: Project): string {

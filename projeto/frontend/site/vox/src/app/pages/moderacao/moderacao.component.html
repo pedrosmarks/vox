@@ -11,6 +11,10 @@
       Sugestões Pendentes
       <span class="badge" *ngIf="pendingProjects.length > 0">{{ pendingProjects.length }}</span>
     </button>
+    <button class="tab-btn" [class.active]="activeTab === 'issues'" (click)="activeTab = 'issues'">
+      Ocorrências Pendentes
+      <span class="badge" *ngIf="pendingIssues.length > 0">{{ pendingIssues.length }}</span>
+    </button>
     <button class="tab-btn" [class.active]="activeTab === 'novo'" (click)="activeTab = 'novo'; submitSuccess = false">
       + Novo Projeto Oficial
     </button>
@@ -35,7 +39,7 @@
       <p>Nenhuma sugestão aguardando aprovação. 🎉</p>
     </div>
 
-    <div *ngFor="let project of pendingProjects" class="pending-card">
+    <div *ngFor="let project of pendingProjects" class="pending-card" (click)="openProject(project.id)">
       <div class="pending-card-body">
         <h2 class="pending-title">{{ project.title }}</h2>
         <p class="pending-description">{{ project.description }}</p>
@@ -48,20 +52,23 @@
         </div>
       </div>
       <div class="pending-card-actions">
-        <button
-          class="btn-approve"
-          (click)="approve(project)"
-          [disabled]="actionInProgress === project.id"
-        >
-          {{ actionInProgress === project.id ? '...' : '✓ Aprovar' }}
-        </button>
-        <button
-          class="btn-reject"
-          (click)="reject(project)"
-          [disabled]="actionInProgress === project.id"
-        >
-          {{ actionInProgress === project.id ? '...' : '✕ Rejeitar' }}
-        </button>
+        <button class="btn-approve" (click)="$event.stopPropagation(); openProject(project.id)">Revisar projeto</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'issues'" class="tab-content">
+    <div *ngIf="isLoadingIssues" class="state-message"><div class="spinner"></div><p>Carregando ocorrências pendentes...</p></div>
+    <div *ngIf="!isLoadingIssues && issuesError" class="state-message error">{{ issuesError }} <button class="btn-retry" (click)="loadPendingIssues()">Tentar novamente</button></div>
+    <div *ngIf="!isLoadingIssues && !issuesError && pendingIssues.length === 0" class="state-message"><p>Nenhuma ocorrência aguardando aprovação.</p></div>
+    <div *ngFor="let issue of pendingIssues" class="pending-card" (click)="openIssue(issue.id)">
+      <div class="pending-card-body">
+        <h2 class="pending-title">{{ issue.title }}</h2>
+        <p class="pending-description">{{ issue.description }}</p>
+        <div class="pending-meta"><span>Ocorrência #{{ issue.id }}</span><span *ngIf="issue.neighborhood">{{ issue.neighborhood }}</span></div>
+      </div>
+      <div class="pending-card-actions">
+        <button class="btn-approve" (click)="$event.stopPropagation(); openIssue(issue.id)">Revisar ocorrência</button>
       </div>
     </div>
   </div>
@@ -213,6 +220,36 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Modal: rejeitar sugestão com comentário -->
+  <div *ngIf="rejectModalOpen" class="reject-modal-overlay" (click)="closeRejectModal()">
+    <div class="reject-modal" (click)="$event.stopPropagation()">
+      <h3 class="reject-modal-title">Rejeitar sugestão</h3>
+      <p class="reject-modal-sub" *ngIf="rejectTarget">
+        “{{ rejectTarget.title }}”
+      </p>
+
+      <div *ngIf="rejectError" class="alert alert-error">{{ rejectError }}</div>
+
+      <label class="reject-modal-label">
+        Comentário para o cidadão <span class="required">*</span>
+      </label>
+      <textarea
+        class="reject-modal-textarea"
+        rows="4"
+        [(ngModel)]="rejectComment"
+        [disabled]="actionInProgress !== null"
+        placeholder="Explique por que a sugestão foi rejeitada. O cidadão poderá ver este comentário."
+      ></textarea>
+
+      <div class="reject-modal-actions">
+        <button class="btn-cancel-edit" (click)="closeRejectModal()" [disabled]="actionInProgress !== null">Cancelar</button>
+        <button class="btn-reject" (click)="confirmReject()" [disabled]="actionInProgress !== null">
+          {{ actionInProgress !== null ? 'Rejeitando...' : 'Confirmar rejeição' }}
+        </button>
+      </div>
     </div>
   </div>
 </main>

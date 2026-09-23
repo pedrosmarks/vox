@@ -1,0 +1,80 @@
+<div class="login-page">
+  <div class="login-container">
+
+    <div class="logo-section">
+      <div class="logo-wrapper">
+        <img src="logo2.jpeg" alt="Vox Cidadão" class="logo-img" />
+      </div>
+      <h1 class="brand-title">VOX</h1>
+      <p class="brand-subtitle">A política de volta ao cidadão</p>
+    </div>
+
+    <div class="login-card">
+      <h2 class="card-title">Recuperar senha</h2>
+
+      <!-- Etapa 1: e-mail -->
+      <form *ngIf="step === 1" (ngSubmit)="requestReset()" novalidate>
+        <p class="step-hint">Informe seu e-mail para receber um token de recuperação.</p>
+
+        <div class="form-group">
+          <label for="email" class="form-label">E-mail</label>
+          <input id="email" type="email" class="form-input" placeholder="seu@email.com"
+            [(ngModel)]="email" name="email" required />
+        </div>
+
+        <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+        <button type="submit" class="btn-login" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Enviar</span>
+          <span *ngIf="isLoading">Enviando...</span>
+        </button>
+      </form>
+
+      <!-- Etapa 2: token + nova senha -->
+      <form *ngIf="step === 2" (ngSubmit)="resetPassword()" novalidate>
+        <div class="success-message" *ngIf="successMessage">{{ successMessage }}</div>
+
+        <div class="form-group">
+          <label for="token" class="form-label">Token de recuperação</label>
+          <input id="token" type="text" class="form-input" placeholder="Cole o token recebido"
+            [(ngModel)]="token" name="token" required />
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword" class="form-label">Nova senha</label>
+          <input id="newPassword" type="password" class="form-input" placeholder="Mínimo 6 caracteres"
+            [(ngModel)]="newPassword" name="newPassword" required />
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">Confirmar nova senha</label>
+          <input id="confirmPassword" type="password" class="form-input" placeholder="Repita a nova senha"
+            [(ngModel)]="confirmPassword" name="confirmPassword" required />
+        </div>
+
+        <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+        <button type="submit" class="btn-login" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Redefinir senha</span>
+          <span *ngIf="isLoading">Salvando...</span>
+        </button>
+
+        <button type="button" class="btn-link-plain" (click)="step = 1; errorMessage = ''">
+          ← Reenviar para outro e-mail
+        </button>
+      </form>
+
+      <div class="card-footer">
+        <p class="footer-text">
+          Lembrou a senha?
+          <a routerLink="/login" class="footer-link">Entrar</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <p>© 2026 Vox Cidadão — Todos os direitos reservados</p>
+    </div>
+
+  </div>
+</div>

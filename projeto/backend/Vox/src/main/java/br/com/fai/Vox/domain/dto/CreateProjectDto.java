@@ -1,6 +1,8 @@
 package br.com.fai.Vox.domain.dto;
 
 import br.com.fai.Vox.domain.Project;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -34,7 +36,13 @@ public class CreateProjectDto {
     private String neighborhood;
     private String street;
     private String number;
+    @NotNull(message = "Latitude é obrigatória")
+    @DecimalMin(value = "-90.0", message = "Latitude inválida")
+    @DecimalMax(value = "90.0", message = "Latitude inválida")
     private BigDecimal latitude;
+    @NotNull(message = "Longitude é obrigatória")
+    @DecimalMin(value = "-180.0", message = "Longitude inválida")
+    @DecimalMax(value = "180.0", message = "Longitude inválida")
     private BigDecimal longitude;
     private LocalDate startDate;
     private LocalDate expectedEndDate;

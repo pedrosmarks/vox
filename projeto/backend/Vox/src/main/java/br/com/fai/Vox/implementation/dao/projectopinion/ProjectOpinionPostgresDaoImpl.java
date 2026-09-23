@@ -93,7 +93,6 @@ public class ProjectOpinionPostgresDaoImpl implements ProjectOpinionDao {
         final String sql = "SELECT opinion, COUNT(*) as total FROM project_opinion WHERE project_id = ? GROUP BY opinion";
         Map<String, Integer> result = new HashMap<>();
         result.put("APPROVE", 0);
-        result.put("DISAPPROVE", 0);
         result.put("NEUTRAL", 0);
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -104,6 +103,7 @@ public class ProjectOpinionPostgresDaoImpl implements ProjectOpinionDao {
             }
             rs.close();
             ps.close();
+            result.put("TOTAL", result.get("APPROVE") + result.get("NEUTRAL"));
             return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);

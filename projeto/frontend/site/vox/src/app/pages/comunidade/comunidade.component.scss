@@ -1,5 +1,6 @@
 $primary:    #1b3f8b;
 $accent:     #2d6fcc;
+$secondary:  #f5a800;
 $bg:         #f0f4ff;
 $white:      #ffffff;
 $text:       #1b3f8b;
@@ -216,7 +217,7 @@ $border:     #e5e7eb;
   align-items: center;
   gap: 0.5rem;
   padding: 0.55rem 1.1rem;
-  background: #e84545;
+  background: $primary;
   color: $white;
   border: none;
   border-radius: 8px;
@@ -224,14 +225,14 @@ $border:     #e5e7eb;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(232,69,69,0.25);
+  box-shadow: 0 2px 8px rgba(27,63,139,0.25);
   transition: background 0.15s;
 
-  &:hover { background: #c93030; }
+  &:hover { background: $accent; }
 }
 
 .follow-badge {
-  background: $primary;
+  background: $secondary;
   color: $white;
   font-size: 0.65rem;
   font-weight: 700;
@@ -248,17 +249,23 @@ $border:     #e5e7eb;
 
 .notif-panel-body {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + 8px);
   right: 0;
   width: 320px;
   background: $white;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(27,63,139,0.15);
+  box-shadow: 0 8px 24px rgba(27,63,139,0.15);
   border: 1px solid $border;
   z-index: 200;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  animation: dropIn 0.15s ease;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .notif-section {
@@ -367,6 +374,14 @@ $border:     #e5e7eb;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+.follow-empty {
+  font-size: 0.78rem;
+  color: $text-muted;
+  text-align: center;
+  padding: 0.75rem 0;
+  margin: 0;
 }
 
 .follow-info {
