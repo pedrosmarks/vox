@@ -75,10 +75,17 @@
           <input id="profilePhoto" type="file" class="form-input" accept="image/*" (change)="onPhotoChange($event)" />
         </div>
 
-        <label class="terms">
-          <input type="checkbox" [(ngModel)]="acceptedTerms" name="acceptedTerms" />
-          <span>Li e aceito os termos de uso e a política de privacidade.</span>
-        </label>
+        <div class="terms-acceptance">
+          <label class="terms-check">
+            <input type="checkbox" [(ngModel)]="acceptedTerms" name="acceptedTerms" />
+            <span>Li e aceito</span>
+          </label>
+          <div class="legal-links">
+            <button type="button" class="legal-link" (click)="openLegalDocument('terms')">Termos de uso</button>
+            <span>e</span>
+            <button type="button" class="legal-link" (click)="openLegalDocument('privacy')">Política de privacidade</button>
+          </div>
+        </div>
 
         <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
 
@@ -87,6 +94,67 @@
           <span *ngIf="isLoading" class="loading-spinner">Cadastrando...</span>
         </button>
       </form>
+
+      <div *ngIf="legalDocument" class="legal-modal-overlay" (click)="closeLegalDocument()">
+        <section
+          class="legal-modal"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-labelledby]="legalDocument === 'terms' ? 'legal-title-terms' : 'legal-title-privacy'"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="legal-modal-header">
+            <div class="legal-heading">
+              <span class="legal-kicker">VOX CIDADÃO</span>
+              <h2 *ngIf="legalDocument === 'terms'" id="legal-title-terms">Termos de uso</h2>
+              <h2 *ngIf="legalDocument === 'privacy'" id="legal-title-privacy">Política de privacidade</h2>
+            </div>
+            <button type="button" class="legal-close" (click)="closeLegalDocument()" aria-label="Fechar documento">
+              <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            </button>
+          </header>
+
+          <div class="legal-modal-content" *ngIf="legalDocument === 'terms'">
+            <p class="legal-updated">VOX Cidadão · versão de 22 de setembro de 2026</p>
+            <h3>1. Sobre a plataforma</h3>
+            <p>A VOX Cidadão é uma plataforma de participação pública. Ela permite acompanhar projetos, registrar sugestões e ocorrências e participar de audiências relacionadas ao município selecionado.</p>
+            <h3>2. Cadastro e responsabilidade da conta</h3>
+            <p>Ao criar uma conta, você concorda em fornecer informações verdadeiras, manter seus dados atualizados e proteger suas credenciais. A conta é pessoal; atividades feitas nela são atribuídas ao titular.</p>
+            <h3>3. Uso respeitoso</h3>
+            <p>Use a plataforma de forma lícita e respeitosa. Não publique conteúdo ilegal, discriminatório, ameaçador, enganoso, que viole direitos de terceiros ou que exponha dados pessoais de outras pessoas sem autorização.</p>
+            <h3>4. Conteúdo enviado</h3>
+            <p>Você continua responsável pelo conteúdo que envia e declara ter direito de compartilhá-lo. Ao publicá-lo, autoriza a VOX Cidadão a armazená-lo e exibi-lo dentro das funcionalidades da plataforma para viabilizar a participação pública.</p>
+            <h3>5. Moderação e disponibilidade</h3>
+            <p>Conteúdos e participações podem passar por moderação conforme as regras da plataforma e do município. A disponibilidade dos serviços pode ser interrompida temporariamente para manutenção ou por motivos de segurança.</p>
+            <h3>6. Atualizações destes termos</h3>
+            <p>Estes termos podem ser atualizados para refletir mudanças na plataforma ou em suas regras. Quando uma alteração exigir novo aceite, isso será solicitado no próprio serviço.</p>
+            <h3>7. Contato</h3>
+            <p>Para dúvidas sobre estes termos, utilize os canais oficiais de atendimento disponibilizados pelo município ou pela plataforma.</p>
+          </div>
+
+          <div class="legal-modal-content" *ngIf="legalDocument === 'privacy'">
+            <p class="legal-updated">VOX Cidadão · versão de 22 de setembro de 2026</p>
+            <h3>1. Dados tratados</h3>
+            <p>Para criar e manter sua conta, a plataforma pode tratar nome, e-mail, CPF, telefone, data de nascimento, município e foto de perfil, conforme os campos que você fornecer. Também são tratados dados de uso necessários ao funcionamento e à segurança do serviço.</p>
+            <h3>2. Finalidades</h3>
+            <p>Os dados são utilizados para autenticar sua conta, disponibilizar as funcionalidades, associar sua participação ao município, enviar comunicações relacionadas ao serviço, prevenir uso indevido e cumprir obrigações legais.</p>
+            <h3>3. Conteúdo e visibilidade</h3>
+            <p>O conteúdo que você publicar em projetos, sugestões, ocorrências ou audiências pode ser visível a outros usuários conforme as configurações e regras da funcionalidade. Evite incluir informações pessoais desnecessárias no conteúdo público.</p>
+            <h3>4. Compartilhamento e operadores</h3>
+            <p>Os dados podem ser acessados por administradores e moderadores autorizados para operar a plataforma e atender às finalidades acima. Prestadores de serviço envolvidos na hospedagem e no funcionamento podem tratar dados sob instruções e medidas de proteção apropriadas.</p>
+            <h3>5. Armazenamento e segurança</h3>
+            <p>São adotadas medidas técnicas e organizacionais destinadas a proteger os dados contra acesso não autorizado, perda ou alteração. Os dados são mantidos pelo período necessário às finalidades do serviço e às obrigações aplicáveis.</p>
+            <h3>6. Seus direitos</h3>
+            <p>Você pode solicitar confirmação do tratamento, acesso, correção e informações sobre seus dados, além de exercer os demais direitos previstos na legislação aplicável, pelos canais oficiais de atendimento.</p>
+            <h3>7. Alterações e contato</h3>
+            <p>Esta política pode ser atualizada quando houver mudanças no serviço ou nas práticas de tratamento. Para dúvidas ou solicitações relacionadas à privacidade, utilize os canais oficiais de atendimento disponibilizados pelo município ou pela plataforma.</p>
+          </div>
+
+          <footer class="legal-modal-footer">
+            <button type="button" class="btn-login legal-done" (click)="closeLegalDocument()">Entendi</button>
+          </footer>
+        </section>
+      </div>
 
       <div class="card-footer">
         <p class="footer-text">
