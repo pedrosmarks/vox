@@ -1,5 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+DROP TABLE IF EXISTS event_image CASCADE;
+DROP TABLE IF EXISTS event CASCADE;
+DROP TABLE IF EXISTS event_category CASCADE;
 DROP TABLE IF EXISTS audit_log CASCADE;
 DROP TABLE IF EXISTS user_settings CASCADE;
 DROP TABLE IF EXISTS project_signature CASCADE;
@@ -418,3 +421,47 @@ CREATE TABLE audit_log (
 CREATE INDEX idx_audit_log_created_at ON audit_log(created_at);
 CREATE INDEX idx_audit_log_user ON audit_log(user_id);
 CREATE INDEX idx_audit_log_municipality ON audit_log(municipality_id);
+
+-- =============================================
+-- Eventos (publicação aberta, sem limite de município)
+-- =============================================
+-- Eventos são visíveis por qualquer usuário, de qualquer município.
+-- Apenas MODERATOR/ADMINISTRATOR criam/editam/removem (sem moderação).
+-- municipality_id é guardado apenas para permitir o filtro por município.
+
+CREATE TABLE event_category (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE event (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    category_id INTEGER NOT NULL REFERENCES event_category(id),
+    price NUMERIC(14,2),
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    location VARCHAR(512),
+    municipality_id INTEGER REFERENCES municipality(id) ON DELETE SET NULL,
+    author_id INTEGER REFERENCES user_model(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
+    CHECK (price IS NULL OR price >= 0)
+);
+
+CREATE TABLE event_image (
+    id SERIAL PRIMARY KEY,
+    event_id INTEGER NOT NULL REFERENCES event(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_event_category ON event(category_id);
+CREATE INDEX idx_event_municipality ON event(municipality_id);
+CREATE INDEX idx_event_start_date ON event(start_date);
+CREATE INDEX idx_event_image_event ON event_image(event_id);

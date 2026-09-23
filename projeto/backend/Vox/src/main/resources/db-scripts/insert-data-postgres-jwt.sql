@@ -71,19 +71,19 @@ INSERT INTO municipality (name, state) VALUES
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('João Ribeiro', 'joao@example.com', '00000000000', '(11) 99999-0000', crypt('aa', gen_salt('bf')), 'CITIZEN', '1990-05-15', 1);
+    ('João Ribeiro', 'cidadao1@example.com', '00000000000', '(11) 99999-0000', crypt('aa', gen_salt('bf')), 'CITIZEN', '1990-05-15', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Maria Antonieta', 'maria@example.com', '11111111111', '(11) 98888-1111', crypt('aa', gen_salt('bf')), 'MODERATOR', '1985-10-22', 1);
+    ('Maria Antonieta', 'moderador1@example.com', '11111111111', '(11) 98888-1111', crypt('aa', gen_salt('bf')), 'MODERATOR', '1985-10-22', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Carlos Costa', 'carlos@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'ADMINISTRATOR', '1978-03-08', 1);
+    ('Carlos Costa', 'administrador1@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'ADMINISTRATOR', '1978-03-08', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Dito', 'dito@example.com', '22222222222', '(21) 97777-3333', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1978-03-08', 1);
+    ('Vereador Gabriel', 'vereador1@example.com', '22222222222', '(21) 97777-3333', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1978-03-08', 1);
 
 INSERT INTO category (name, description)
 VALUES
@@ -105,7 +105,7 @@ VALUES
 -- =====================================================================
 -- Referências de IDs já criados acima:
 --   Municípios:  1 = Santa Rita do Sapucaí (MG), 2 = Pouso Alegre (MG), 9 = São Paulo (SP)
---   Usuários:    1 = João (CITIZEN), 2 = Maria (MODERATOR), 3 = Carlos (ADMINISTRATOR), 4 = Dito (COUNCILOR)
+--   Usuários:    1 = João (CITIZEN), 2 = Maria (MODERATOR), 3 = Carlos (ADMINISTRATOR), 4 = Gabriel (COUNCILOR)
 --   Categorias:  1 = Infraestrutura Urbana, 2 = Saúde, 3 = Educação
 -- Senha de todos os usuários: 'aa'
 -- =====================================================================
@@ -115,12 +115,12 @@ VALUES
 -- ---------------------------------------------------------------------
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, accepted_terms, accepted_privacy_policy, terms_accepted_at, municipality_id)
 VALUES
-    ('Ana Beatriz Souza',   'ana@example.com',     '44444444444', '(35) 99123-4567', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1995-07-12', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Pedro Henrique Lima', 'pedro@example.com',   '55555555555', '(35) 99234-5678', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1988-11-30', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Juliana Martins',     'juliana@example.com', '66666666666', '(35) 99345-6789', crypt('aa', gen_salt('bf')), 'CITIZEN',   '2000-02-18', TRUE, TRUE, CURRENT_TIMESTAMP, 2),
-    ('Roberto Alves',       'roberto@example.com', '77777777777', '(35) 99456-7890', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1975-09-05', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Vereadora Fernanda',  'fernanda@example.com','88888888888', '(35) 99567-8901', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1970-04-25', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Vereador Marcelo',    'marcelo@example.com', '99999999999', '(35) 99678-9012', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1968-12-10', TRUE, TRUE, CURRENT_TIMESTAMP, 2);
+    ('Ana Beatriz Souza',   'cidadao2@example.com',  '44444444444', '(35) 99123-4567', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1995-07-12', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Pedro Henrique Lima', 'cidadao3@example.com',  '55555555555', '(35) 99234-5678', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1988-11-30', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Juliana Martins',     'cidadao4@example.com',  '66666666666', '(35) 99345-6789', crypt('aa', gen_salt('bf')), 'CITIZEN',   '2000-02-18', TRUE, TRUE, CURRENT_TIMESTAMP, 2),
+    ('Roberto Alves',       'cidadao5@example.com',  '77777777777', '(35) 99456-7890', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1975-09-05', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Vereadora Fernanda',  'vereador2@example.com', '88888888888', '(35) 99567-8901', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1970-04-25', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Vereador Marcelo',    'vereador3@example.com', '99999999999', '(35) 99678-9012', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1968-12-10', TRUE, TRUE, CURRENT_TIMESTAMP, 2);
 -- IDs resultantes: 5 = Ana, 6 = Pedro, 7 = Juliana, 8 = Roberto, 9 = Fernanda (COUNCILOR), 10 = Marcelo (COUNCILOR)
 
 -- ---------------------------------------------------------------------
@@ -130,8 +130,9 @@ INSERT INTO category (name, description)
 VALUES
     ('Meio Ambiente',   'Projetos de preservação ambiental, arborização, coleta seletiva e sustentabilidade.'),
     ('Segurança',       'Projetos voltados para segurança pública, iluminação e videomonitoramento.'),
-    ('Cultura e Lazer', 'Projetos de eventos culturais, esporte, praças e espaços de convivência.');
--- IDs resultantes: 4 = Meio Ambiente, 5 = Segurança, 6 = Cultura e Lazer
+    ('Cultura e Lazer', 'Projetos de eventos culturais, esporte, praças e espaços de convivência.'),
+    ('Turismo',         'Projetos de fomento ao turismo, pontos turísticos, sinalização e divulgação da cidade.');
+-- IDs resultantes: 4 = Meio Ambiente, 5 = Segurança, 6 = Cultura e Lazer, 7 = Turismo
 
 -- ---------------------------------------------------------------------
 -- Configurações de usuário (acessibilidade)
@@ -200,6 +201,24 @@ VALUES
      NULL, NULL, NULL, NULL, 410000.00, NULL, 'REJECTED');
 -- IDs resultantes: 1..8
 
+-- Projetos de Turismo (categoria 7 = Turismo)
+INSERT INTO project (municipality_id, category_id, type, title, description, status, author_id, is_official, highlighted,
+                     neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date,
+                     financial_analysis, estimated_cost, approved_budget, moderation_status)
+VALUES
+    (1, 7, 'CITIZEN', 'Sinalização Turística do Centro Histórico',
+     'Instalação de placas de sinalização turística indicando pontos históricos e culturais do centro.',
+     'PUBLISHED', 1, FALSE, TRUE,
+     'Centro', 'Rua Barão de Alfenas', '200', -22.25260000, -45.70310000,
+     NULL, NULL, NULL, NULL, 85000.00, NULL, 'APPROVED'),
+
+    (1, 7, 'CHAMBER', 'Mirante Turístico da Serra',
+     'Projeto oficial da câmara para construção de um mirante com deque panorâmico e estacionamento.',
+     'IN_EXECUTION', 4, TRUE, TRUE,
+     'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24500000, -45.69500000,
+     '2026-02-01', '2026-10-30', NULL, 'Orçamento aprovado com apoio da secretaria de turismo.', 640000.00, 620000.00, 'APPROVED');
+-- IDs resultantes: 9 = Sinalização Turística, 10 = Mirante Turístico
+
 -- ---------------------------------------------------------------------
 -- Imagens dos projetos
 -- ---------------------------------------------------------------------
@@ -211,7 +230,10 @@ VALUES
     (3, 'https://picsum.photos/seed/ubs/800/600'),
     (5, 'https://picsum.photos/seed/arvores/800/600'),
     (6, 'https://picsum.photos/seed/cameras/800/600'),
-    (7, 'https://picsum.photos/seed/quadra/800/600');
+    (7, 'https://picsum.photos/seed/quadra/800/600'),
+    (9, 'https://picsum.photos/seed/sinalizacao-turistica/800/600'),
+    (10, 'https://picsum.photos/seed/mirante/800/600'),
+    (10, 'https://picsum.photos/seed/mirante-serra/800/600');
 
 -- ---------------------------------------------------------------------
 -- Vereadores associados a projetos (project_councilor)
@@ -282,7 +304,7 @@ VALUES
 INSERT INTO issue_report (municipality_id, category_id, author_id, councilor_id, title, description, neighborhood, street, number,
                           latitude, longitude, status, moderation_status)
 VALUES
-    (1, 1, 1, 4, 'Buraco na via', 'Buraco grande na Rua Barão de Alfenas causando risco a motociclistas.',
+    (1, 1, 1, null, 'Buraco na via', 'Buraco grande na Rua Barão de Alfenas causando risco a motociclistas.',
      'Centro', 'Rua Barão de Alfenas', '150', -22.25240000, -45.70290000, 'OPEN', 'PENDING'),
     (1, 1, 5, 4, 'Poste de luz queimado', 'Iluminação pública apagada há mais de duas semanas na Vila Rica.',
      'Vila Rica', 'Avenida Cel. Joaquim', '460', -22.25520000, -45.70920000, 'UNDER_REVIEW', 'APPROVED'),
@@ -294,6 +316,16 @@ VALUES
      'Zona Escolar', 'Avenida das Palmeiras', '905', -22.25810000, -45.71210000, 'OPEN', 'PENDING');
 -- IDs resultantes: 1..5
 
+-- Denúncias de Turismo (categoria 7 = Turismo)
+INSERT INTO issue_report (municipality_id, category_id, author_id, councilor_id, title, description, neighborhood, street, number,
+                          latitude, longitude, status, moderation_status)
+VALUES
+    (1, 7, 6, null, 'Placa turística danificada', 'Placa indicativa do centro histórico está quebrada e ilegível para os visitantes.',
+     'Centro', 'Praça da Matriz', '10', -22.25270000, -45.70320000, 'OPEN', 'APPROVED'),
+    (1, 7, 8, 4, 'Mirante sem manutenção', 'Guarda-corpo do mirante turístico está enferrujado, oferecendo risco aos turistas.',
+     'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24510000, -45.69510000, 'UNDER_REVIEW', 'APPROVED');
+-- IDs resultantes: 6 = Placa turística, 7 = Mirante sem manutenção
+
 -- ---------------------------------------------------------------------
 -- Imagens das denúncias
 -- ---------------------------------------------------------------------
@@ -302,7 +334,9 @@ VALUES
     (1, 'https://picsum.photos/seed/buraco/800/600'),
     (2, 'https://picsum.photos/seed/poste/800/600'),
     (3, 'https://picsum.photos/seed/lixo/800/600'),
-    (4, 'https://picsum.photos/seed/vazamento/800/600');
+    (4, 'https://picsum.photos/seed/vazamento/800/600'),
+    (6, 'https://picsum.photos/seed/placa-turistica/800/600'),
+    (7, 'https://picsum.photos/seed/mirante-manutencao/800/600');
 
 -- ---------------------------------------------------------------------
 -- Moderação de denúncias
@@ -369,3 +403,92 @@ VALUES
     (7, 'Sua denúncia foi resolvida', 'A denúncia "Vazamento de água" foi marcada como resolvida.', 'ISSUE_STATUS_CHANGED', TRUE, CURRENT_TIMESTAMP),
     (4, 'Nova denúncia atribuída', 'Uma nova denúncia foi atribuída a você.', 'ISSUE_CREATED', FALSE, NULL),
     (1, 'Atualização de projeto', 'O projeto "Recapeamento da Avenida Cel. Joaquim" entrou em votação.', 'PROJECT_UPDATED', FALSE, NULL);
+
+-- ---------------------------------------------------------------------
+-- Categorias de evento (tabela dedicada, separada de category)
+-- ---------------------------------------------------------------------
+INSERT INTO event_category (name, description)
+VALUES
+    ('Cultura',      'Shows, exposições, teatro e eventos culturais.'),
+    ('Esporte',      'Competições, corridas e atividades esportivas.'),
+    ('Educação',     'Palestras, workshops, cursos e feiras educativas.'),
+    ('Comunitário',  'Encontros comunitários, mutirões e ações sociais.'),
+    ('Tecnologia',   'Hackathons, meetups e eventos de inovação.'),
+    ('Turismo',      'Passeios, festivais turísticos e eventos de valorização da cidade.');
+
+-- ---------------------------------------------------------------------
+-- Eventos (sem limitação de município: municípios variados de propósito)
+-- Autores: 2 = MODERATOR, 3 = ADMINISTRATOR
+-- Datas relativas a CURRENT_DATE para manter a demo sempre com eventos futuros
+-- ---------------------------------------------------------------------
+INSERT INTO event (title, description, category_id, price, start_date, end_date, location, municipality_id, author_id)
+VALUES
+    ('Festival de Inverno',
+     'Três dias de shows, feira gastronômica e apresentações culturais na praça central.',
+     1, 30.00,
+     CURRENT_DATE + INTERVAL '10 days' + TIME '18:00',
+     CURRENT_DATE + INTERVAL '12 days' + TIME '23:00',
+     'Praça Central', 1, 2),
+
+    ('Corrida da Cidade 10K',
+     'Corrida de rua com percursos de 5K e 10K, aberta a todas as idades.',
+     2, 0.00,
+     CURRENT_DATE + INTERVAL '20 days' + TIME '07:00',
+     CURRENT_DATE + INTERVAL '20 days' + TIME '11:00',
+     'Parque Municipal', 1, 2),
+
+    ('Feira de Ciências e Tecnologia',
+     'Exposição de projetos de escolas e startups locais, com palestras e oficinas.',
+     3, NULL,
+     CURRENT_DATE + INTERVAL '5 days' + TIME '09:00',
+     CURRENT_DATE + INTERVAL '5 days' + TIME '17:00',
+     'Centro de Convenções', 9, 3),
+
+    ('Mutirão de Limpeza do Rio',
+     'Ação comunitária de limpeza das margens do rio, com café da manhã para voluntários.',
+     4, 0.00,
+     CURRENT_DATE + INTERVAL '3 days' + TIME '08:00',
+     CURRENT_DATE + INTERVAL '3 days' + TIME '12:00',
+     'Margem do Rio Sapucaí', 1, 2),
+
+    ('Hackathon Cidades Inteligentes',
+     'Maratona de programação de 48h focada em soluções para gestão pública municipal.',
+     5, 50.00,
+     CURRENT_DATE + INTERVAL '30 days' + TIME '19:00',
+     CURRENT_DATE + INTERVAL '32 days' + TIME '19:00',
+     'Hub de Inovação', 17, 3),
+
+    ('Sarau Cultural de Primavera',
+     'Noite de poesia, música acústica e feira de artesanato local.',
+     1, 15.00,
+     CURRENT_DATE + INTERVAL '45 days' + TIME '20:00',
+     CURRENT_DATE + INTERVAL '45 days' + TIME '23:30',
+     'Casa de Cultura', 1, 2),
+
+    -- Eventos de Turismo (categoria 6 = Turismo em event_category)
+    ('City Tour Histórico',
+     'Passeio guiado gratuito pelos principais pontos históricos e culturais da cidade.',
+     6, 0.00,
+     CURRENT_DATE + INTERVAL '7 days' + TIME '09:00',
+     CURRENT_DATE + INTERVAL '7 days' + TIME '12:00',
+     'Ponto de encontro: Praça da Matriz', 1, 2),
+
+    ('Festival de Turismo Rural',
+     'Feira com produtores locais, gastronomia caipira e passeios pelas fazendas históricas da região.',
+     6, 25.00,
+     CURRENT_DATE + INTERVAL '25 days' + TIME '10:00',
+     CURRENT_DATE + INTERVAL '27 days' + TIME '18:00',
+     'Parque de Exposições', 1, 3);
+
+-- ---------------------------------------------------------------------
+-- Imagens de eventos (alguns eventos sem imagem para exercitar o filtro hasImage)
+-- ---------------------------------------------------------------------
+INSERT INTO event_image (event_id, url)
+VALUES
+    (1, 'https://picsum.photos/seed/festival-inverno/800/600'),
+    (1, 'https://picsum.photos/seed/festival-inverno-2/800/600'),
+    (2, 'https://picsum.photos/seed/corrida-10k/800/600'),
+    (3, 'https://picsum.photos/seed/feira-ciencias/800/600'),
+    (5, 'https://picsum.photos/seed/hackathon/800/600'),
+    (7, 'https://picsum.photos/seed/city-tour/800/600'),
+    (8, 'https://picsum.photos/seed/turismo-rural/800/600');
