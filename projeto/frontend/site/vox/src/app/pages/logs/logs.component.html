@@ -3,64 +3,51 @@
 <main class="logs-page">
   <section class="logs-heading">
     <div>
-      <p class="eyebrow">ADMINISTRAÇÃO · AUDITORIA</p>
-      <h1>Logs do sistema</h1>
-      <p class="subtitle">Atividades registradas no município · retenção de 90 dias</p>
+      <p class="eyebrow">ADMINISTRAÇÃO</p>
+      <h1>Atividades recentes</h1>
+      <p class="subtitle">Acompanhe o que acontece no município</p>
     </div>
-    <button class="refresh-button" type="button" (click)="loadLogs(page)" [disabled]="isLoading" title="Atualizar logs" aria-label="Atualizar logs">
+    <button class="refresh-button" type="button" (click)="loadActivities(page)" [disabled]="isLoading" title="Atualizar atividades" aria-label="Atualizar atividades">
       <span class="material-symbols-rounded">refresh</span>
     </button>
   </section>
 
-  <form class="filters" (ngSubmit)="loadLogs()">
-    <label class="user-filter">ID do usuário<input type="number" min="0" name="userId" [(ngModel)]="userId" placeholder="Todos"></label>
-    <label>Método<select name="method" [(ngModel)]="method"><option value="">Todos</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="PATCH">PATCH</option><option value="DELETE">DELETE</option></select></label>
+  <form class="filters" (ngSubmit)="loadActivities()">
     <label>De<input type="date" name="from" [(ngModel)]="from"></label>
     <label>Até<input type="date" name="to" [(ngModel)]="to"></label>
-    <label class="size-filter">Por página<select name="size" [(ngModel)]="size" (ngModelChange)="loadLogs()"><option [ngValue]="20">20</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option><option [ngValue]="200">200</option></select></label>
-    <div class="filter-actions"><button class="apply-button" type="submit" [disabled]="isLoading"><span class="material-symbols-rounded">filter_list</span>Filtrar</button><button class="clear-button" type="button" (click)="clearFilters()" title="Limpar filtros" aria-label="Limpar filtros"><span class="material-symbols-rounded">backspace</span></button></div>
+    <div class="filter-actions">
+      <button class="clear-button" type="button" (click)="clearPeriod()" title="Limpar período" aria-label="Limpar período"><span class="material-symbols-rounded">restart_alt</span></button>
+      <button class="apply-button" type="submit" [disabled]="isLoading">Aplicar período</button>
+    </div>
   </form>
 
   <p class="error-banner" *ngIf="errorMessage" role="alert">{{ errorMessage }}</p>
-  <div class="loading-line" *ngIf="isLoading"><span></span>Carregando registros…</div>
+  <div class="loading-line" *ngIf="isLoading"><span></span>Carregando atividades…</div>
 
-  <section class="results" aria-label="Registros de auditoria" [attr.aria-busy]="isLoading">
-    <article class="log-entry" *ngFor="let log of logs">
-      <div class="entry-topline">
-        <span class="method-badge" [attr.data-method]="log.httpMethod">{{ methodLabel(log.httpMethod) }}</span>
-        <span class="entry-path">{{ log.path }}<span *ngIf="log.queryString">?{{ log.queryString }}</span></span>
-        <span class="result-badge" [class.success]="log.success" [class.failure]="!log.success">{{ log.statusCode }} · {{ log.success ? 'Sucesso' : 'Falha' }}</span>
+  <section class="activity-list" aria-label="Atividades recentes" [attr.aria-busy]="isLoading">
+    <article class="activity-item" *ngFor="let log of logs">
+      <span class="activity-icon" [class.not-completed]="!log.success">
+        <span class="material-symbols-rounded">{{ activityIcon(log) }}</span>
+      </span>
+      <div class="activity-content">
+        <p class="activity-description"><strong>{{ actorLabel(log) }}</strong> {{ actionLabel(log) }}</p>
+        <p class="activity-meta">{{ formatDate(log.createdAt) }} <span aria-hidden="true">·</span> {{ log.success ? 'Concluído' : 'Não concluído' }}</p>
       </div>
-      <div class="entry-meta">
-        <span><span class="material-symbols-rounded">schedule</span>{{ formatDate(log.createdAt) }}</span>
-        <span><span class="material-symbols-rounded">person</span>{{ log.userId == null ? 'Não autenticado' : 'Usuário #' + log.userId }}<small *ngIf="log.userRole"> · {{ log.userRole }}</small></span>
-        <span><span class="material-symbols-rounded">timer</span>{{ log.durationMs }} ms</span>
-        <span *ngIf="log.ipAddress"><span class="material-symbols-rounded">language</span>{{ log.ipAddress }}</span>
-      </div>
-      <details class="entry-details">
-        <summary>Detalhes técnicos</summary>
-        <div class="details-grid">
-          <div><span>ID do registro</span><b>{{ log.id }}</b></div>
-          <div><span>Município</span><b>{{ log.municipalityId ?? '—' }}</b></div>
-          <div><span>Agente do navegador</span><b>{{ log.userAgent || '—' }}</b></div>
-          <div class="detail-error" *ngIf="log.errorMessage"><span>Erro</span><b>{{ log.errorMessage }}</b></div>
-        </div>
-      </details>
     </article>
 
     <div class="empty-state" *ngIf="!isLoading && !errorMessage && logs.length === 0">
-      <span class="material-symbols-rounded">receipt_long</span>
-      <strong>Nenhum registro encontrado</strong>
-      <p>Tente alterar os filtros ou limpar o período.</p>
+      <span class="material-symbols-rounded">event_note</span>
+      <strong>Nenhuma atividade neste período</strong>
+      <p>Escolha outro intervalo de datas.</p>
     </div>
   </section>
 
   <footer class="pagination" *ngIf="totalElements > 0">
-    <span>{{ firstResult }}–{{ lastResult }} de {{ totalElements }} registros</span>
+    <span>{{ totalElements }} atividades</span>
     <div class="page-controls">
-      <button type="button" (click)="loadLogs(page - 1)" [disabled]="page === 0 || isLoading" title="Página anterior" aria-label="Página anterior"><span class="material-symbols-rounded">chevron_left</span></button>
-      <span>Página {{ page + 1 }} de {{ totalPages }}</span>
-      <button type="button" (click)="loadLogs(page + 1)" [disabled]="page + 1 >= totalPages || isLoading" title="Próxima página" aria-label="Próxima página"><span class="material-symbols-rounded">chevron_right</span></button>
+      <button type="button" (click)="loadActivities(page - 1)" [disabled]="page === 0 || isLoading" title="Atividades mais recentes" aria-label="Atividades mais recentes"><span class="material-symbols-rounded">arrow_back</span></button>
+      <span>{{ firstResult }}–{{ lastResult }}</span>
+      <button type="button" (click)="loadActivities(page + 1)" [disabled]="page + 1 >= totalPages || isLoading" title="Atividades anteriores" aria-label="Atividades anteriores"><span class="material-symbols-rounded">arrow_forward</span></button>
     </div>
   </footer>
 </main>

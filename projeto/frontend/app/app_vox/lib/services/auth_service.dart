@@ -189,6 +189,17 @@ class AuthService {
     );
   }
 
+  Future<UserProfile> getUserById(int id) async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/api/user/$id'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+    return UserProfile.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
   // ── Administração de usuários (somente ADMINISTRATOR) ──────
 
   Future<List<UserProfile>> getAllUsers() async {

@@ -100,11 +100,27 @@ export class PerfilComponent implements OnInit {
       name:  this.editForm.name.trim(),
       phone: this.editForm.phone.trim() || undefined
     }, this.selectedPhoto).subscribe({
-      next: (updated) => {
-        this.user = { ...this.user!, ...updated };
-        this.selectedPhoto = null;
-        this.profileSuccess = 'Dados atualizados com sucesso!';
-        this.isSavingProfile = false;
+      next: () => {
+        this.authService.fetchCurrentUser().subscribe({
+          next: (refreshedUser) => {
+            this.user = refreshedUser;
+            this.editForm.name = refreshedUser.name ?? '';
+            this.editForm.phone = refreshedUser.phone ?? '';
+            this.selectedPhoto = null;
+            this.profileSuccess = 'Dados atualizados com sucesso!';
+            this.isSavingProfile = false;
+          },
+          error: () => {
+            this.user = {
+              ...this.user!,
+              name: this.editForm.name.trim(),
+              phone: this.editForm.phone.trim() || undefined
+            };
+            this.selectedPhoto = null;
+            this.profileError = 'Os dados foram salvos, mas não foi possível atualizar a foto exibida.';
+            this.isSavingProfile = false;
+          }
+        });
       },
       error: () => {
         this.profileError = 'Erro ao salvar. Tente novamente.';

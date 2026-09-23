@@ -23,6 +23,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _categoryMetric = 0;
   int _moderationView = 0;
 
+  bool get _isHighContrast =>
+      Theme.of(context).colorScheme.primary.toARGB32() ==
+      const Color(0xFFFFFF00).toARGB32();
+  Color get _mutedColor => _isHighContrast
+      ? Colors.white
+      : Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFFC3C8D0)
+      : VoxColors.textMuted;
+  Color get _accentColor => Theme.of(context).colorScheme.primary;
+  Color get _secondaryColor =>
+      _isHighContrast ? const Color(0xFFFFFF00) : VoxColors.secondary;
+  Color get _successColor =>
+      _isHighContrast ? const Color(0xFFFFFF00) : VoxColors.success;
+  Color get _borderColor => _isHighContrast
+      ? Colors.white
+      : Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF343A40)
+      : VoxColors.border;
+  Color get _trackColor => _isHighContrast
+      ? Colors.white
+      : Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF30343A)
+      : VoxColors.border;
+
   @override
   void initState() {
     super.initState();
@@ -142,21 +166,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       'Ocorrências',
                       _overview['totalIssues'],
                       '${_number(_overview['pendingModerationIssues'])} aguardando moderação',
-                      VoxColors.accent,
+                      _accentColor,
                       cardWidth,
                     ),
                     _kpi(
                       'Projetos publicados',
                       _overview['publishedProjects'],
                       '${_number(_overview['totalProjects'])} no total',
-                      VoxColors.success,
+                      _successColor,
                       cardWidth,
                     ),
                     _kpi(
                       'Usuários',
                       _overview['totalUsers'],
                       'Contas no município',
-                      VoxColors.secondary,
+                      _secondaryColor,
                       cardWidth,
                     ),
                     _kpi(
@@ -248,8 +272,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           tooltip: 'Atualizar indicadores',
           icon: const Icon(Icons.refresh),
           style: IconButton.styleFrom(
-            backgroundColor: VoxColors.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
           ),
         ),
       ],
@@ -260,7 +284,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Text(
           'GESTÃO MUNICIPAL',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: VoxColors.accent,
+            color: _accentColor,
             fontWeight: FontWeight.w800,
             letterSpacing: 1,
           ),
@@ -277,7 +301,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'Indicadores de participação, projetos e moderação',
           style: Theme.of(
             context,
-          ).textTheme.bodySmall?.copyWith(color: VoxColors.textMuted),
+          ).textTheme.bodySmall?.copyWith(color: _mutedColor),
         ),
         const SizedBox(height: 14),
         if (compact)
@@ -303,15 +327,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        border: Border.all(color: VoxColors.border),
+        border: Border.all(color: _borderColor),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         children: [
-          Text(
-            '$label ',
-            style: const TextStyle(color: VoxColors.textMuted, fontSize: 11),
-          ),
+          Text('$label ', style: TextStyle(color: _mutedColor, fontSize: 11)),
           Expanded(
             child: Text(
               _date(date),
@@ -340,9 +361,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: Theme.of(context).cardColor,
         border: Border(
           top: BorderSide(color: color, width: 3),
-          left: const BorderSide(color: VoxColors.border),
-          right: const BorderSide(color: VoxColors.border),
-          bottom: const BorderSide(color: VoxColors.border),
+          left: BorderSide(color: _borderColor),
+          right: BorderSide(color: _borderColor),
+          bottom: BorderSide(color: _borderColor),
         ),
         borderRadius: BorderRadius.circular(6),
       ),
@@ -351,8 +372,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: VoxColors.textMuted,
+            style: TextStyle(
+              color: _mutedColor,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -369,7 +390,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 5),
           Text(
             note,
-            style: const TextStyle(color: VoxColors.textMuted, fontSize: 10),
+            style: TextStyle(color: _mutedColor, fontSize: 10),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -396,10 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 3),
-            Text(
-              subtitle,
-              style: const TextStyle(color: VoxColors.textMuted, fontSize: 10),
-            ),
+            Text(subtitle, style: TextStyle(color: _mutedColor, fontSize: 10)),
             const SizedBox(height: 14),
             child,
           ],
@@ -517,8 +535,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   112 *
                                   _number(point['projectCount']) /
                                   maximum,
-                              decoration: const BoxDecoration(
-                                color: VoxColors.secondary,
+                              decoration: BoxDecoration(
+                                color: _secondaryColor,
                                 borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(2),
                                 ),
@@ -527,7 +545,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Container(
                               height:
                                   112 * _number(point['issueCount']) / maximum,
-                              color: VoxColors.accent,
+                              color: _accentColor,
                             ),
                           ],
                         ),
@@ -539,10 +557,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     '${point['period'] ?? ''}'.substring(
                       5.clamp(0, '${point['period'] ?? ''}'.length),
                     ),
-                    style: const TextStyle(
-                      fontSize: 8,
-                      color: VoxColors.textMuted,
-                    ),
+                    style: TextStyle(fontSize: 8, color: _mutedColor),
                     maxLines: 1,
                     overflow: TextOverflow.clip,
                   ),
@@ -567,6 +582,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       size: Size.infinite,
       painter: _LinePainter(
         points.map((point) => _number(point['total']) / max).toList(),
+        gridColor: _borderColor,
+        lineColor: _accentColor,
+        pointColor: _secondaryColor,
       ),
     );
   }
@@ -597,7 +615,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               item['name'].toString(),
               item['value'] as int,
               max,
-              VoxColors.accent,
+              _accentColor,
             ),
           );
         }(),
@@ -612,33 +630,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'value':
                   _number(_moderation['pendingIssues']) +
                   _number(_moderation['pendingProjects']),
-              'color': VoxColors.secondary,
+              'color': _secondaryColor,
             },
             {
               'label': 'Aprovados',
               'value':
                   _number(_moderation['approvedIssues']) +
                   _number(_moderation['approvedProjects']),
-              'color': VoxColors.success,
+              'color': _successColor,
             },
             {
               'label': 'Rejeitados',
               'value':
                   _number(_moderation['rejectedIssues']) +
                   _number(_moderation['rejectedProjects']),
-              'color': VoxColors.textMuted,
+              'color': _mutedColor,
             },
           ]
         : [
             {
               'label': 'Aprovação de ocorrências',
               'value': _number(_moderation['issueApprovalRate']),
-              'color': VoxColors.accent,
+              'color': _accentColor,
             },
             {
               'label': 'Aprovação de projetos',
               'value': _number(_moderation['projectApprovalRate']),
-              'color': VoxColors.success,
+              'color': _successColor,
             },
           ];
     final max = _moderationView == 1
@@ -672,7 +690,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 8),
         Text(
           'Tempo médio: ocorrências ${_moderation['avgIssueDecisionHours'] ?? '—'}h · projetos ${_moderation['avgProjectDecisionHours'] ?? '—'}h',
-          style: const TextStyle(fontSize: 9, color: VoxColors.textMuted),
+          style: TextStyle(fontSize: 9, color: _mutedColor),
         ),
       ],
     );
@@ -696,8 +714,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   width: 28,
                   child: Text(
                     '${i + 1}'.padLeft(2, '0'),
-                    style: const TextStyle(
-                      color: VoxColors.accent,
+                    style: TextStyle(
+                      color: _accentColor,
                       fontWeight: FontWeight.w800,
                       fontSize: 11,
                     ),
@@ -732,7 +750,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         Text(
           'Execução orçamentária',
-          style: const TextStyle(color: VoxColors.textMuted, fontSize: 10),
+          style: TextStyle(color: _mutedColor, fontSize: 10),
         ),
         const SizedBox(height: 5),
         Text(
@@ -744,7 +762,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'Orçamento aprovado / estimado',
           _number(rate),
           100,
-          VoxColors.success,
+          _successColor,
           suffix: '%',
         ),
         const Divider(height: 18),
@@ -756,10 +774,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: Text(
                     _label(entry.key),
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: VoxColors.textMuted,
-                    ),
+                    style: TextStyle(fontSize: 10, color: _mutedColor),
                   ),
                 ),
                 Text(
@@ -790,7 +805,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           flex: 4,
           child: Text(
             label,
-            style: const TextStyle(fontSize: 10, color: VoxColors.textMuted),
+            style: TextStyle(fontSize: 10, color: _mutedColor),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -802,7 +817,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: LinearProgressIndicator(
               value: max == 0 ? 0 : (value / max).clamp(0, 1),
               minHeight: 8,
-              backgroundColor: VoxColors.border,
+              backgroundColor: _trackColor,
               color: color,
             ),
           ),
@@ -833,7 +848,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 10, color: VoxColors.textMuted),
+              style: TextStyle(fontSize: 10, color: _mutedColor),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -849,7 +864,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: LinearProgressIndicator(
           value: max == 0 ? 0 : (value / max).clamp(0, 1),
           minHeight: 7,
-          backgroundColor: VoxColors.border,
+          backgroundColor: _trackColor,
           color: color,
         ),
       ),
@@ -881,9 +896,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'total',
-                    style: TextStyle(fontSize: 9, color: VoxColors.textMuted),
+                    style: TextStyle(fontSize: 9, color: _mutedColor),
                   ),
                 ],
               ),
@@ -936,9 +951,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _legend() => Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
-      _legendItem('Ocorrências', VoxColors.accent),
+      _legendItem('Ocorrências', _accentColor),
       const SizedBox(width: 16),
-      _legendItem('Projetos', VoxColors.secondary),
+      _legendItem('Projetos', _secondaryColor),
     ],
   );
 
@@ -953,10 +968,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       const SizedBox(width: 5),
-      Text(
-        label,
-        style: const TextStyle(color: VoxColors.textMuted, fontSize: 9),
-      ),
+      Text(label, style: TextStyle(color: _mutedColor, fontSize: 9)),
     ],
   );
 
@@ -965,7 +977,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     child: Center(
       child: Text(
         text,
-        style: const TextStyle(color: VoxColors.textMuted, fontSize: 11),
+        style: TextStyle(color: _mutedColor, fontSize: 11),
         textAlign: TextAlign.center,
       ),
     ),
@@ -1013,13 +1025,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'COMPLETED': 'Concluído',
       }[value] ??
       value.replaceAll('_', ' ').toLowerCase();
-  Color _statusColor(String key) =>
-      const {
-        'OPEN': Color(0xFFD76535),
-        'IN_PROGRESS': Color(0xFF237A8A),
-        'RESOLVED': Color(0xFF438653),
-      }[key] ??
-      VoxColors.textMuted;
+  Color _statusColor(String key) => _isHighContrast
+      ? const Color(0xFFFFFF00)
+      : const {
+              'OPEN': Color(0xFFD76535),
+              'IN_PROGRESS': Color(0xFF237A8A),
+              'RESOLVED': Color(0xFF438653),
+            }[key] ??
+            _mutedColor;
 }
 
 class _DonutPainter extends CustomPainter {
@@ -1051,12 +1064,20 @@ class _DonutPainter extends CustomPainter {
 
 class _LinePainter extends CustomPainter {
   final List<double> values;
-  _LinePainter(this.values);
+  final Color gridColor;
+  final Color lineColor;
+  final Color pointColor;
+  _LinePainter(
+    this.values, {
+    required this.gridColor,
+    required this.lineColor,
+    required this.pointColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final grid = Paint()
-      ..color = VoxColors.border
+      ..color = gridColor
       ..strokeWidth = 1;
     for (final y in [12.0, size.height / 2, size.height - 8]) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
@@ -1072,7 +1093,7 @@ class _LinePainter extends CustomPainter {
       points.add(Offset(x, y));
     }
     final line = Paint()
-      ..color = VoxColors.accent
+      ..color = lineColor
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -1082,7 +1103,7 @@ class _LinePainter extends CustomPainter {
       path.lineTo(point.dx, point.dy);
     }
     canvas.drawPath(path, line);
-    final dot = Paint()..color = VoxColors.secondary;
+    final dot = Paint()..color = pointColor;
     for (final point in points) {
       canvas.drawCircle(point, 3, dot);
     }
@@ -1090,5 +1111,8 @@ class _LinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _LinePainter oldDelegate) =>
-      oldDelegate.values != values;
+      oldDelegate.values != values ||
+      oldDelegate.gridColor != gridColor ||
+      oldDelegate.lineColor != lineColor ||
+      oldDelegate.pointColor != pointColor;
 }

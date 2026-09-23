@@ -250,17 +250,21 @@ $live:       #dc2626;
 }
 
 .btn-close-sala {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
   border-radius: 50%;
-  border: 1px solid $border;
-  background: $white;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  background: #fff5f4;
   color: $live;
-  font-size: 0.85rem;
-  font-weight: 700;
   cursor: pointer;
-  line-height: 1;
-  &:hover { background: #fee2e2; }
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+
+  .material-symbols-rounded { font-size: 20px; }
+  &:hover { background: #fee2e2; border-color: rgba(220, 38, 38, 0.45); transform: scale(1.06); }
+  &:focus-visible { outline: 3px solid rgba(220, 38, 38, 0.45); outline-offset: 2px; }
 }
 
 :host ::ng-deep .form-actions .btn-submit[disabled] {

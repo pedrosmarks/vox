@@ -59,8 +59,11 @@
           *ngIf="isModerator && s.status === 'OPEN'"
           class="btn-close-sala"
           title="Encerrar sala"
+          aria-label="Encerrar sala"
           (click)="encerrarSala(s, $event)"
-        >✕</button>
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">stop_circle</span>
+        </button>
       </div>
 
       <h2 class="card-title">{{ s.name }}</h2>

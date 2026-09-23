@@ -217,13 +217,13 @@ export class AuthService {
     }
   }
 
-  updateProfile(id: number, data: Partial<UserProfile>, file?: File | null): Observable<UserProfile> {
+  updateProfile(id: number, data: Partial<UserProfile>, file?: File | null): Observable<void> {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) formData.append(key, String(value));
     });
     if (file) formData.append('file', file, file.name);
-    return this.http.put<UserProfile>(`${this.API_URL}/api/user/${id}`, formData);
+    return this.http.put<void>(`${this.API_URL}/api/user/${id}`, formData);
   }
 
   updatePassword(oldPassword: string, newPassword: string): Observable<void> {

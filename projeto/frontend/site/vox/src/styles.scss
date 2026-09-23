@@ -379,6 +379,129 @@ html[data-a11y='HIGH_CONTRAST'] {
   }
 }
 
+/* --- Dashboard: temas de acessibilidade --- */
+html[data-a11y='DARK'] .dashboard-page {
+  --ink: #f5f6f8;
+  --muted: #c3c8d0;
+  --line: #30343a;
+  --surface: #121212;
+  --canvas: #000;
+  --surface-soft: #1a1a1a;
+  --track: #292d31;
+  --grid: #343a40;
+  --accent: #64c4d0;
+  --selection: #2d6fcc;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page {
+  --ink: #fff;
+  --muted: #fff;
+  --line: #fff;
+  --surface: #000;
+  --canvas: #000;
+  --surface-soft: #000;
+  --track: #000;
+  --grid: #fff;
+  --accent: #ff0;
+  --selection: #ff0;
+  color: #fff;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page .panel,
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page .kpi-card,
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page .bottom-summary,
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page .date-filter input,
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page .segmented {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page button {
+  background: #ff0 !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page .segmented button.active {
+  outline: 2px solid #ff0;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page .error-banner {
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+html[data-a11y='DARK'] .logs-page {
+  --ink: #f5f6f8;
+  --muted: #c3c8d0;
+  --line: #30343a;
+  --surface: #121212;
+  --canvas: #000;
+  --surface-soft: #292d31;
+  --action: #2d6fcc;
+  --success: #438653;
+  --success-bg: #18372b;
+  --success-text: #9be2bb;
+  --failure: #ff8075;
+  --failure-bg: #421f22;
+  --failure-text: #ffb4ab;
+  --post-bg: #18372b;
+  --post-text: #9be2bb;
+  --put-bg: #1d2b40;
+  --put-text: #afc8f0;
+  --patch-bg: #3b3015;
+  --patch-text: #ffd66b;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .logs-page {
+  --ink: #fff;
+  --muted: #fff;
+  --line: #fff;
+  --surface: #000;
+  --canvas: #000;
+  --surface-soft: #000;
+  --action: #ff0;
+  --action-text: #000;
+  --success: #ff0;
+  --success-bg: #ff0;
+  --success-text: #000;
+  --failure: #ff0;
+  --failure-bg: #ff0;
+  --failure-text: #000;
+  --post-bg: #ff0;
+  --post-text: #000;
+  --put-bg: #ff0;
+  --put-text: #000;
+  --patch-bg: #ff0;
+  --patch-text: #000;
+  color: #fff;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .logs-page .filters,
+html[data-a11y='HIGH_CONTRAST'] .logs-page .log-entry,
+html[data-a11y='HIGH_CONTRAST'] .logs-page .empty-state,
+html[data-a11y='HIGH_CONTRAST'] .logs-page .clear-button,
+html[data-a11y='HIGH_CONTRAST'] .logs-page .page-controls button {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .logs-page .method-badge,
+html[data-a11y='HIGH_CONTRAST'] .logs-page .result-badge {
+  background: #ff0 !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .logs-page .error-banner {
+  background: #ff0 !important;
+  color: #000 !important;
+  border: 2px solid #fff !important;
+}
+
 /* --- Filtros de daltonismo (aplicados na página inteira) --- */
 html[data-a11y='PROTANOPIA']   body { filter: url('#vox-protanopia'); }
 html[data-a11y='DEUTERANOPIA'] body { filter: url('#vox-deuteranopia'); }

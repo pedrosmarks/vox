@@ -199,7 +199,14 @@
                   (click)="revogarAcesso(c)">
                   <span class="material-symbols-rounded">{{ revokingUserId === +c.identity ? 'hourglass_top' : 'lock' }}</span>
                 </button>
-                <button class="btn-kick" title="Expulsar" (click)="expulsar(c)">✕</button>
+                <button
+                  class="participant-control kick"
+                  title="Expulsar participante"
+                  aria-label="Expulsar participante"
+                  (click)="expulsar(c)"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">person_remove</span>
+                </button>
               </span>
             </ng-container>
           </li>

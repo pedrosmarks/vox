@@ -6,6 +6,11 @@
   --line: #e2e8e8;
   --surface: #fff;
   --canvas: #f3f6f5;
+  --surface-soft: #f5f7f6;
+  --track: #edf1f1;
+  --grid: #e5ebeb;
+  --accent: #237a8a;
+  --selection: #1b3f8b;
   min-height: calc(100vh - 64px);
   padding: 30px clamp(16px, 3.2vw, 48px) 48px;
   background: var(--canvas);
@@ -21,7 +26,7 @@ h1 { margin-bottom: 4px; font-size: 1.75rem; color: var(--ink); }
 .subtitle { margin: 0; color: var(--muted); font-size: 0.9rem; }
 .date-filter { display: flex; align-items: end; gap: 10px; }
 .date-filter label { display: grid; gap: 5px; color: var(--muted); font-size: 0.72rem; font-weight: 700; }
-.date-filter input { height: 38px; border: 1px solid var(--line); border-radius: 5px; padding: 0 9px; background: white; color: var(--ink); font: inherit; font-size: 0.82rem; }
+.date-filter input { height: 38px; border: 1px solid var(--line); border-radius: 5px; padding: 0 9px; background: var(--surface); color: var(--ink); font: inherit; font-size: 0.82rem; }
 .date-filter button { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border-radius: 5px; background: #1b3f8b; color: white; }
 .date-filter button:disabled { opacity: .55; cursor: wait; }
 .date-filter .material-symbols-rounded, .panel-icon { font-size: 20px; }
@@ -40,18 +45,18 @@ h1 { margin-bottom: 4px; font-size: 1.75rem; color: var(--ink); }
 .panel-heading { align-items: flex-start; margin-bottom: 18px; }
 .panel-heading h2 { margin: 0 0 4px; font-size: 0.98rem; color: var(--ink); }
 .panel-heading p { margin: 0; color: var(--muted); font-size: 0.73rem; }
-.segmented { display: flex; flex: 0 0 auto; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 5px; background: #f5f7f6; }
+.segmented { display: flex; flex: 0 0 auto; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-soft); }
 .segmented button { padding: 5px 8px; border-radius: 3px; background: transparent; color: var(--muted); font-size: 0.68rem; line-height: 1.2; white-space: nowrap; }
 .segmented button:hover { background: #e6eeee; color: var(--ink); }
-.segmented button.active { background: #1b3f8b; color: #fff; }
+.segmented button.active { background: var(--selection); color: #fff; }
 .bar-row { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(80px, 2fr) 35px; align-items: center; gap: 10px; margin: 13px 0; font-size: 0.76rem; }
 .bar-row > span { color: var(--muted); }
 .bar-row > b { text-align: right; font-size: 0.78rem; }
-.bar-track { height: 9px; overflow: hidden; border-radius: 2px; background: #edf1f1; }
+.bar-track { height: 9px; overflow: hidden; border-radius: 2px; background: var(--track); }
 .bar-track i { display: block; height: 100%; min-width: 0; border-radius: inherit; background: #237a8a; transition: width .35s ease; }
 .donut-layout { min-height: 158px; display: flex; align-items: center; justify-content: center; gap: 26px; }
 .donut { width: 142px; aspect-ratio: 1; display: grid; place-items: center; position: relative; border-radius: 50%; }
-.donut::before { content: ''; position: absolute; inset: 23px; border-radius: 50%; background: white; }
+.donut::before { content: ''; position: absolute; inset: 23px; border-radius: 50%; background: var(--surface); }
 .donut span { position: relative; display: grid; text-align: center; }
 .donut b { font-size: 1.35rem; }
 .donut small { color: var(--muted); font-size: 0.68rem; }
@@ -61,15 +66,15 @@ h1 { margin-bottom: 4px; font-size: 1.75rem; color: var(--ink); }
 .legend-list span { color: var(--muted); }
 .timeline-bars { height: 165px; display: flex; align-items: end; justify-content: space-around; gap: 8px; padding: 0 5px; border-bottom: 1px solid var(--line); }
 .time-column { height: 100%; flex: 1; min-width: 12px; display: flex; flex-direction: column; justify-content: end; align-items: center; gap: 7px; }
-.stacked-bar { width: min(26px, 80%); height: 130px; display: flex; flex-direction: column-reverse; overflow: hidden; border-radius: 3px 3px 0 0; background: #edf1f1; }
+.stacked-bar { width: min(26px, 80%); height: 130px; display: flex; flex-direction: column-reverse; overflow: hidden; border-radius: 3px 3px 0 0; background: var(--track); }
 .stacked-bar i, .stacked-bar b { display: block; min-height: 0; }
 .stacked-bar i { background: #237a8a; }
 .stacked-bar b { background: #d59a21; }
 .time-column small { color: var(--muted); font-size: 0.6rem; white-space: nowrap; }
 .line-chart { height: 165px; padding: 0 6px; }
 .line-chart svg { width: 100%; height: 140px; overflow: visible; }
-.line-grid { fill: none; stroke: #e5ebeb; stroke-dasharray: 3 4; }
-.line-path { fill: none; stroke: #237a8a; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.line-grid { fill: none; stroke: var(--grid); stroke-dasharray: 3 4; }
+.line-path { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .line-chart circle { fill: #d59a21; stroke: white; stroke-width: 2; }
 .line-labels { display: flex; justify-content: space-between; gap: 4px; overflow: hidden; color: var(--muted); }
 .line-labels small { font-size: 0.58rem; }
