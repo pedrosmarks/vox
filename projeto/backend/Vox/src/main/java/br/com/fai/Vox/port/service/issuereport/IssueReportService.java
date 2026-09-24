@@ -18,5 +18,6 @@ public interface IssueReportService {
     PageResponse<IssueReport> findPendingByMunicipalityId(int municipalityId, int page, int size);
     void update(int id, IssueReport entity, int changedBy);
     void assignCouncilor(int issueId, int councilorId, int municipalityId);
+    void unassignCouncilor(int issueId, int councilorId, int municipalityId);
     void updateStatus(int id, IssueReport.IssueStatus status, int changedBy, String note);
 }

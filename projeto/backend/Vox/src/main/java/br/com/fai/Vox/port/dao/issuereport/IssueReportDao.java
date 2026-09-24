@@ -19,6 +19,7 @@ public interface IssueReportDao {
     long countByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus);
     void update(int id, IssueReport entity);
     boolean assignCouncilor(int issueId, int councilorId, int municipalityId);
+    boolean unassignCouncilor(int issueId, int councilorId, int municipalityId);
     void updateModerationStatus(int id, ModerationStatus status);
     void updateStatus(int id, IssueReport.IssueStatus status);
 }
