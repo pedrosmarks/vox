@@ -1,7 +1,7 @@
 package br.com.fai.Vox.implementation.service.usersettings;
 
 import br.com.fai.Vox.domain.UserSettings;
-import br.com.fai.Vox.domain.UserSettings.AccessibilityMode;
+import br.com.fai.Vox.domain.enums.AccessibilityModeEnum;
 import br.com.fai.Vox.domain.dto.UpdateUserSettingsDto;
 import br.com.fai.Vox.port.dao.usersettings.UserSettingsDao;
 import br.com.fai.Vox.port.service.usersettings.UserSettingsService;
@@ -29,7 +29,7 @@ public class UserSettingsServiceImpl implements UserSettingsService {
             settings = new UserSettings();
             settings.setUserId(userId);
             settings.setFontSize(DEFAULT_FONT_SIZE);
-            settings.setAccessibilityMode(AccessibilityMode.NONE);
+            settings.setAccessibilityMode(AccessibilityModeEnum.NONE);
         }
         return settings;
     }

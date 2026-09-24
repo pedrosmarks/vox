@@ -1,4 +1,5 @@
 package br.com.fai.Vox.controller;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.Event;
 import br.com.fai.Vox.domain.EventImage;
@@ -153,8 +154,8 @@ public class EventRestController {
 
     private void requireModeratorOrAdmin(HttpServletRequest request) {
         UserModel user = userService.findByid(authHelper.getUserId(request));
-        if (user == null || (user.getRole() != UserModel.UserRole.MODERATOR
-                && user.getRole() != UserModel.UserRole.ADMINISTRATOR)) {
+        if (user == null || (user.getRole() != UserRoleEnum.MODERATOR
+                && user.getRole() != UserRoleEnum.ADMINISTRATOR)) {
             throw new SecurityException("Acesso negado: apenas moderadores ou administradores");
         }
     }

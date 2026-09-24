@@ -1,4 +1,5 @@
 package br.com.fai.Vox.controller;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.domain.dto.dashboard.CategoryAnalysisDto;
@@ -176,7 +177,7 @@ public class DashboardRestController {
     private int requireAdminMunicipality(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         UserModel user = userService.findByid(userId);
-        if (user == null || user.getRole() != UserModel.UserRole.ADMINISTRATOR) {
+        if (user == null || user.getRole() != UserRoleEnum.ADMINISTRATOR) {
             throw new SecurityException("Acesso negado: apenas administradores podem acessar o painel");
         }
         return authHelper.getMunicipalityId(request);

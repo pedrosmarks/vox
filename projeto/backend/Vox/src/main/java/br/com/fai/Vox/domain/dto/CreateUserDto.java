@@ -1,4 +1,5 @@
 package br.com.fai.Vox.domain.dto;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.UserModel;
 import jakarta.validation.constraints.Email;
@@ -37,7 +38,7 @@ public class CreateUserDto {
     @NotBlank(message = "Senha é obrigatória")
     private String password;
 
-    private UserModel.UserRole role;
+    private UserRoleEnum role;
     private LocalDate birthDate;
     private Integer municipalityId;
     private Boolean acceptedTerms;

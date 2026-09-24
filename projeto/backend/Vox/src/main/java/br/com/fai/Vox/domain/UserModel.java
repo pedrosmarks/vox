@@ -6,13 +6,15 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
+
 @Getter
 @Setter
 public class UserModel {
 
     private Integer id;
     private String name;
-    private UserRole role;
+    private UserRoleEnum role;
     private String cpf;
     private String email;
     private String phone;
@@ -25,16 +27,9 @@ public class UserModel {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public enum UserRole {
-        ADMINISTRATOR,
-        MODERATOR,
-        COUNCILOR,
-        CITIZEN
-    }
-
     public UserModel() {}
 
-    public UserModel(String name, UserRole role, Integer id, String email, String cpf, String phone, String password, LocalDate birthDate, Integer municipalityId, Boolean acceptedTerms, Boolean acceptedPrivacyPolicy, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public UserModel(String name, UserRoleEnum role, Integer id, String email, String cpf, String phone, String password, LocalDate birthDate, Integer municipalityId, Boolean acceptedTerms, Boolean acceptedPrivacyPolicy, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.name = name;
         this.role = role;
         this.id = id;
@@ -50,7 +45,7 @@ public class UserModel {
         this.updatedAt = updatedAt;
     }
 
-    public UserModel(Integer id, String name, String email, String cpf, UserRole role, String phone, String password, LocalDate birthDate, Integer municipalityId, Boolean acceptedTerms, Boolean acceptedPrivacyPolicy) {
+    public UserModel(Integer id, String name, String email, String cpf, UserRoleEnum role, String phone, String password, LocalDate birthDate, Integer municipalityId, Boolean acceptedTerms, Boolean acceptedPrivacyPolicy) {
         this.id = id;
         this.name = name;
         this.email = email;

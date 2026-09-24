@@ -1,11 +1,14 @@
 package br.com.fai.Vox.implementation.service.issuemoderation;
+import br.com.fai.Vox.domain.enums.NotificationTypeEnum;
+import br.com.fai.Vox.domain.enums.IssueStatusEnum;
+import br.com.fai.Vox.domain.enums.SubscriptionTypeEnum;
 
 import br.com.fai.Vox.domain.IssueModeration;
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.domain.Subscription;
 import br.com.fai.Vox.domain.dto.PageResponse;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
 import br.com.fai.Vox.port.dao.issuemoderation.IssueModerationDao;
 import br.com.fai.Vox.port.dao.issuereport.IssueReportDao;
 import br.com.fai.Vox.port.service.issuemoderation.IssueModerationService;
@@ -44,15 +47,15 @@ public class IssueModerationServiceImpl implements IssueModerationService {
     @Override
     public List<IssueReport> findPending(int municipalityId) {
         if (municipalityId <= 0) return List.of();
-        return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING);
+        return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.PENDING);
     }
 
     @Override
     public PageResponse<IssueReport> findPending(int municipalityId, int page, int size) {
         if (municipalityId <= 0) return new PageResponse<>(List.of(), page, size, 0);
         int offset = page * size;
-        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING, size, offset);
-        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING);
+        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.PENDING, size, offset);
+        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.PENDING);
         return new PageResponse<>(content, page, size, total);
     }
 
@@ -63,7 +66,7 @@ public class IssueModerationServiceImpl implements IssueModerationService {
         IssueReport issue = issueReportDao.findByid(issueId);
         if (issue == null) return;
 
-        issueReportDao.updateModerationStatus(issueId, ModerationStatus.APPROVED);
+        issueReportDao.updateModerationStatus(issueId, ModerationStatusEnum.APPROVED);
 
         // Registrar no histórico para que o feedback fique recuperável via GET /api/issues/{id}/history.
         // Aprovar não altera o IssueStatus (a ocorrência permanece no estado atual), então
@@ -74,7 +77,7 @@ public class IssueModerationServiceImpl implements IssueModerationService {
         IssueModeration moderation = new IssueModeration();
         moderation.setIssueId(issueId);
         moderation.setModeratorId(moderatorId);
-        moderation.setAction(ModerationStatus.APPROVED);
+        moderation.setAction(ModerationStatusEnum.APPROVED);
         moderation.setFeedback(feedback);
         issueModerationDao.create(moderation);
 
@@ -86,17 +89,17 @@ public class IssueModerationServiceImpl implements IssueModerationService {
                     issue.getCouncilorId(),
                     "Nova ocorrência atribuída a você",
                     "Uma nova ocorrência \"" + issue.getTitle() + "\" foi aprovada e está atribuída a você.",
-                    Notification.NotificationType.ISSUE_TAGGED);
+                    NotificationTypeEnum.ISSUE_TAGGED);
         }
 
         // Notificar assinantes de ALL_ISSUES
         List<Integer> allIssueSubscribers = subscriptionService.findSubscriberUserIds(
-                Subscription.SubscriptionType.ALL_ISSUES, null);
+                SubscriptionTypeEnum.ALL_ISSUES, null);
         for (int userId : allIssueSubscribers) {
             notificationService.send(userId,
                     "Nova ocorrência publicada",
                     "Uma nova ocorrência \"" + issue.getTitle() + "\" está disponível.",
-                    Notification.NotificationType.ISSUE_CREATED);
+                    NotificationTypeEnum.ISSUE_CREATED);
         }
     }
 
@@ -107,19 +110,19 @@ public class IssueModerationServiceImpl implements IssueModerationService {
         IssueReport issue = issueReportDao.findByid(issueId);
         if (issue == null) return;
 
-        IssueReport.IssueStatus previousStatus = issue.getStatus();
-        issueReportDao.updateModerationStatus(issueId, ModerationStatus.REJECTED);
+        IssueStatusEnum previousStatus = issue.getStatus();
+        issueReportDao.updateModerationStatus(issueId, ModerationStatusEnum.REJECTED);
         // Espelha o comportamento de projetos: rejeitar também reflete no status da ocorrência.
-        issueReportDao.updateStatus(issueId, IssueReport.IssueStatus.REJECTED);
+        issueReportDao.updateStatus(issueId, IssueStatusEnum.REJECTED);
 
         // Registrar no histórico para que o motivo da rejeição fique recuperável via GET /api/issues/{id}/history
         issueStatusHistoryService.recordStatusChange(
-                issueId, previousStatus, IssueReport.IssueStatus.REJECTED, moderatorId, feedback);
+                issueId, previousStatus, IssueStatusEnum.REJECTED, moderatorId, feedback);
 
         IssueModeration moderation = new IssueModeration();
         moderation.setIssueId(issueId);
         moderation.setModeratorId(moderatorId);
-        moderation.setAction(ModerationStatus.REJECTED);
+        moderation.setAction(ModerationStatusEnum.REJECTED);
         moderation.setFeedback(feedback);
         issueModerationDao.create(moderation);
 
@@ -127,7 +130,7 @@ public class IssueModerationServiceImpl implements IssueModerationService {
     }
 
     @Override
-    public void updateStatus(int issueId, IssueReport.IssueStatus status, int moderatorId, String note) {
+    public void updateStatus(int issueId, IssueStatusEnum status, int moderatorId, String note) {
         if (issueId <= 0 || status == null) return;
 
         IssueReport existing = issueReportDao.findByid(issueId);
@@ -141,7 +144,7 @@ public class IssueModerationServiceImpl implements IssueModerationService {
                 existing.getAuthorId(),
                 "Status da ocorrência atualizado",
                 "O status da sua ocorrência \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
-                Notification.NotificationType.ISSUE_STATUS_CHANGED);
+                NotificationTypeEnum.ISSUE_STATUS_CHANGED);
     }
 
     @Override

@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.service.authentication.jwt;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.UserModel;
 import io.jsonwebtoken.Claims;
@@ -51,7 +52,7 @@ public class JwtService {
         );
     }
 
-    public String generateToken(UserDetails userDetails, String fullname, UserModel.UserRole role, String email, int userId, int municipalityId) {
+    public String generateToken(UserDetails userDetails, String fullname, UserRoleEnum role, String email, int userId, int municipalityId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
         claims.put("fullname", fullname);

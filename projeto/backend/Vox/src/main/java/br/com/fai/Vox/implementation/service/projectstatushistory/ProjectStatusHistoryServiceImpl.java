@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.service.projectstatushistory;
+import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
 
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.ProjectStatusHistory;
@@ -18,7 +19,7 @@ public class ProjectStatusHistoryServiceImpl implements ProjectStatusHistoryServ
     }
 
     @Override
-    public void recordStatusChange(int projectId, Project.ProjectStatus previousStatus, Project.ProjectStatus newStatus, int changedBy, String note) {
+    public void recordStatusChange(int projectId, ProjectStatusEnum previousStatus, ProjectStatusEnum newStatus, int changedBy, String note) {
         ProjectStatusHistory history = new ProjectStatusHistory();
         history.setProjectId(projectId);
         history.setPreviousStatus(previousStatus);

@@ -1,4 +1,8 @@
 package br.com.fai.Vox.implementation.service.conferenceroom;
+import br.com.fai.Vox.domain.enums.ParticipantStatusEnum;
+import br.com.fai.Vox.domain.enums.SpeechRequestStatusEnum;
+import br.com.fai.Vox.domain.enums.RoomStatusEnum;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.ConferenceRoom;
 import br.com.fai.Vox.domain.RoomParticipant;
@@ -58,7 +62,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         ConferenceRoom room = getExistingRoom(roomId);
         requireModerator(room, requestingUserId);
 
-        conferenceRoomDao.updateStatus(roomId, ConferenceRoom.RoomStatus.CLOSED);
+        conferenceRoomDao.updateStatus(roomId, RoomStatusEnum.CLOSED);
         logger.log(Level.INFO, "Sala de conferência encerrada. ID: " + roomId);
     }
 
@@ -80,17 +84,17 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
     public void requestEntry(int roomId, int userId) {
         ConferenceRoom room = getExistingRoom(roomId);
 
-        if (room.getStatus() == ConferenceRoom.RoomStatus.CLOSED) {
+        if (room.getStatus() == RoomStatusEnum.CLOSED) {
             throw new IllegalArgumentException("A sala está encerrada");
         }
 
         RoomParticipant existing = roomParticipantDao.findByRoomAndUser(roomId, userId);
         if (existing != null) {
-            RoomParticipant.ParticipantStatus status = existing.getStatus();
-            if (status == RoomParticipant.ParticipantStatus.PENDING) {
+            ParticipantStatusEnum status = existing.getStatus();
+            if (status == ParticipantStatusEnum.PENDING) {
                 throw new IllegalArgumentException("Já existe uma solicitação pendente para esta sala");
             }
-            if (status == RoomParticipant.ParticipantStatus.APPROVED) {
+            if (status == ParticipantStatusEnum.APPROVED) {
                 throw new IllegalArgumentException("Você já está aprovado nesta sala");
             }
         }
@@ -112,11 +116,11 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 
         RoomParticipant participant = getParticipantInRoom(roomId, participantId);
 
-        if (participant.getStatus() != RoomParticipant.ParticipantStatus.PENDING) {
+        if (participant.getStatus() != ParticipantStatusEnum.PENDING) {
             throw new IllegalArgumentException("A solicitação não está pendente");
         }
 
-        roomParticipantDao.updateStatus(participant.getId(), RoomParticipant.ParticipantStatus.APPROVED);
+        roomParticipantDao.updateStatus(participant.getId(), ParticipantStatusEnum.APPROVED);
         logger.log(Level.INFO, "Participante aprovado. roomId=" + roomId + " userId=" + participantId);
     }
 
@@ -127,27 +131,27 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 
         RoomParticipant participant = getParticipantInRoom(roomId, participantId);
 
-        if (participant.getStatus() != RoomParticipant.ParticipantStatus.PENDING) {
+        if (participant.getStatus() != ParticipantStatusEnum.PENDING) {
             throw new IllegalArgumentException("A solicitação não está pendente");
         }
 
-        roomParticipantDao.updateStatus(participant.getId(), RoomParticipant.ParticipantStatus.REJECTED);
+        roomParticipantDao.updateStatus(participant.getId(), ParticipantStatusEnum.REJECTED);
         logger.log(Level.INFO, "Participante rejeitado. roomId=" + roomId + " userId=" + participantId);
     }
 
     @Override
     public void requestToSpeak(int roomId, int userId) {
         ConferenceRoom room = getExistingRoom(roomId);
-        if (room.getStatus() == ConferenceRoom.RoomStatus.CLOSED) {
+        if (room.getStatus() == RoomStatusEnum.CLOSED) {
             throw new IllegalArgumentException("A sala está encerrada");
         }
 
         RoomParticipant participant = getApprovedParticipantInRoom(roomId, userId);
-        RoomParticipant.SpeechRequestStatus status = participant.getSpeechRequestStatus();
+        SpeechRequestStatusEnum status = participant.getSpeechRequestStatus();
 
         // Só bloqueia se já houver um pedido pendente (evita duplicar na fila do moderador).
         // NOT_REQUESTED, REJECTED e APPROVED podem reabrir uma nova solicitação.
-        if (status == RoomParticipant.SpeechRequestStatus.PENDING) {
+        if (status == SpeechRequestStatusEnum.PENDING) {
             throw new IllegalArgumentException("Já existe uma solicitação de fala pendente");
         }
 
@@ -167,7 +171,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         }
 
         roomParticipantDao.updateSpeechRequestStatus(
-                participant.getId(), RoomParticipant.SpeechRequestStatus.PENDING);
+                participant.getId(), SpeechRequestStatusEnum.PENDING);
         logger.log(Level.INFO, "Nova solicitação de fala registrada. roomId=" + roomId + " userId=" + userId);
     }
 
@@ -183,20 +187,20 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         requireModerator(room, moderatorId);
 
         RoomParticipant participant = getApprovedParticipantInRoom(roomId, participantId);
-        if (participant.getSpeechRequestStatus() != RoomParticipant.SpeechRequestStatus.PENDING) {
+        if (participant.getSpeechRequestStatus() != SpeechRequestStatusEnum.PENDING) {
             throw new IllegalArgumentException("A solicitação de fala não está pendente");
         }
 
         boolean canPublishVideo = Boolean.TRUE.equals(participant.getCanPublishVideo());
         roomParticipantDao.updateSpeechRequestStatus(
-                participant.getId(), RoomParticipant.SpeechRequestStatus.APPROVED);
+                participant.getId(), SpeechRequestStatusEnum.APPROVED);
         roomParticipantDao.updatePermissions(participant.getId(), true, canPublishVideo);
         try {
             liveKitService.updateParticipantPermissions(
                     buildRoomName(roomId), String.valueOf(participantId), true, canPublishVideo);
         } catch (RuntimeException e) {
             roomParticipantDao.updateSpeechRequestStatus(
-                    participant.getId(), RoomParticipant.SpeechRequestStatus.PENDING);
+                    participant.getId(), SpeechRequestStatusEnum.PENDING);
             roomParticipantDao.updatePermissions(
                     participant.getId(), Boolean.TRUE.equals(participant.getCanPublishAudio()), canPublishVideo);
             throw new RuntimeException("Falha ao liberar fala no LiveKit: " + e.getMessage());
@@ -209,12 +213,12 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         requireModerator(room, moderatorId);
 
         RoomParticipant participant = getApprovedParticipantInRoom(roomId, participantId);
-        if (participant.getSpeechRequestStatus() != RoomParticipant.SpeechRequestStatus.PENDING) {
+        if (participant.getSpeechRequestStatus() != SpeechRequestStatusEnum.PENDING) {
             throw new IllegalArgumentException("A solicitação de fala não está pendente");
         }
 
         roomParticipantDao.updateSpeechRequestStatus(
-                participant.getId(), RoomParticipant.SpeechRequestStatus.REJECTED);
+                participant.getId(), SpeechRequestStatusEnum.REJECTED);
     }
 
     @Override
@@ -223,7 +227,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         requireModerator(room, moderatorId);
 
         RoomParticipant participant = getApprovedParticipantInRoom(roomId, participantId);
-        if (participant.getSpeechRequestStatus() != RoomParticipant.SpeechRequestStatus.APPROVED) {
+        if (participant.getSpeechRequestStatus() != SpeechRequestStatusEnum.APPROVED) {
             throw new IllegalArgumentException("A fala deste participante não está aprovada");
         }
 
@@ -232,7 +236,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 
         // Encerra a aprovação da fala e bloqueia microfone e câmera.
         roomParticipantDao.updateSpeechRequestStatus(
-                participant.getId(), RoomParticipant.SpeechRequestStatus.REJECTED);
+                participant.getId(), SpeechRequestStatusEnum.REJECTED);
         roomParticipantDao.updatePermissions(participant.getId(), false, false);
 
         try {
@@ -241,7 +245,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         } catch (RuntimeException e) {
             // Rollback do banco caso o LiveKit falhe
             roomParticipantDao.updateSpeechRequestStatus(
-                    participant.getId(), RoomParticipant.SpeechRequestStatus.APPROVED);
+                    participant.getId(), SpeechRequestStatusEnum.APPROVED);
             roomParticipantDao.updatePermissions(participant.getId(), previousAudio, previousVideo);
             throw new RuntimeException("Falha ao revogar fala no LiveKit: " + e.getMessage());
         }
@@ -369,11 +373,11 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
      */
     private void endSpeechApprovalIfFullyMuted(int participantId, boolean canPublishAudio,
                                                 boolean canPublishVideo,
-                                                RoomParticipant.SpeechRequestStatus currentSpeechStatus) {
+                                                SpeechRequestStatusEnum currentSpeechStatus) {
         if (!canPublishAudio && !canPublishVideo
-                && currentSpeechStatus == RoomParticipant.SpeechRequestStatus.APPROVED) {
+                && currentSpeechStatus == SpeechRequestStatusEnum.APPROVED) {
             roomParticipantDao.updateSpeechRequestStatus(
-                    participantId, RoomParticipant.SpeechRequestStatus.REJECTED);
+                    participantId, SpeechRequestStatusEnum.REJECTED);
         }
     }
 
@@ -384,7 +388,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 
         RoomParticipant participant = getParticipantInRoom(roomId, participantId);
 
-        roomParticipantDao.updateStatus(participant.getId(), RoomParticipant.ParticipantStatus.REMOVED);
+        roomParticipantDao.updateStatus(participant.getId(), ParticipantStatusEnum.REMOVED);
 
         // Tenta remover do LiveKit - se falhar (participante desconectado), não é erro crítico
         liveKitService.removeParticipant(buildRoomName(roomId), String.valueOf(participantId));
@@ -396,7 +400,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
     public String generateToken(int roomId, int userId) {
         ConferenceRoom room = getExistingRoom(roomId);
 
-        if (room.getStatus() == ConferenceRoom.RoomStatus.CLOSED) {
+        if (room.getStatus() == RoomStatusEnum.CLOSED) {
             throw new IllegalArgumentException("A sala está encerrada");
         }
 
@@ -405,19 +409,19 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
             throw new IllegalArgumentException("Usuário não encontrado");
         }
 
-        boolean isModerator = user.getRole() == UserModel.UserRole.MODERATOR ||
-                user.getRole() == UserModel.UserRole.ADMINISTRATOR;
+        boolean isModerator = user.getRole() == UserRoleEnum.MODERATOR ||
+                user.getRole() == UserRoleEnum.ADMINISTRATOR;
 
         RoomParticipant participant = null;
 
         if (!isModerator) {
             participant = roomParticipantDao.findByRoomAndUser(roomId, userId);
-            if (participant == null || participant.getStatus() != RoomParticipant.ParticipantStatus.APPROVED) {
+            if (participant == null || participant.getStatus() != ParticipantStatusEnum.APPROVED) {
                 throw new SecurityException("Acesso negado: participante não aprovado para esta sala");
             }
         } else {
             // Moderador: verifica se é o dono da sala ou ADMINISTRATOR
-            if (user.getRole() == UserModel.UserRole.MODERATOR && !room.getModeratorId().equals(userId)) {
+            if (user.getRole() == UserRoleEnum.MODERATOR && !room.getModeratorId().equals(userId)) {
                 throw new SecurityException("Acesso negado: você não é o moderador desta sala");
             }
             // Cria um participante fictício com permissões completas para o moderador
@@ -446,8 +450,8 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         if (user == null) {
             throw new SecurityException("Usuário não encontrado");
         }
-        boolean isAdmin = user.getRole() == UserModel.UserRole.ADMINISTRATOR;
-        boolean isRoomModerator = user.getRole() == UserModel.UserRole.MODERATOR
+        boolean isAdmin = user.getRole() == UserRoleEnum.ADMINISTRATOR;
+        boolean isRoomModerator = user.getRole() == UserRoleEnum.MODERATOR
                 && room.getModeratorId().equals(userId);
 
         if (!isAdmin && !isRoomModerator) {
@@ -465,7 +469,7 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 
     private RoomParticipant getApprovedParticipantInRoom(int roomId, int userId) {
         RoomParticipant participant = getParticipantInRoom(roomId, userId);
-        if (participant.getStatus() != RoomParticipant.ParticipantStatus.APPROVED) {
+        if (participant.getStatus() != ParticipantStatusEnum.APPROVED) {
             throw new IllegalArgumentException("Participante não está aprovado na sala");
         }
         return participant;

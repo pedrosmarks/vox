@@ -5,6 +5,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import br.com.fai.Vox.domain.enums.ParticipantStatusEnum;
+import br.com.fai.Vox.domain.enums.SpeechRequestStatusEnum;
+
 @Getter
 @Setter
 public class RoomParticipant {
@@ -12,8 +15,8 @@ public class RoomParticipant {
     private Integer id;
     private Integer roomId;
     private Integer userId;
-    private ParticipantStatus status;
-    private SpeechRequestStatus speechRequestStatus;
+    private ParticipantStatusEnum status;
+    private SpeechRequestStatusEnum speechRequestStatus;
     private Boolean canPublishAudio;
     private Boolean canPublishVideo;
     private LocalDateTime requestedAt;
@@ -22,20 +25,6 @@ public class RoomParticipant {
     private LocalDateTime speechDecidedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    public enum ParticipantStatus {
-        PENDING,
-        APPROVED,
-        REJECTED,
-        REMOVED
-    }
-
-    public enum SpeechRequestStatus {
-        NOT_REQUESTED,
-        PENDING,
-        APPROVED,
-        REJECTED
-    }
 
     public RoomParticipant() {}
 }

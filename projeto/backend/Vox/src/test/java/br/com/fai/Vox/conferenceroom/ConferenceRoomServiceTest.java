@@ -1,4 +1,8 @@
 package br.com.fai.Vox.conferenceroom;
+import br.com.fai.Vox.domain.enums.ParticipantStatusEnum;
+import br.com.fai.Vox.domain.enums.SpeechRequestStatusEnum;
+import br.com.fai.Vox.domain.enums.RoomStatusEnum;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.ConferenceRoom;
 import br.com.fai.Vox.domain.RoomParticipant;
@@ -57,37 +61,37 @@ class ConferenceRoomServiceTest {
         openRoom.setName("Audiência Pública 1");
         openRoom.setModeratorId(MODERATOR_ID);
         openRoom.setMunicipalityId(100);
-        openRoom.setStatus(ConferenceRoom.RoomStatus.OPEN);
+        openRoom.setStatus(RoomStatusEnum.OPEN);
 
         closedRoom = new ConferenceRoom();
         closedRoom.setId(ROOM_ID);
         closedRoom.setName("Sala Encerrada");
         closedRoom.setModeratorId(MODERATOR_ID);
         closedRoom.setMunicipalityId(100);
-        closedRoom.setStatus(ConferenceRoom.RoomStatus.CLOSED);
+        closedRoom.setStatus(RoomStatusEnum.CLOSED);
 
         moderatorUser = new UserModel();
         moderatorUser.setId(MODERATOR_ID);
         moderatorUser.setName("Moderador");
-        moderatorUser.setRole(UserModel.UserRole.MODERATOR);
+        moderatorUser.setRole(UserRoleEnum.MODERATOR);
         moderatorUser.setMunicipalityId(100);
 
         citizenUser = new UserModel();
         citizenUser.setId(CITIZEN_ID);
         citizenUser.setName("Cidadão");
-        citizenUser.setRole(UserModel.UserRole.CITIZEN);
+        citizenUser.setRole(UserRoleEnum.CITIZEN);
         citizenUser.setMunicipalityId(100);
 
         adminUser = new UserModel();
         adminUser.setId(ADMIN_ID);
         adminUser.setName("Administrador");
-        adminUser.setRole(UserModel.UserRole.ADMINISTRATOR);
+        adminUser.setRole(UserRoleEnum.ADMINISTRATOR);
         adminUser.setMunicipalityId(100);
 
         otherModeratorUser = new UserModel();
         otherModeratorUser.setId(OTHER_MODERATOR_ID);
         otherModeratorUser.setName("Outro Moderador");
-        otherModeratorUser.setRole(UserModel.UserRole.MODERATOR);
+        otherModeratorUser.setRole(UserRoleEnum.MODERATOR);
         otherModeratorUser.setMunicipalityId(100);
     }
 
@@ -133,7 +137,7 @@ class ConferenceRoomServiceTest {
         when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
 
         assertDoesNotThrow(() -> service.delete(ROOM_ID, MODERATOR_ID));
-        verify(conferenceRoomDao).updateStatus(ROOM_ID, ConferenceRoom.RoomStatus.CLOSED);
+        verify(conferenceRoomDao).updateStatus(ROOM_ID, RoomStatusEnum.CLOSED);
     }
 
     @Test
@@ -143,7 +147,7 @@ class ConferenceRoomServiceTest {
         when(userService.findByid(ADMIN_ID)).thenReturn(adminUser);
 
         assertDoesNotThrow(() -> service.delete(ROOM_ID, ADMIN_ID));
-        verify(conferenceRoomDao).updateStatus(ROOM_ID, ConferenceRoom.RoomStatus.CLOSED);
+        verify(conferenceRoomDao).updateStatus(ROOM_ID, RoomStatusEnum.CLOSED);
     }
 
     @Test
@@ -196,7 +200,7 @@ class ConferenceRoomServiceTest {
     @DisplayName("Cidadão com solicitação PENDING não pode solicitar novamente")
     void requestEntry_alreadyPending_throwsIllegalArgument() {
         RoomParticipant pending = new RoomParticipant();
-        pending.setStatus(RoomParticipant.ParticipantStatus.PENDING);
+        pending.setStatus(ParticipantStatusEnum.PENDING);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(roomParticipantDao.findByRoomAndUser(ROOM_ID, CITIZEN_ID)).thenReturn(pending);
@@ -210,15 +214,15 @@ class ConferenceRoomServiceTest {
     void requestToSpeak_approvedParticipant_succeeds() {
         RoomParticipant approved = new RoomParticipant();
         approved.setId(50);
-        approved.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
-        approved.setSpeechRequestStatus(RoomParticipant.SpeechRequestStatus.NOT_REQUESTED);
+        approved.setStatus(ParticipantStatusEnum.APPROVED);
+        approved.setSpeechRequestStatus(SpeechRequestStatusEnum.NOT_REQUESTED);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(roomParticipantDao.findByRoomAndUser(ROOM_ID, CITIZEN_ID)).thenReturn(approved);
 
         assertDoesNotThrow(() -> service.requestToSpeak(ROOM_ID, CITIZEN_ID));
         verify(roomParticipantDao).updateSpeechRequestStatus(
-                50, RoomParticipant.SpeechRequestStatus.PENDING);
+                50, SpeechRequestStatusEnum.PENDING);
     }
 
     // =============================
@@ -231,14 +235,14 @@ class ConferenceRoomServiceTest {
         RoomParticipant pending = new RoomParticipant();
         pending.setId(50);
         pending.setUserId(CITIZEN_ID);
-        pending.setStatus(RoomParticipant.ParticipantStatus.PENDING);
+        pending.setStatus(ParticipantStatusEnum.PENDING);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
         when(roomParticipantDao.findByRoomAndUser(ROOM_ID, CITIZEN_ID)).thenReturn(pending);
 
         assertDoesNotThrow(() -> service.approveEntry(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
-        verify(roomParticipantDao).updateStatus(50, RoomParticipant.ParticipantStatus.APPROVED);
+        verify(roomParticipantDao).updateStatus(50, ParticipantStatusEnum.APPROVED);
     }
 
     @Test
@@ -257,7 +261,7 @@ class ConferenceRoomServiceTest {
     void approveEntry_notPending_throwsIllegalArgument() {
         RoomParticipant approved = new RoomParticipant();
         approved.setId(50);
-        approved.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        approved.setStatus(ParticipantStatusEnum.APPROVED);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
@@ -272,8 +276,8 @@ class ConferenceRoomServiceTest {
         void approveSpeech_pendingRequest_succeeds() {
         RoomParticipant participant = new RoomParticipant();
         participant.setId(50);
-        participant.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
-        participant.setSpeechRequestStatus(RoomParticipant.SpeechRequestStatus.PENDING);
+        participant.setStatus(ParticipantStatusEnum.APPROVED);
+        participant.setSpeechRequestStatus(SpeechRequestStatusEnum.PENDING);
         participant.setCanPublishAudio(false);
         participant.setCanPublishVideo(false);
 
@@ -284,7 +288,7 @@ class ConferenceRoomServiceTest {
 
         assertDoesNotThrow(() -> service.approveSpeech(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
         verify(roomParticipantDao).updateSpeechRequestStatus(
-            50, RoomParticipant.SpeechRequestStatus.APPROVED);
+            50, SpeechRequestStatusEnum.APPROVED);
         verify(roomParticipantDao).updatePermissions(50, true, false);
         verify(liveKitService).updateParticipantPermissions(
             "room_" + ROOM_ID, String.valueOf(CITIZEN_ID), true, false);
@@ -295,8 +299,8 @@ class ConferenceRoomServiceTest {
         void rejectSpeech_pendingRequest_succeeds() {
         RoomParticipant participant = new RoomParticipant();
         participant.setId(50);
-        participant.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
-        participant.setSpeechRequestStatus(RoomParticipant.SpeechRequestStatus.PENDING);
+        participant.setStatus(ParticipantStatusEnum.APPROVED);
+        participant.setSpeechRequestStatus(SpeechRequestStatusEnum.PENDING);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
@@ -304,7 +308,7 @@ class ConferenceRoomServiceTest {
 
         assertDoesNotThrow(() -> service.rejectSpeech(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
         verify(roomParticipantDao).updateSpeechRequestStatus(
-            50, RoomParticipant.SpeechRequestStatus.REJECTED);
+            50, SpeechRequestStatusEnum.REJECTED);
         }
 
     // =============================
@@ -316,7 +320,7 @@ class ConferenceRoomServiceTest {
     void enableMicrophone_approvedParticipant_succeeds() {
         RoomParticipant approved = new RoomParticipant();
         approved.setId(50);
-        approved.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        approved.setStatus(ParticipantStatusEnum.APPROVED);
         approved.setCanPublishAudio(false);
         approved.setCanPublishVideo(false);
 
@@ -347,7 +351,7 @@ class ConferenceRoomServiceTest {
     void enableMicrophone_notApproved_throwsIllegalArgument() {
         RoomParticipant pending = new RoomParticipant();
         pending.setId(50);
-        pending.setStatus(RoomParticipant.ParticipantStatus.PENDING);
+        pending.setStatus(ParticipantStatusEnum.PENDING);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
@@ -366,7 +370,7 @@ class ConferenceRoomServiceTest {
     void enableCamera_doesNotChangeAudioPermission() {
         RoomParticipant approved = new RoomParticipant();
         approved.setId(50);
-        approved.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        approved.setStatus(ParticipantStatusEnum.APPROVED);
         approved.setCanPublishAudio(true);  // já tinha áudio liberado
         approved.setCanPublishVideo(false);
 
@@ -387,7 +391,7 @@ class ConferenceRoomServiceTest {
     void disableCamera_doesNotChangeAudioPermission() {
         RoomParticipant approved = new RoomParticipant();
         approved.setId(50);
-        approved.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        approved.setStatus(ParticipantStatusEnum.APPROVED);
         approved.setCanPublishAudio(true);  // áudio liberado
         approved.setCanPublishVideo(true);  // câmera liberada
 
@@ -412,7 +416,7 @@ class ConferenceRoomServiceTest {
     void removeParticipant_byModerator_succeeds() {
         RoomParticipant approved = new RoomParticipant();
         approved.setId(50);
-        approved.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        approved.setStatus(ParticipantStatusEnum.APPROVED);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
@@ -421,7 +425,7 @@ class ConferenceRoomServiceTest {
 
         assertDoesNotThrow(() -> service.removeParticipant(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
 
-        verify(roomParticipantDao).updateStatus(50, RoomParticipant.ParticipantStatus.REMOVED);
+        verify(roomParticipantDao).updateStatus(50, ParticipantStatusEnum.REMOVED);
         verify(liveKitService).removeParticipant("room_" + ROOM_ID, String.valueOf(CITIZEN_ID));
     }
 
@@ -457,7 +461,7 @@ class ConferenceRoomServiceTest {
     @DisplayName("Cidadão aprovado recebe token válido")
     void generateToken_approvedCitizen_succeeds() {
         RoomParticipant approved = new RoomParticipant();
-        approved.setStatus(RoomParticipant.ParticipantStatus.APPROVED);
+        approved.setStatus(ParticipantStatusEnum.APPROVED);
         approved.setCanPublishAudio(false);
         approved.setCanPublishVideo(false);
 
@@ -476,7 +480,7 @@ class ConferenceRoomServiceTest {
     @DisplayName("Cidadão NÃO aprovado NÃO recebe token - deve lançar SecurityException")
     void generateToken_notApprovedCitizen_throwsSecurityException() {
         RoomParticipant pending = new RoomParticipant();
-        pending.setStatus(RoomParticipant.ParticipantStatus.PENDING);
+        pending.setStatus(ParticipantStatusEnum.PENDING);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(userService.findByid(CITIZEN_ID)).thenReturn(citizenUser);

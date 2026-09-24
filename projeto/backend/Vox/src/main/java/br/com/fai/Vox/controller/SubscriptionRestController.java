@@ -1,4 +1,5 @@
 package br.com.fai.Vox.controller;
+import br.com.fai.Vox.domain.enums.SubscriptionTypeEnum;
 
 import br.com.fai.Vox.domain.Subscription;
 import br.com.fai.Vox.implementation.service.authentication.helper.AuthenticatedUserHelper;
@@ -33,14 +34,14 @@ public class SubscriptionRestController {
     @PostMapping("/all-projects")
     public ResponseEntity<Void> subscribeAllProjects(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.subscribe(userId, Subscription.SubscriptionType.ALL_PROJECTS, null);
+        subscriptionService.subscribe(userId, SubscriptionTypeEnum.ALL_PROJECTS, null);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/all-projects")
     public ResponseEntity<Void> unsubscribeAllProjects(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.unsubscribe(userId, Subscription.SubscriptionType.ALL_PROJECTS, null);
+        subscriptionService.unsubscribe(userId, SubscriptionTypeEnum.ALL_PROJECTS, null);
         return ResponseEntity.noContent().build();
     }
 
@@ -49,14 +50,14 @@ public class SubscriptionRestController {
     @PostMapping("/all-issues")
     public ResponseEntity<Void> subscribeAllIssues(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.subscribe(userId, Subscription.SubscriptionType.ALL_ISSUES, null);
+        subscriptionService.subscribe(userId, SubscriptionTypeEnum.ALL_ISSUES, null);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/all-issues")
     public ResponseEntity<Void> unsubscribeAllIssues(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.unsubscribe(userId, Subscription.SubscriptionType.ALL_ISSUES, null);
+        subscriptionService.unsubscribe(userId, SubscriptionTypeEnum.ALL_ISSUES, null);
         return ResponseEntity.noContent().build();
     }
 
@@ -66,7 +67,7 @@ public class SubscriptionRestController {
     public ResponseEntity<Void> subscribeProject(@PathVariable final int projectId,
                                                    HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.subscribe(userId, Subscription.SubscriptionType.PROJECT, projectId);
+        subscriptionService.subscribe(userId, SubscriptionTypeEnum.PROJECT, projectId);
         return ResponseEntity.ok().build();
     }
 
@@ -74,7 +75,7 @@ public class SubscriptionRestController {
     public ResponseEntity<Void> unsubscribeProject(@PathVariable final int projectId,
                                                      HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.unsubscribe(userId, Subscription.SubscriptionType.PROJECT, projectId);
+        subscriptionService.unsubscribe(userId, SubscriptionTypeEnum.PROJECT, projectId);
         return ResponseEntity.noContent().build();
     }
 
@@ -84,7 +85,7 @@ public class SubscriptionRestController {
     public ResponseEntity<Void> subscribeIssue(@PathVariable final int issueId,
                                                 HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.subscribe(userId, Subscription.SubscriptionType.ISSUE, issueId);
+        subscriptionService.subscribe(userId, SubscriptionTypeEnum.ISSUE, issueId);
         return ResponseEntity.ok().build();
     }
 
@@ -92,7 +93,7 @@ public class SubscriptionRestController {
     public ResponseEntity<Void> unsubscribeIssue(@PathVariable final int issueId,
                                                    HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.unsubscribe(userId, Subscription.SubscriptionType.ISSUE, issueId);
+        subscriptionService.unsubscribe(userId, SubscriptionTypeEnum.ISSUE, issueId);
         return ResponseEntity.noContent().build();
     }
 
@@ -102,7 +103,7 @@ public class SubscriptionRestController {
     public ResponseEntity<Void> subscribeCategory(@PathVariable final int categoryId,
                                                     HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.subscribe(userId, Subscription.SubscriptionType.CATEGORY, categoryId);
+        subscriptionService.subscribe(userId, SubscriptionTypeEnum.CATEGORY, categoryId);
         return ResponseEntity.ok().build();
     }
 
@@ -110,7 +111,7 @@ public class SubscriptionRestController {
     public ResponseEntity<Void> unsubscribeCategory(@PathVariable final int categoryId,
                                                       HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.unsubscribe(userId, Subscription.SubscriptionType.CATEGORY, categoryId);
+        subscriptionService.unsubscribe(userId, SubscriptionTypeEnum.CATEGORY, categoryId);
         return ResponseEntity.noContent().build();
     }
 
@@ -120,7 +121,7 @@ public class SubscriptionRestController {
     public ResponseEntity<Void> subscribeCouncilor(@PathVariable final int councilorId,
                                                      HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.subscribe(userId, Subscription.SubscriptionType.COUNCILOR, councilorId);
+        subscriptionService.subscribe(userId, SubscriptionTypeEnum.COUNCILOR, councilorId);
         return ResponseEntity.ok().build();
     }
 
@@ -128,7 +129,7 @@ public class SubscriptionRestController {
     public ResponseEntity<Void> unsubscribeCouncilor(@PathVariable final int councilorId,
                                                        HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        subscriptionService.unsubscribe(userId, Subscription.SubscriptionType.COUNCILOR, councilorId);
+        subscriptionService.unsubscribe(userId, SubscriptionTypeEnum.COUNCILOR, councilorId);
         return ResponseEntity.noContent().build();
     }
 }

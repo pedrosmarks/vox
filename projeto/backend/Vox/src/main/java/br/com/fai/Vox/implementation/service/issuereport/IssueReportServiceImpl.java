@@ -1,4 +1,7 @@
 package br.com.fai.Vox.implementation.service.issuereport;
+import br.com.fai.Vox.domain.enums.NotificationTypeEnum;
+import br.com.fai.Vox.domain.enums.IssueStatusEnum;
+import br.com.fai.Vox.domain.enums.SubscriptionTypeEnum;
 
 import br.com.fai.Vox.domain.IssueImage;
 import br.com.fai.Vox.domain.IssueReport;
@@ -6,7 +9,7 @@ import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.domain.Subscription;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
 import br.com.fai.Vox.domain.dto.PageResponse;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
 import br.com.fai.Vox.port.dao.issuereport.IssueReportDao;
 import br.com.fai.Vox.port.dao.issueimage.IssueImageDao;
 import br.com.fai.Vox.port.service.drive.CloudinaryService;
@@ -105,15 +108,15 @@ public class IssueReportServiceImpl implements IssueReportService {
     @Override
     public List<IssueReport> findByMunicipalityId(int municipalityId) {
         if (municipalityId <= 0) return List.of();
-        return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.APPROVED);
+        return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.APPROVED);
     }
 
     @Override
     public PageResponse<IssueReport> findByMunicipalityId(int municipalityId, int page, int size) {
         if (municipalityId <= 0) return new PageResponse<>(List.of(), page, size, 0);
         int offset = page * size;
-        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.APPROVED, size, offset);
-        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.APPROVED);
+        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.APPROVED, size, offset);
+        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.APPROVED);
         return new PageResponse<>(content, page, size, total);
     }
 
@@ -126,15 +129,15 @@ public class IssueReportServiceImpl implements IssueReportService {
     @Override
     public List<IssueReport> findPendingByMunicipalityId(int municipalityId) {
         if (municipalityId <= 0) return List.of();
-        return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING);
+        return issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.PENDING);
     }
 
     @Override
     public PageResponse<IssueReport> findPendingByMunicipalityId(int municipalityId, int page, int size) {
         if (municipalityId <= 0) return new PageResponse<>(List.of(), page, size, 0);
         int offset = page * size;
-        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING, size, offset);
-        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatus.PENDING);
+        List<IssueReport> content = issueReportDao.findByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.PENDING, size, offset);
+        long total = issueReportDao.countByMunicipalityIdAndModerationStatus(municipalityId, ModerationStatusEnum.PENDING);
         return new PageResponse<>(content, page, size, total);
     }
 
@@ -158,25 +161,25 @@ public class IssueReportServiceImpl implements IssueReportService {
                     existing.getAuthorId(),
                     "Ocorrência atualizada",
                     "O status da sua ocorrência \"" + existing.getTitle() + "\" foi alterado.",
-                    Notification.NotificationType.ISSUE_STATUS_CHANGED);
+                    NotificationTypeEnum.ISSUE_STATUS_CHANGED);
         }
 
         issueReportDao.update(id, entity);
 
         // Notificar assinantes da ocorrência e da sua categoria
         Set<Integer> subscribers = new HashSet<>(
-                subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.ISSUE, id));
+                subscriptionService.findSubscriberUserIds(SubscriptionTypeEnum.ISSUE, id));
         Integer categoryId = existing.getCategoryId();
         if (categoryId != null) {
             subscribers.addAll(
-                    subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.CATEGORY, categoryId));
+                    subscriptionService.findSubscriberUserIds(SubscriptionTypeEnum.CATEGORY, categoryId));
         }
         for (int userId : subscribers) {
             if (userId != changedBy) {
                 notificationService.send(userId,
                         "Ocorrência atualizada",
                         "A ocorrência \"" + entity.getTitle() + "\" foi atualizada.",
-                        Notification.NotificationType.ISSUE_UPDATED);
+                        NotificationTypeEnum.ISSUE_UPDATED);
             }
         }
     }
@@ -210,7 +213,7 @@ public class IssueReportServiceImpl implements IssueReportService {
     }
 
     @Override
-    public void updateStatus(int id, IssueReport.IssueStatus status, int changedBy, String note) {
+    public void updateStatus(int id, IssueStatusEnum status, int changedBy, String note) {
         if (id <= 0 || status == null) return;
         IssueReport existing = findByid(id);
         if (existing == null) return;
@@ -223,22 +226,22 @@ public class IssueReportServiceImpl implements IssueReportService {
                 existing.getAuthorId(),
                 "Status da ocorrência atualizado",
                 "O status da sua ocorrência \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
-                Notification.NotificationType.ISSUE_STATUS_CHANGED);
+                NotificationTypeEnum.ISSUE_STATUS_CHANGED);
 
         // Notificar assinantes da ocorrência e da sua categoria
         Set<Integer> subscribers = new HashSet<>(
-                subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.ISSUE, id));
+                subscriptionService.findSubscriberUserIds(SubscriptionTypeEnum.ISSUE, id));
         Integer categoryId = existing.getCategoryId();
         if (categoryId != null) {
             subscribers.addAll(
-                    subscriptionService.findSubscriberUserIds(Subscription.SubscriptionType.CATEGORY, categoryId));
+                    subscriptionService.findSubscriberUserIds(SubscriptionTypeEnum.CATEGORY, categoryId));
         }
         for (int userId : subscribers) {
             if (userId != changedBy && userId != existing.getAuthorId()) {
                 notificationService.send(userId,
                         "Status da ocorrência atualizado",
                         "O status da ocorrência \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
-                        Notification.NotificationType.ISSUE_STATUS_CHANGED);
+                        NotificationTypeEnum.ISSUE_STATUS_CHANGED);
             }
         }
     }

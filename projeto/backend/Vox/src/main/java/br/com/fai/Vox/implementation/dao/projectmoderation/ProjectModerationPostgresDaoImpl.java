@@ -1,7 +1,7 @@
 package br.com.fai.Vox.implementation.dao.projectmoderation;
 
 import br.com.fai.Vox.domain.ProjectModeration;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
 import br.com.fai.Vox.port.dao.projectmoderation.ProjectModerationDao;
 
 import java.sql.*;
@@ -60,7 +60,7 @@ public class ProjectModerationPostgresDaoImpl implements ProjectModerationDao {
         entity.setId(rs.getInt("id"));
         entity.setProjectId(rs.getInt("project_id"));
         entity.setModeratorId(rs.getInt("moderator_id"));
-        entity.setAction(ModerationStatus.valueOf(rs.getString("action").toUpperCase()));
+        entity.setAction(ModerationStatusEnum.valueOf(rs.getString("action").toUpperCase()));
         entity.setFeedback(rs.getString("feedback"));
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) entity.setCreatedAt(createdAt.toLocalDateTime());

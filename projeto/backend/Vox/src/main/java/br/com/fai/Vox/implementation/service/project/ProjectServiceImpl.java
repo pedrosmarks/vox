@@ -1,4 +1,7 @@
 package br.com.fai.Vox.implementation.service.project;
+import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
+import br.com.fai.Vox.domain.enums.NotificationTypeEnum;
+import br.com.fai.Vox.domain.enums.SubscriptionTypeEnum;
 
 import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.domain.Project;
@@ -162,7 +165,7 @@ public class ProjectServiceImpl implements ProjectService {
      * Evita duplicar notificação para o mesmo usuário e não notifica quem fez a alteração.
      */
     private void notifyStatusChange(int projectId, Project project, int changedBy) {
-        boolean published = project.getStatus() == Project.ProjectStatus.PUBLISHED;
+        boolean published = project.getStatus() == ProjectStatusEnum.PUBLISHED;
         String title = published ? "Projeto publicado" : "Status do projeto atualizado";
         String message = published
                 ? "O projeto \"" + project.getTitle() + "\" foi publicado."
@@ -174,14 +177,14 @@ public class ProjectServiceImpl implements ProjectService {
             recipients.add(project.getAuthorId());
         }
         recipients.addAll(subscriptionService.findSubscriberUserIds(
-                Subscription.SubscriptionType.PROJECT, projectId));
+                SubscriptionTypeEnum.PROJECT, projectId));
         recipients.addAll(subscriptionService.findSubscriberUserIds(
-                Subscription.SubscriptionType.ALL_PROJECTS, null));
+                SubscriptionTypeEnum.ALL_PROJECTS, null));
 
         for (int userId : recipients) {
             if (userId == changedBy) continue;
             notificationService.send(userId, title, message,
-                    Notification.NotificationType.PROJECT_STATUS_CHANGED);
+                    NotificationTypeEnum.PROJECT_STATUS_CHANGED);
         }
     }
 }

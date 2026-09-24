@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.subscription;
+import br.com.fai.Vox.domain.enums.SubscriptionTypeEnum;
 
 import br.com.fai.Vox.domain.Subscription;
 import br.com.fai.Vox.port.dao.subscription.SubscriptionDao;
@@ -20,7 +21,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
     }
 
     @Override
-    public void subscribe(int userId, Subscription.SubscriptionType type, Integer targetId) {
+    public void subscribe(int userId, SubscriptionTypeEnum type, Integer targetId) {
         final String sql = buildInsertSql(type);
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -36,7 +37,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
     }
 
     @Override
-    public void unsubscribe(int userId, Subscription.SubscriptionType type, Integer targetId) {
+    public void unsubscribe(int userId, SubscriptionTypeEnum type, Integer targetId) {
         final String sql = buildDeleteSql(type);
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -68,7 +69,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
     }
 
     @Override
-    public List<Subscription> findByTypeAndTargetId(Subscription.SubscriptionType type, Integer targetId) {
+    public List<Subscription> findByTypeAndTargetId(SubscriptionTypeEnum type, Integer targetId) {
         final String column = resolveColumn(type);
         final String sql = column != null
                 ? "SELECT * FROM subscription WHERE type = CAST(? AS subscription_type) AND " + column + " = ?"
@@ -89,7 +90,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
     }
 
     @Override
-    public List<Subscription> findByType(Subscription.SubscriptionType type) {
+    public List<Subscription> findByType(SubscriptionTypeEnum type) {
         final List<Subscription> list = new ArrayList<>();
         final String sql = "SELECT * FROM subscription WHERE type = CAST(? AS subscription_type)";
         try {
@@ -106,7 +107,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
     }
 
     @Override
-    public boolean exists(int userId, Subscription.SubscriptionType type, Integer targetId) {
+    public boolean exists(int userId, SubscriptionTypeEnum type, Integer targetId) {
         final String column = resolveColumn(type);
         final String sql = column != null
                 ? "SELECT 1 FROM subscription WHERE user_id = ? AND type = CAST(? AS subscription_type) AND " + column + " = ?"
@@ -128,7 +129,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
 
     // --- Helpers ---
 
-    private String resolveColumn(Subscription.SubscriptionType type) {
+    private String resolveColumn(SubscriptionTypeEnum type) {
         return switch (type) {
             case PROJECT -> "project_id";
             case ISSUE -> "issue_id";
@@ -138,7 +139,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
         };
     }
 
-    private String buildInsertSql(Subscription.SubscriptionType type) {
+    private String buildInsertSql(SubscriptionTypeEnum type) {
         String column = resolveColumn(type);
         if (column == null) {
             return "INSERT INTO subscription (user_id, type) VALUES (?, CAST(? AS subscription_type)) ON CONFLICT DO NOTHING";
@@ -146,7 +147,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
         return "INSERT INTO subscription (user_id, type, " + column + ") VALUES (?, CAST(? AS subscription_type), ?) ON CONFLICT DO NOTHING";
     }
 
-    private String buildDeleteSql(Subscription.SubscriptionType type) {
+    private String buildDeleteSql(SubscriptionTypeEnum type) {
         String column = resolveColumn(type);
         if (column == null) {
             return "DELETE FROM subscription WHERE user_id = ? AND type = CAST(? AS subscription_type)";
@@ -158,7 +159,7 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
         Subscription entity = new Subscription();
         entity.setId(rs.getInt("id"));
         entity.setUserId(rs.getInt("user_id"));
-        entity.setType(Subscription.SubscriptionType.valueOf(rs.getString("type").toUpperCase()));
+        entity.setType(SubscriptionTypeEnum.valueOf(rs.getString("type").toUpperCase()));
 
         int projectId = rs.getInt("project_id");
         if (!rs.wasNull()) entity.setProjectId(projectId);

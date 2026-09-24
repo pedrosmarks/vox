@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.service.subscription;
+import br.com.fai.Vox.domain.enums.SubscriptionTypeEnum;
 
 import br.com.fai.Vox.domain.Subscription;
 import br.com.fai.Vox.port.dao.subscription.SubscriptionDao;
@@ -21,14 +22,14 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
-    public void subscribe(int userId, Subscription.SubscriptionType type, Integer targetId) {
+    public void subscribe(int userId, SubscriptionTypeEnum type, Integer targetId) {
         if (userId <= 0 || type == null) return;
         subscriptionDao.subscribe(userId, type, targetId);
         logger.log(Level.INFO, "Subscription: userId=" + userId + " type=" + type + " targetId=" + targetId);
     }
 
     @Override
-    public void unsubscribe(int userId, Subscription.SubscriptionType type, Integer targetId) {
+    public void unsubscribe(int userId, SubscriptionTypeEnum type, Integer targetId) {
         if (userId <= 0 || type == null) return;
         subscriptionDao.unsubscribe(userId, type, targetId);
     }
@@ -40,7 +41,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Override
-    public List<Integer> findSubscriberUserIds(Subscription.SubscriptionType type, Integer targetId) {
+    public List<Integer> findSubscriberUserIds(SubscriptionTypeEnum type, Integer targetId) {
         if (type == null) return List.of();
         List<Subscription> subs = targetId != null
                 ? subscriptionDao.findByTypeAndTargetId(type, targetId)

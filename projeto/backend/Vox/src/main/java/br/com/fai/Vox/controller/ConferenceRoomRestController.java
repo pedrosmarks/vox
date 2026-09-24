@@ -1,4 +1,5 @@
 package br.com.fai.Vox.controller;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.ConferenceRoom;
 import br.com.fai.Vox.domain.RoomParticipant;
@@ -45,7 +46,7 @@ public class ConferenceRoomRestController {
         int userId = authHelper.getUserId(request);
         int municipalityId = authHelper.getMunicipalityId(request);
 
-        requireRole(userId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(userId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
 
         final int id = conferenceRoomService.create(data, userId, municipalityId);
 
@@ -110,7 +111,7 @@ public class ConferenceRoomRestController {
     public ResponseEntity<List<RoomParticipant>> findRequests(@PathVariable final int id,
                                                                HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        requireRole(userId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(userId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         return ResponseEntity.ok(conferenceRoomService.findRequests(id));
     }
 
@@ -122,7 +123,7 @@ public class ConferenceRoomRestController {
                                               @PathVariable final int participanteId,
                                               HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.approveEntry(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -135,7 +136,7 @@ public class ConferenceRoomRestController {
                                              @PathVariable final int participanteId,
                                              HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.rejectEntry(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -153,7 +154,7 @@ public class ConferenceRoomRestController {
     public ResponseEntity<List<RoomParticipant>> findSpeechRequests(@PathVariable final int id,
                                                                      HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         return ResponseEntity.ok(conferenceRoomService.findSpeechRequests(id));
     }
 
@@ -162,7 +163,7 @@ public class ConferenceRoomRestController {
                                                @PathVariable final int participanteId,
                                                HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.approveSpeech(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -172,7 +173,7 @@ public class ConferenceRoomRestController {
                                               @PathVariable final int participanteId,
                                               HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.rejectSpeech(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -188,7 +189,7 @@ public class ConferenceRoomRestController {
                                              @PathVariable final int participanteId,
                                              HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.revokeSpeech(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -203,7 +204,7 @@ public class ConferenceRoomRestController {
                                                   @PathVariable final int participanteId,
                                                   HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.enableMicrophone(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -216,7 +217,7 @@ public class ConferenceRoomRestController {
                                                    @PathVariable final int participanteId,
                                                    HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.disableMicrophone(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -231,7 +232,7 @@ public class ConferenceRoomRestController {
                                               @PathVariable final int participanteId,
                                               HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.enableCamera(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -244,7 +245,7 @@ public class ConferenceRoomRestController {
                                                @PathVariable final int participanteId,
                                                HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.disableCamera(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -259,7 +260,7 @@ public class ConferenceRoomRestController {
                                                    @PathVariable final int participanteId,
                                                    HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.removeParticipant(id, participanteId, moderatorId);
         return ResponseEntity.noContent().build();
     }
@@ -282,12 +283,12 @@ public class ConferenceRoomRestController {
 
     // --- Helper de autorização por role ---
 
-    private void requireRole(int userId, UserModel.UserRole... allowedRoles) {
+    private void requireRole(int userId, UserRoleEnum... allowedRoles) {
         UserModel user = userService.findByid(userId);
         if (user == null) {
             throw new SecurityException("Usuário não encontrado");
         }
-        for (UserModel.UserRole role : allowedRoles) {
+        for (UserRoleEnum role : allowedRoles) {
             if (user.getRole() == role) {
                 return;
             }

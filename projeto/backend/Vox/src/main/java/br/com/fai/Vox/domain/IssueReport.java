@@ -1,11 +1,13 @@
 package br.com.fai.Vox.domain;
 
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import br.com.fai.Vox.domain.enums.IssueStatusEnum;
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
 
 @Getter
 @Setter
@@ -23,20 +25,10 @@ public class IssueReport {
     private String number;
     private BigDecimal latitude;
     private BigDecimal longitude;
-    private IssueStatus status;
-    private ModerationStatus moderationStatus;
+    private IssueStatusEnum status;
+    private ModerationStatusEnum moderationStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    public enum IssueStatus {
-        OPEN,
-        UNDER_REVIEW,
-        IN_PROGRESS,
-        FORWARDED,
-        RESOLVED,
-        REJECTED,
-        CLOSED
-    }
 
     public IssueReport() {}
 }

@@ -1,4 +1,5 @@
 package br.com.fai.Vox.controller;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.AuditLog;
 import br.com.fai.Vox.domain.UserModel;
@@ -59,7 +60,7 @@ public class AuditLogRestController {
     private int requireAdminMunicipality(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         UserModel user = userService.findByid(userId);
-        if (user == null || user.getRole() != UserModel.UserRole.ADMINISTRATOR) {
+        if (user == null || user.getRole() != UserRoleEnum.ADMINISTRATOR) {
             throw new SecurityException("Acesso negado: apenas administradores podem acessar os logs");
         }
         return authHelper.getMunicipalityId(request);

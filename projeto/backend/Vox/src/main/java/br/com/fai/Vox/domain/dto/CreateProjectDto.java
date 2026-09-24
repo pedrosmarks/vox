@@ -1,4 +1,6 @@
 package br.com.fai.Vox.domain.dto;
+import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
+import br.com.fai.Vox.domain.enums.ProjectTypeEnum;
 
 import br.com.fai.Vox.domain.Project;
 import jakarta.validation.constraints.DecimalMax;
@@ -22,12 +24,12 @@ public class CreateProjectDto {
     @NotNull(message = "Categoria é obrigatória")
     private Integer categoryId;
     @NotNull(message = "Tipo é obrigatório")
-    private Project.ProjectType type;
+    private ProjectTypeEnum type;
     @NotBlank(message = "Título é obrigatório")
     private String title;
     @NotBlank(message = "Descrição é obrigatória")
     private String description;
-    private Project.ProjectStatus status;
+    private ProjectStatusEnum status;
     private Integer authorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -80,11 +82,11 @@ public class CreateProjectDto {
 //        this.categoryId = categoryId;
 //    }
 //
-//    public Project.ProjectType getType() {
+//    public ProjectTypeEnum getType() {
 //        return type;
 //    }
 //
-//    public void setType(Project.ProjectType type) {
+//    public void setType(ProjectTypeEnum type) {
 //        this.type = type;
 //    }
 //
@@ -104,11 +106,11 @@ public class CreateProjectDto {
 //        this.description = description;
 //    }
 //
-//    public Project.ProjectStatus getStatus() {
+//    public ProjectStatusEnum getStatus() {
 //        return status;
 //    }
 //
-//    public void setStatus(Project.ProjectStatus status) {
+//    public void setStatus(ProjectStatusEnum status) {
 //        this.status = status;
 //    }
 //

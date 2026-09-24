@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.usersettings;
+import br.com.fai.Vox.domain.enums.AccessibilityModeEnum;
 
 import br.com.fai.Vox.domain.UserSettings;
 import br.com.fai.Vox.port.dao.usersettings.UserSettingsDao;
@@ -76,7 +77,7 @@ public class UserSettingsPostgresDaoImpl implements UserSettingsDao {
         settings.setUserId(rs.getInt("user_id"));
         settings.setFontSize(rs.getInt("font_size"));
         settings.setAccessibilityMode(
-                UserSettings.AccessibilityMode.valueOf(rs.getString("accessibility_mode").toUpperCase())
+                AccessibilityModeEnum.valueOf(rs.getString("accessibility_mode").toUpperCase())
         );
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) settings.setCreatedAt(createdAt.toLocalDateTime());

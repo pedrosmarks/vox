@@ -1,8 +1,10 @@
 package br.com.fai.Vox.implementation.dao.project;
+import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
+import br.com.fai.Vox.domain.enums.ProjectTypeEnum;
 
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.dto.CreateProjectDto;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
 
 import java.sql.*;
@@ -39,7 +41,7 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
             ps.setString(4, dto.getTitle());
             ps.setString(5, dto.getDescription());
             ps.setString(6, dto.getStatus() != null ? dto.getStatus().name() : "PENDING_APPROVAL");
-            ps.setString(7, ModerationStatus.PENDING.name());
+            ps.setString(7, ModerationStatusEnum.PENDING.name());
             ps.setInt(8, dto.getAuthorId());
             ps.setBoolean(9, dto.getHighlighted() != null && dto.getHighlighted());
             ps.setBoolean(10, dto.getIsOfficial() != null && dto.getIsOfficial());
@@ -150,7 +152,7 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
             ps.setString(4, entity.getTitle());
             ps.setString(5, entity.getDescription());
             ps.setString(6, entity.getStatus().name());
-            ps.setString(7, entity.getModerationStatus() != null ? entity.getModerationStatus().name() : ModerationStatus.PENDING.name());
+            ps.setString(7, entity.getModerationStatus() != null ? entity.getModerationStatus().name() : ModerationStatusEnum.PENDING.name());
             ps.setBoolean(8, entity.getHighlighted() != null && entity.getHighlighted());
             ps.setBoolean(9, entity.getIsOfficial() != null && entity.getIsOfficial());
             ps.setString(10, entity.getNeighborhood());
@@ -273,12 +275,12 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
         project.setId(rs.getInt("id"));
         project.setMunicipalityId(rs.getInt("municipality_id"));
         project.setCategoryId(rs.getInt("category_id"));
-        project.setType(Project.ProjectType.valueOf(rs.getString("type").toUpperCase()));
+        project.setType(ProjectTypeEnum.valueOf(rs.getString("type").toUpperCase()));
         project.setTitle(rs.getString("title"));
         project.setDescription(rs.getString("description"));
-        project.setStatus(Project.ProjectStatus.valueOf(rs.getString("status").toUpperCase()));
+        project.setStatus(ProjectStatusEnum.valueOf(rs.getString("status").toUpperCase()));
         String modStatus = rs.getString("moderation_status");
-        if (modStatus != null) project.setModerationStatus(ModerationStatus.valueOf(modStatus.toUpperCase()));
+        if (modStatus != null) project.setModerationStatus(ModerationStatusEnum.valueOf(modStatus.toUpperCase()));
         project.setAuthorId(rs.getInt("author_id"));
         project.setHighlighted(rs.getBoolean("highlighted"));
         project.setIsOfficial(rs.getBoolean("is_official"));

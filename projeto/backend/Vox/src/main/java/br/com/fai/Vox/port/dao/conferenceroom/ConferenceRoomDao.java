@@ -1,4 +1,5 @@
 package br.com.fai.Vox.port.dao.conferenceroom;
+import br.com.fai.Vox.domain.enums.RoomStatusEnum;
 
 import br.com.fai.Vox.domain.ConferenceRoom;
 import br.com.fai.Vox.domain.dto.CreateConferenceRoomDto;
@@ -15,5 +16,5 @@ public interface ConferenceRoomDao {
 
     List<ConferenceRoom> findByMunicipalityId(int municipalityId);
 
-    void updateStatus(int id, ConferenceRoom.RoomStatus status);
+    void updateStatus(int id, RoomStatusEnum status);
 }

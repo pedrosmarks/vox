@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.user;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.port.dao.user.UserDao;
@@ -227,7 +228,7 @@ public class UserPostgresDaoImpl implements UserDao {
         user.setCpf(rs.getString("cpf"));
         user.setPhone(rs.getString("phone"));
         user.setPassword(rs.getString("password"));
-        user.setRole(UserModel.UserRole.valueOf(rs.getString("role").toUpperCase()));
+        user.setRole(UserRoleEnum.valueOf(rs.getString("role").toUpperCase()));
         user.setMunicipalityId(rs.getInt("municipality_id"));
         user.setAcceptedTerms(rs.getBoolean("accepted_terms"));
         user.setAcceptedPrivacyPolicy(rs.getBoolean("accepted_privacy_policy"));

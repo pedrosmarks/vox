@@ -1,12 +1,15 @@
 package br.com.fai.Vox.domain;
 
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
+import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
+import br.com.fai.Vox.domain.enums.ProjectTypeEnum;
 
 @Getter
 @Setter
@@ -15,11 +18,11 @@ public class Project {
     private Integer id;
     private Integer municipalityId;
     private Integer categoryId;
-    private ProjectType type;
+    private ProjectTypeEnum type;
     private String title;
     private String description;
-    private ProjectStatus status;
-    private ModerationStatus moderationStatus;
+    private ProjectStatusEnum status;
+    private ModerationStatusEnum moderationStatus;
     private Integer authorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -37,29 +40,11 @@ public class Project {
     private BigDecimal estimatedCost;
     private BigDecimal approvedBudget;
 
-    public enum ProjectType {
-        CITIZEN,
-        CHAMBER
-    }
-
-    public enum ProjectStatus {
-        PENDING_APPROVAL,
-        REJECTED,
-        PUBLISHED,
-        IN_VOTING,
-        SELECTED_BY_COUNCIL,
-        APPROVED_BY_COUNCIL,
-        IN_EXECUTION,
-        COMPLETED,
-        ARCHIVED,
-        CANCELLED
-    }
-
     public Project() {
     }
 
-    public Project(Integer id, Integer municipalityId, Integer categoryId, ProjectType type, String title,
-                   String description, ProjectStatus status, Integer authorId, LocalDateTime createdAt,
+    public Project(Integer id, Integer municipalityId, Integer categoryId, ProjectTypeEnum type, String title,
+                   String description, ProjectStatusEnum status, Integer authorId, LocalDateTime createdAt,
                    LocalDateTime updatedAt, Boolean highlighted, Boolean isOfficial, String neighborhood,
                    String street, String number, BigDecimal latitude, BigDecimal longitude, LocalDate startDate,
                    LocalDate expectedEndDate, LocalDate endDate, String financialAnalysis,

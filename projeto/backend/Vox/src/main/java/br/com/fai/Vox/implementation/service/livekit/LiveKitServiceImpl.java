@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.service.livekit;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.RoomParticipant;
 import br.com.fai.Vox.domain.UserModel;
@@ -42,8 +43,8 @@ public class LiveKitServiceImpl implements LiveKitService {
         token.setName(user.getName());
         token.setIdentity(String.valueOf(user.getId()));
 
-        boolean isModerator = user.getRole() == UserModel.UserRole.MODERATOR
-                || user.getRole() == UserModel.UserRole.ADMINISTRATOR;
+        boolean isModerator = user.getRole() == UserRoleEnum.MODERATOR
+                || user.getRole() == UserRoleEnum.ADMINISTRATOR;
 
         if (isModerator) {
             // Moderador: entra na sala, publica tudo, assina tudo, administra
