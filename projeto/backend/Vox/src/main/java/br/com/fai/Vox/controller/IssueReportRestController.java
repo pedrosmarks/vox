@@ -101,6 +101,20 @@ public class IssueReportRestController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/desassociar")
+    public ResponseEntity<Void> unassignFromCouncilor(@PathVariable final int id,
+                                                       HttpServletRequest request) {
+        if (!"COUNCILOR".equalsIgnoreCase(authHelper.getRole(request))) {
+            throw new SecurityException("Acesso negado: apenas vereadores podem se desassociar de denúncias");
+        }
+
+        issueReportService.unassignCouncilor(
+                id,
+                authHelper.getUserId(request),
+                authHelper.getMunicipalityId(request));
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> update(@PathVariable final int id,
                                         @ModelAttribute final IssueReport data,

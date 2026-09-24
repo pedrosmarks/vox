@@ -196,6 +196,20 @@ public class IssueReportServiceImpl implements IssueReportService {
     }
 
     @Override
+    public void unassignCouncilor(int issueId, int councilorId, int municipalityId) {
+        if (issueId <= 0 || councilorId <= 0 || municipalityId <= 0) {
+            throw new IllegalArgumentException("Dados inválidos para desassociação da denúncia");
+        }
+
+        if (!issueReportDao.unassignCouncilor(issueId, councilorId, municipalityId)) {
+            throw new IllegalArgumentException(
+                    "Denúncia não encontrada, pertence a outro município ou não está associada a você");
+        }
+        logger.log(Level.INFO, "Vereador desassociado da denúncia. issueId=" + issueId +
+                " councilorId=" + councilorId);
+    }
+
+    @Override
     public void updateStatus(int id, IssueReport.IssueStatus status, int changedBy, String note) {
         if (id <= 0 || status == null) return;
         IssueReport existing = findByid(id);

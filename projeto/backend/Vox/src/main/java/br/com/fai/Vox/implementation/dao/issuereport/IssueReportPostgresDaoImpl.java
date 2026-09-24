@@ -263,6 +263,25 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     }
 
     @Override
+    public boolean unassignCouncilor(int issueId, int councilorId, int municipalityId) {
+        // Só desassocia se a denúncia estiver atribuída a ESTE vereador (councilor_id = ?),
+        // garantindo que um vereador não remova a associação de outro.
+        final String sql = "UPDATE issue_report SET councilor_id = NULL, updated_at = CURRENT_TIMESTAMP " +
+                "WHERE id = ? AND municipality_id = ? AND councilor_id = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, issueId);
+            ps.setInt(2, municipalityId);
+            ps.setInt(3, councilorId);
+            boolean unassigned = ps.executeUpdate() == 1;
+            ps.close();
+            return unassigned;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void updateModerationStatus(int id, ModerationStatus status) {
         final String sql = "UPDATE issue_report SET moderation_status = CAST(? AS moderation_status), updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {
