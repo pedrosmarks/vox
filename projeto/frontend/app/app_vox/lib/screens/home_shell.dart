@@ -11,6 +11,7 @@ import 'usuarios_screen.dart';
 import 'logs_screen.dart';
 import 'dashboard_screen.dart';
 import 'perfil_screen.dart';
+import 'eventos_screen.dart';
 
 /// Shell com navegação por abas, equivalente ao navbar do site Angular —
 /// inclusive nas regras por papel (navbar.component.html): CITIZEN vê
@@ -31,7 +32,7 @@ class _HomeShellState extends State<HomeShell> {
   bool _isLoading = true;
 
   bool get _isAdmin => _role == 'ADMINISTRATOR';
-  bool get _isModerator => _role == 'MODERATOR' || _role == 'ADMINISTRATOR';
+  bool get _isModerator => _role == 'MODERATOR';
   bool get _isCouncilor => _role == 'COUNCILOR';
 
   @override
@@ -64,6 +65,7 @@ class _HomeShellState extends State<HomeShell> {
         ComunidadeScreen(),
         AudienciaScreen(),
         ModeracaoScreen(),
+        EventosScreen(),
         PerfilScreen(),
       ];
     }
@@ -81,6 +83,7 @@ class _HomeShellState extends State<HomeShell> {
       RelatarProblemaScreen(),
       ComunidadeScreen(),
       AudienciaScreen(),
+      EventosScreen(),
       PerfilScreen(),
     ];
   }
@@ -137,6 +140,11 @@ class _HomeShellState extends State<HomeShell> {
           selectedIcon: Icon(Icons.gavel),
           label: 'Moderação',
         ),
+        const NavigationDestination(
+          icon: Icon(Icons.event_outlined),
+          selectedIcon: Icon(Icons.event),
+          label: 'Eventos',
+        ),
         perfil,
       ];
     }
@@ -166,6 +174,11 @@ class _HomeShellState extends State<HomeShell> {
       ),
       comunidade,
       audiencia,
+      const NavigationDestination(
+        icon: Icon(Icons.event_outlined),
+        selectedIcon: Icon(Icons.event),
+        label: 'Eventos',
+      ),
       perfil,
     ];
   }
@@ -179,6 +192,12 @@ class _HomeShellState extends State<HomeShell> {
     // barra inferior quebrarem em duas linhas — mantém tudo em uma linha.
     final mq = MediaQuery.of(context);
     final navScaler = mq.textScaler.clamp(maxScaleFactor: 1.0);
+
+    final allDestinations = _destinations;
+    final usesMoreMenu = mq.size.width < 600 && allDestinations.length > 4;
+    final visibleCount = usesMoreMenu ? 3 : allDestinations.length;
+    final visibleDestinations = allDestinations.take(visibleCount).toList();
+    final visibleIndex = _index < visibleCount ? _index : visibleCount;
 
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
@@ -197,10 +216,54 @@ class _HomeShellState extends State<HomeShell> {
             }),
           ),
           child: NavigationBar(
-            selectedIndex: _index,
-            onDestinationSelected: (i) => setState(() => _index = i),
-            destinations: _destinations,
+            selectedIndex: visibleIndex,
+            onDestinationSelected: (i) {
+              if (usesMoreMenu && i == visibleCount) {
+                _showMoreOptions(context, allDestinations, visibleCount);
+              } else {
+                setState(() => _index = i);
+              }
+            },
+            destinations: [
+              ...visibleDestinations,
+              if (usesMoreMenu)
+                const NavigationDestination(
+                  icon: Icon(Icons.more_horiz),
+                  selectedIcon: Icon(Icons.more_horiz),
+                  label: 'Mais opções',
+                ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showMoreOptions(
+    BuildContext context,
+    List<NavigationDestination> destinations,
+    int firstHiddenIndex,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (
+              var index = firstHiddenIndex;
+              index < destinations.length;
+              index++
+            )
+              ListTile(
+                leading: destinations[index].icon,
+                title: Text(destinations[index].label),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  setState(() => _index = index);
+                },
+              ),
+          ],
         ),
       ),
     );

@@ -139,7 +139,7 @@ class _ProblemaDetalheScreenState extends State<ProblemaDetalheScreen> {
     setState(() => _linking = true);
     try {
       if (_isMine) {
-        await _issueService.unassignCouncilor(issue);
+        await _issueService.unassignCouncilor(issue.id);
       } else {
         await _issueService.associate(issue.id);
       }

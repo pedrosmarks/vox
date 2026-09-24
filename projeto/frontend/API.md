@@ -691,6 +691,21 @@ a API retorna `400`.
 
 ---
 
+### Desassociar ocorrência do vereador autenticado
+> 🔒 Acesso exclusivo para usuários com role `COUNCILOR`. O vereador só pode
+> desassociar ocorrências do próprio município que estejam associadas a **ele mesmo**.
+
+```
+POST /api/issues/{id}/desassociar
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+Se a ocorrência não existir, pertencer a outro município ou não estiver associada
+ao vereador autenticado, a API retorna `400`.
+
+---
+
 ### Listar ocorrências do município
 ```
 GET /api/issues
@@ -712,7 +727,7 @@ Authorization: Bearer <token>
 ```
 GET /api/issues/{id}
 Authorization: Bearer <token>
-```f
+```
 
 ---
 
@@ -720,9 +735,9 @@ Authorization: Bearer <token>
 ```
 PUT /api/issues/{id}
 Authorization: Bearer <token>
-Content-Type: multipart/form-data
+Content-Type: application/json
 ```
-**Form fields:** mesmos campos de [Criar ocorrência](#criar-ocorrência). Para remover o vínculo do vereador, envie `councilorId` vazio.  
+**Body:** objeto `IssueReport`  
 **Resposta `204`**
 
 ---
