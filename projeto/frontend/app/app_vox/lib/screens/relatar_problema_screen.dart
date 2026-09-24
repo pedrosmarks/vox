@@ -11,6 +11,7 @@ import '../theme/vox_app_bar.dart';
 import '../theme/vox_badges.dart';
 import '../utils/fallback_categories.dart';
 import '../utils/status_labels.dart';
+import 'problema_detalhe_screen.dart';
 import '../widgets/map_picker_field.dart';
 
 class RelatarProblemaScreen extends StatefulWidget {
@@ -24,6 +25,7 @@ class _RelatarProblemaScreenState extends State<RelatarProblemaScreen> {
   final _issueService = IssueService();
 
   List<IssueReport> _mine = [];
+  int? _hoveredIssueId;
   bool _isLoading = true;
   String? _error;
 
@@ -85,23 +87,49 @@ class _RelatarProblemaScreenState extends State<RelatarProblemaScreen> {
                       itemCount: _mine.length,
                       itemBuilder: (context, index) {
                         final i = _mine[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            title: Text(
-                              i.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                        final isHovered = _hoveredIssueId == i.id;
+                        return MouseRegion(
+                          onEnter: (_) =>
+                              setState(() => _hoveredIssueId = i.id),
+                          onExit: (_) => setState(() => _hoveredIssueId = null),
+                          child: AnimatedSlide(
+                            offset: isHovered
+                                ? const Offset(0, -0.015)
+                                : Offset.zero,
+                            duration: const Duration(milliseconds: 150),
+                            child: Card(
+                              elevation: isHovered ? 5 : 1,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                onTap: () => _openIssue(i),
+                                title: Text(
+                                  i.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  i.description,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    VoxBadgeColors.issueStatus(
+                                      i.status,
+                                      StatusLabels.issue(i.status),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            subtitle: Text(
-                              i.description,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: VoxBadgeColors.issueStatus(
-                              i.status,
-                              StatusLabels.issue(i.status),
                             ),
                           ),
                         );
@@ -109,6 +137,15 @@ class _RelatarProblemaScreenState extends State<RelatarProblemaScreen> {
                     ),
             ),
     );
+  }
+
+  Future<void> _openIssue(IssueReport issue) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => ProblemaDetalheScreen(issueId: issue.id),
+      ),
+    );
+    if (mounted) _load();
   }
 }
 
@@ -294,10 +331,12 @@ class _ProblemaFormScreenState extends State<_ProblemaFormScreen> {
                 _longitude = point.longitude;
               }),
               onAddressChanged: (address) => setState(() {
-                if (address.street.isNotEmpty)
+                if (address.street.isNotEmpty) {
                   _streetController.text = address.street;
-                if (address.number.isNotEmpty)
+                }
+                if (address.number.isNotEmpty) {
                   _numberController.text = address.number;
+                }
                 if (address.neighborhood.isNotEmpty) {
                   _neighborhoodController.text = address.neighborhood;
                 }

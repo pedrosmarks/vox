@@ -24,6 +24,7 @@
 - [Salas de Conferência (LiveKit)](#salas-de-conferência-livekit)
 - [Dashboard Administrativo](#dashboard-administrativo)
 - [Logs de Auditoria](#logs-de-auditoria)
+- [Eventos](#eventos)
 
 ---
 
@@ -534,6 +535,16 @@ DELETE /api/project/{projectId}/councilor/{councilorId}
 Authorization: Bearer <token>
 ```
 
+**Desvincular-se do projeto (o próprio vereador):**
+> 🔒 Requer role `COUNCILOR`. O vereador é identificado pelo token (não por parâmetro),
+> portanto só pode desvincular a si mesmo.
+
+```
+DELETE /api/project/{projectId}/councilor/me
+Authorization: Bearer <token>
+```
+**Resposta `204`.** Se o usuário autenticado não for `COUNCILOR`, retorna `403`.
+
 **Listar vereadores do projeto:**
 ```
 GET /api/project/{projectId}/councilor
@@ -701,7 +712,7 @@ Authorization: Bearer <token>
 ```
 GET /api/issues/{id}
 Authorization: Bearer <token>
-```
+```f
 
 ---
 
@@ -709,9 +720,9 @@ Authorization: Bearer <token>
 ```
 PUT /api/issues/{id}
 Authorization: Bearer <token>
-Content-Type: application/json
+Content-Type: multipart/form-data
 ```
-**Body:** objeto `IssueReport`  
+**Form fields:** mesmos campos de [Criar ocorrência](#criar-ocorrência). Para remover o vínculo do vereador, envie `councilorId` vazio.  
 **Resposta `204`**
 
 ---
@@ -1671,6 +1682,183 @@ Authorization: Bearer <token>
 }
 ```
 Ordenado do mais recente para o mais antigo. `userId`, `userRole` e `municipalityId` ficam `null` em chamadas não autenticadas; `errorMessage` é preenchido quando a requisição falhou.
+
+---
+
+## Eventos
+
+> Publicação de eventos **sem limitação de município**: qualquer usuário vê eventos de qualquer município.
+> A **leitura é pública**; **criar, editar e excluir** é restrito a `MODERATOR` ou `ADMINISTRATOR`.
+> Eventos **não passam por moderação** (publicam direto).
+
+### Categorias de evento
+
+Tabela dedicada (separada das categorias de projetos/ocorrências).
+
+**Listar categorias** (público)
+```
+GET /api/event-categories
+```
+**Buscar categoria por ID** (público)
+```
+GET /api/event-categories/{id}
+```
+**Criar / Atualizar / Excluir** (🔒 `MODERATOR` ou `ADMINISTRATOR`)
+```
+POST   /api/event-categories
+PUT    /api/event-categories/{id}
+DELETE /api/event-categories/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body (POST/PUT):**
+```json
+{
+  "name": "Cultura",
+  "description": "Eventos culturais"
+}
+```
+
+---
+
+### Listar eventos (com filtros)
+> Público. Paginado.
+
+```
+GET /api/events
+```
+**Query params (todos opcionais):**
+
+| Param | Tipo | Descrição |
+|---|---|---|
+| `categoryId` | number | Filtra por categoria de evento |
+| `municipalityId` | number | Filtra por município de origem (não restringe por padrão) |
+| `search` | texto | Busca em título e descrição |
+| `minPrice` | decimal | Valor mínimo |
+| `maxPrice` | decimal | Valor máximo |
+| `free` | booleano | `true` = só eventos gratuitos (sem valor ou 0); ignora `minPrice`/`maxPrice` |
+| `hasImage` | booleano | `true` = só eventos com ao menos uma imagem |
+| `startFrom` | `yyyy-MM-dd'T'HH:mm:ss` | Início do evento a partir desta data |
+| `startTo` | `yyyy-MM-dd'T'HH:mm:ss` | Início do evento até esta data |
+| `page` | number | Página (base 0, padrão `0`) |
+| `size` | number | Itens por página (padrão `10`, máx. `100`) |
+
+**Exemplos:**
+```
+GET /api/events?categoryId=2&free=true
+GET /api/events?search=festival&startFrom=2026-10-01T00:00:00
+GET /api/events?municipalityId=1&minPrice=0&maxPrice=50&page=0&size=20
+```
+**Resposta `200`:**
+```json
+{
+  "content": [
+    {
+      "id": 12,
+      "title": "Festival de Inverno",
+      "description": "Shows e feira gastronômica",
+      "categoryId": 2,
+      "price": 30.00,
+      "startDate": "2026-07-15T18:00:00",
+      "endDate": "2026-07-15T23:00:00",
+      "location": "Praça Central",
+      "municipalityId": 1,
+      "authorId": 5,
+      "createdAt": "2026-06-01T10:00:00"
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 1
+}
+```
+Ordenado por data de início (mais próximos primeiro). O campo `images` vem preenchido no detalhe (`GET /api/events/{id}`).
+
+---
+
+### Buscar evento por ID
+> Público. Retorna o evento com suas imagens.
+
+```
+GET /api/events/{id}
+```
+**Resposta `200`:** objeto `Event` com o array `images`.
+
+---
+
+### Criar evento
+> 🔒 `MODERATOR` ou `ADMINISTRATOR`
+
+```
+POST /api/events
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+**Form fields:**
+
+| Campo | Tipo | Obrigatório |
+|---|---|---|
+| `title` | texto | ✅ |
+| `categoryId` | number | ✅ |
+| `description` | texto | ❌ |
+| `price` | decimal (≥ 0) | ❌ (ausente = gratuito) |
+| `startDate` | `yyyy-MM-dd'T'HH:mm:ss` | ❌ |
+| `endDate` | `yyyy-MM-dd'T'HH:mm:ss` | ❌ |
+| `location` | texto | ❌ |
+| `file` | imagem | ❌ (imagem inicial) |
+
+> `municipalityId` e `authorId` são preenchidos automaticamente pelo backend a partir do token.
+
+**Resposta `201`** com `Location: /api/events/{id}`
+
+---
+
+### Atualizar evento
+> 🔒 `MODERATOR` ou `ADMINISTRATOR`
+
+```
+PUT /api/events/{id}
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+Mesmos campos da criação. Se `categoryId` for omitido, a categoria atual é preservada. Um novo `file` enviado é **adicionado** às imagens (não substitui as existentes).
+
+**Resposta `204`**
+
+---
+
+### Excluir evento
+> 🔒 `MODERATOR` ou `ADMINISTRATOR`. Remove também as imagens do evento.
+
+```
+DELETE /api/events/{id}
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+---
+
+### Imagens do evento
+
+**Listar imagens** (público)
+```
+GET /api/events/{id}/images
+```
+
+**Adicionar imagem** (🔒 `MODERATOR` ou `ADMINISTRATOR`)
+```
+POST /api/events/{id}/images
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+Form field: `file` (imagem). **Resposta `201`**
+
+**Excluir imagem** (🔒 `MODERATOR` ou `ADMINISTRATOR`)
+```
+DELETE /api/events/{id}/images/{imageId}
+Authorization: Bearer <token>
+```
+**Resposta `204`**
 
 ---
 

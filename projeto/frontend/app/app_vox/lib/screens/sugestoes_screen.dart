@@ -1,10 +1,10 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../models/project.dart';
 import '../services/auth_service.dart';
 import '../services/project_service.dart';
+import 'projeto_detalhe_screen.dart';
 import '../theme/vox_app_bar.dart';
 import '../theme/vox_badges.dart';
 import '../theme/vox_colors.dart';
@@ -24,7 +24,7 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
   final _projectService = ProjectService();
 
   List<Project> _mine = [];
-  final Map<int, String> _rejectionNotes = {};
+  int? _hoveredSuggestionId;
   bool _isLoading = true;
   String? _error;
 
@@ -45,22 +45,10 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
       _mine = userId != null
           ? projects.where((p) => p.authorId == userId).toList()
           : projects;
-      unawaited(_loadRejectionNotes());
     } catch (_) {
       _error = 'Erro ao carregar suas sugestões.';
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  /// Busca no histórico o motivo da rejeição de cada sugestão rejeitada.
-  Future<void> _loadRejectionNotes() async {
-    for (final p in _mine) {
-      if (p.status != 'REJECTED' && p.status != 'CANCELLED') continue;
-      final note = await _projectService.getRejectionNote(p.id);
-      if (note.isNotEmpty && mounted) {
-        setState(() => _rejectionNotes[p.id] = note);
-      }
     }
   }
 
@@ -73,12 +61,20 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isHighContrast =
+        colorScheme.primary.toARGB32() == const Color(0xFFFFFF00).toARGB32();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: const VoxAppBar(title: 'Sugestões de projetos'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openForm,
-        backgroundColor: VoxColors.purple,
-        foregroundColor: Colors.white,
+        backgroundColor: isHighContrast
+            ? colorScheme.primary
+            : isDark
+            ? colorScheme.primary
+            : VoxColors.purple,
+        foregroundColor: isHighContrast ? colorScheme.onPrimary : Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Nova sugestão'),
       ),
@@ -104,15 +100,27 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
                       itemCount: _mine.length,
                       itemBuilder: (context, index) {
                         final p = _mine[index];
-                        final isRejected =
-                            p.status == 'REJECTED' || p.status == 'CANCELLED';
-                        final note = _rejectionNotes[p.id] ?? '';
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ListTile(
+                        final isHovered = _hoveredSuggestionId == p.id;
+                        return MouseRegion(
+                          onEnter: (_) =>
+                              setState(() => _hoveredSuggestionId = p.id),
+                          onExit: (_) =>
+                              setState(() => _hoveredSuggestionId = null),
+                          child: AnimatedSlide(
+                            offset: isHovered
+                                ? const Offset(0, -0.015)
+                                : Offset.zero,
+                            duration: const Duration(milliseconds: 150),
+                            child: Card(
+                              elevation: isHovered ? 5 : 1,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        ProjetoDetalheScreen(projectId: p.id),
+                                  ),
+                                ),
                                 title: Text(
                                   p.title,
                                   style: const TextStyle(
@@ -129,52 +137,7 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
                                   StatusLabels.project(p.status),
                                 ),
                               ),
-                              if (isRejected)
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    12,
-                                    0,
-                                    12,
-                                    12,
-                                  ),
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFEF2F2),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: const Border(
-                                        left: BorderSide(
-                                          color: Color(0xFFDC2626),
-                                          width: 4,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          '💬 Motivo da rejeição',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFFB91C1C),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          note.isNotEmpty
-                                              ? note
-                                              : 'A moderação não informou um comentário.',
-                                          style: const TextStyle(
-                                            color: Color(0xFF7F1D1D),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
+                            ),
                           ),
                         );
                       },

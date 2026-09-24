@@ -47,6 +47,9 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   bool _signed = false;
   bool _isSigning = false;
   int _signatureCount = 0;
+  bool _supported = false;
+  bool _isSupporting = false;
+  int _approvalCount = 0;
   List<UserSummary> _councilors = [];
   bool _isExporting = false;
 
@@ -73,6 +76,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
         _loadCategory(project.categoryId),
         _loadAuthor(project.authorId),
         _loadSignatureState(project.id),
+        _loadSupportState(project.id),
         _loadRejectionNote(project),
         if (_isCouncilor || _isModerator) _loadCouncilors(project.id),
       ]);
@@ -126,6 +130,20 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     }
   }
 
+  Future<void> _loadSupportState(int projectId) async {
+    try {
+      _approvalCount = await _projectService.getApprovalCount(projectId);
+    } catch (_) {
+      _approvalCount = 0;
+    }
+    if (!_isCitizen) return;
+    try {
+      _supported = await _projectService.getMyOpinion(projectId) == 'APPROVE';
+    } catch (_) {
+      _supported = false;
+    }
+  }
+
   Future<void> _loadRejectionNote(Project project) async {
     if (project.status != 'REJECTED' && project.status != 'CANCELLED') {
       _rejectionNote = '';
@@ -168,6 +186,42 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
       // ignora falha na ação
     } finally {
       if (mounted) setState(() => _isSigning = false);
+    }
+  }
+
+  Future<void> _toggleSupport() async {
+    if (_project == null || _isSupporting) return;
+    final wasSupported = _supported;
+    setState(() {
+      _isSupporting = true;
+      _supported = !wasSupported;
+      _approvalCount = (_approvalCount + (wasSupported ? -1 : 1)).clamp(
+        0,
+        1 << 31,
+      );
+    });
+    try {
+      await _projectService.setOpinion(
+        _project!.id,
+        wasSupported ? 'NEUTRAL' : 'APPROVE',
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _supported = wasSupported;
+          _approvalCount = (_approvalCount + (wasSupported ? 1 : -1)).clamp(
+            0,
+            1 << 31,
+          );
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível atualizar seu apoio.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSupporting = false);
     }
   }
 
@@ -520,10 +574,27 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     // Vereador: apenas visualização de projetos (sem adotar/assinar).
     if (_isCitizen) {
       final countSuffix = _signatureCount > 0 ? ' ($_signatureCount)' : '';
-      return OutlinedButton.icon(
-        onPressed: _isSigning ? null : _toggleSign,
-        icon: Icon(_signed ? Icons.check_circle : Icons.edit_outlined),
-        label: Text((_signed ? 'Assinado' : 'Assinar') + countSuffix),
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          _supported
+              ? FilledButton.icon(
+                  onPressed: _isSupporting ? null : _toggleSupport,
+                  icon: const Icon(Icons.thumb_up),
+                  label: Text('Apoiado ($_approvalCount)'),
+                )
+              : OutlinedButton.icon(
+                  onPressed: _isSupporting ? null : _toggleSupport,
+                  icon: const Icon(Icons.thumb_up_outlined),
+                  label: Text('Apoiar ($_approvalCount)'),
+                ),
+          OutlinedButton.icon(
+            onPressed: _isSigning ? null : _toggleSign,
+            icon: Icon(_signed ? Icons.check_circle : Icons.edit_outlined),
+            label: Text((_signed ? 'Assinado' : 'Assinar') + countSuffix),
+          ),
+        ],
       );
     }
     return const SizedBox.shrink();

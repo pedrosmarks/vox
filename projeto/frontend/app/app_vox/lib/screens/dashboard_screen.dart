@@ -1,4 +1,8 @@
+import 'dart:math' show sqrt;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart' as fm;
+import 'package:latlong2/latlong.dart' as ll;
 
 import '../services/dashboard_service.dart';
 import '../theme/vox_app_bar.dart';
@@ -22,6 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _timelineView = 0;
   int _categoryMetric = 0;
   int _moderationView = 0;
+  int _hotspotType = 0;
 
   bool get _isHighContrast =>
       Theme.of(context).colorScheme.primary.toARGB32() ==
@@ -116,6 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           )
           .toList();
   List<Map<String, dynamic>> get _points => _list(_timeline['points']);
+  List<Map<String, dynamic>> get _hotspots => _list(_data?['hotspots']);
   List<Map<String, dynamic>> get _categoryItems =>
       _list(_categories['categories'])
           .take(6)
@@ -195,6 +201,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                _panel(
+                  'Mapa de zonas quentes',
+                  'Ocorrências e projetos aprovados por localização',
+                  constraints.maxWidth,
+                  _hotspotPanel(),
+                ),
+                const SizedBox(height: 4),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
@@ -502,6 +515,169 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _legend(),
     ],
   );
+
+  Widget _hotspotPanel() {
+    final points = _hotspots
+        .map(
+          (item) => (
+            item: item,
+            count: _number(
+              item[_hotspotType == 0 ? 'issueCount' : 'projectCount'],
+            ),
+            point: ll.LatLng(
+              _decimal(item['latitude']),
+              _decimal(item['longitude']),
+            ),
+          ),
+        )
+        .where((entry) => entry.count > 0)
+        .toList();
+    final total = points.fold<int>(0, (sum, entry) => sum + entry.count);
+    final center = points.isEmpty
+        ? const ll.LatLng(-15.7801, -47.9292)
+        : ll.LatLng(
+            points.fold<double>(0, (sum, entry) => sum + entry.point.latitude) /
+                points.length,
+            points.fold<double>(
+                  0,
+                  (sum, entry) => sum + entry.point.longitude,
+                ) /
+                points.length,
+          );
+    final maximum = points.fold<int>(
+      1,
+      (current, entry) => entry.count > current ? entry.count : current,
+    );
+    final hotspotColor = _hotspotType == 0
+        ? _isHighContrast
+              ? const Color(0xFFFFFF00)
+              : const Color(0xFF2563EB)
+        : _isHighContrast
+        ? const Color(0xFFFFFF00)
+        : const Color(0xFFDC2626);
+    final hotspotBorderColor = _isHighContrast ? Colors.black : hotspotColor;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: SegmentedButton<int>(
+            showSelectedIcon: false,
+            segments: [
+              ButtonSegment(
+                value: 0,
+                label: Text('Ocorrências'),
+                icon: Icon(
+                  Icons.circle,
+                  color: _isHighContrast
+                      ? const Color(0xFFFFFF00)
+                      : const Color(0xFF2563EB),
+                  size: 9,
+                ),
+              ),
+              ButtonSegment(
+                value: 1,
+                label: Text('Projetos'),
+                icon: Icon(
+                  Icons.circle,
+                  color: _isHighContrast
+                      ? const Color(0xFFFFFF00)
+                      : const Color(0xFFDC2626),
+                  size: 9,
+                ),
+              ),
+            ],
+            selected: {_hotspotType},
+            onSelectionChanged: (selection) =>
+                setState(() => _hotspotType = selection.first),
+            style: const ButtonStyle(
+              textStyle: WidgetStatePropertyAll(
+                TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+              ),
+              visualDensity: VisualDensity.compact,
+              padding: WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: SizedBox(
+            height: 300,
+            child: fm.FlutterMap(
+              key: ValueKey(_hotspotType),
+              options: fm.MapOptions(
+                initialCenter: center,
+                initialZoom: points.isEmpty
+                    ? 4
+                    : points.length == 1
+                    ? 12
+                    : 10,
+              ),
+              children: [
+                fm.TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.vox.app_vox',
+                ),
+                if (points.isNotEmpty)
+                  fm.CircleLayer(
+                    circles: [
+                      for (final entry in points)
+                        fm.CircleMarker(
+                          point: entry.point,
+                          radius: 12 + 26 * sqrt(entry.count / maximum),
+                          color: hotspotColor.withValues(
+                            alpha: _isHighContrast ? 0.95 : 0.6,
+                          ),
+                          borderColor: hotspotBorderColor,
+                          borderStrokeWidth: 1.5,
+                        ),
+                    ],
+                  ),
+                fm.RichAttributionWidget(
+                  attributions: [
+                    fm.TextSourceAttribution('OpenStreetMap contributors'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: hotspotColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                points.isEmpty
+                    ? _hotspotType == 0
+                          ? 'Sem ocorrências aprovadas neste período.'
+                          : 'Sem projetos aprovados neste período.'
+                    : '${points.length} zonas · $total ${_hotspotType == 0 ? 'ocorrências' : 'projetos'} aprovados',
+                style: TextStyle(fontSize: 10, color: _mutedColor),
+              ),
+            ),
+            if (points.isNotEmpty)
+              Text(
+                'Círculos maiores = mais registros',
+                style: TextStyle(fontSize: 9, color: _mutedColor),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
 
   Widget _timelineBars() {
     final points = _points.length > 12
@@ -1009,6 +1185,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       : [];
   int _number(dynamic value) =>
       value is num ? value.round() : int.tryParse('$value') ?? 0;
+  double _decimal(dynamic value) =>
+      value is num ? value.toDouble() : double.tryParse('$value') ?? 0;
   String _date(DateTime date) =>
       '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   String _label(String value) =>
