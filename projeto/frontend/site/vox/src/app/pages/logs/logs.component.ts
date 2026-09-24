@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService, LogEntry, LogPage } from '../../services/auth.service';
+import { AuthService, LogEntry, LogPage, UserProfile } from '../../services/auth.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 
 @Component({
@@ -14,13 +14,18 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 })
 export class LogsComponent implements OnInit {
   logs: LogEntry[] = [];
+  users: UserProfile[] = [];
   private readonly actorNames = new Map<number, string>();
   private readonly resolvedActorIds = new Set<number>();
   page = 0;
-  readonly size = 20;
+  size = 20;
+  readonly pageSizes = [20, 50, 100, 200];
   totalElements = 0;
   from = '';
   to = '';
+  userId: number | null = null;
+  method = '';
+  readonly methods = ['POST', 'PUT', 'PATCH', 'DELETE'];
   isLoading = false;
   errorMessage = '';
 
@@ -34,6 +39,7 @@ export class LogsComponent implements OnInit {
       this.router.navigate(['/projetos']);
       return;
     }
+    this.loadUsers();
     this.loadActivities();
   }
 
@@ -48,6 +54,8 @@ export class LogsComponent implements OnInit {
     this.authService.getLogs({
       page,
       size: this.size,
+      userId: this.userId ?? undefined,
+      method: this.method || undefined,
       from: this.from || undefined,
       to: this.to || undefined
     }).subscribe({
@@ -65,9 +73,16 @@ export class LogsComponent implements OnInit {
     });
   }
 
-  clearPeriod(): void {
+  clearFilters(): void {
     this.from = '';
     this.to = '';
+    this.userId = null;
+    this.method = '';
+    this.loadActivities();
+  }
+
+  changePageSize(size: number): void {
+    this.size = size;
     this.loadActivities();
   }
 
@@ -86,6 +101,10 @@ export class LogsComponent implements OnInit {
   actorLabel(log: LogEntry): string {
     if (log.userId == null) return 'Visitante';
     return this.actorNames.get(log.userId) || 'Usuário';
+  }
+
+  userOptionLabel(user: UserProfile): string {
+    return `${user.name || user.fullname || user.email} · #${user.id}`;
   }
 
   formatDate(value: string): string {
@@ -139,6 +158,20 @@ export class LogsComponent implements OnInit {
     if (method === 'PUT' || method === 'PATCH') return `atualizou ${resource}`;
     if (method === 'DELETE') return `removeu ${resource}`;
     return 'realizou uma atividade';
+  }
+
+  private loadUsers(): void {
+    this.authService.getAllUsers().subscribe({
+      next: users => {
+        this.users = [...users].sort((first, second) =>
+          (first.name || first.fullname || first.email).localeCompare(
+            second.name || second.fullname || second.email,
+            'pt-BR'
+          )
+        );
+      },
+      error: () => { this.users = []; }
+    });
   }
 
   private resolveActorNames(logs: LogEntry[]): void {

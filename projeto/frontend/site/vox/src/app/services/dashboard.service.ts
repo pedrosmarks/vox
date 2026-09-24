@@ -29,6 +29,7 @@ export interface DashboardData {
   categories: Record<string, unknown> | null;
   timeline: Record<string, unknown> | null;
   neighborhoods: Array<Record<string, unknown>> | null;
+  hotspots: Array<Record<string, unknown>> | null;
   projectLifecycle: Record<string, unknown> | null;
 }
 
@@ -49,6 +50,7 @@ export class DashboardService {
       categories: optional(this.http.get<Record<string, unknown>>(`${this.apiUrl}/categorias`, { params })),
       timeline: optional(this.http.get<Record<string, unknown>>(`${this.apiUrl}/series-temporais`, { params })),
       neighborhoods: optional(this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/mapa/bairros`, { params })),
+      hotspots: optional(this.http.get<Array<Record<string, unknown>>>(`${this.apiUrl}/mapa/coordenadas`, { params: params.set('precision', '3') })),
       projectLifecycle: optional(this.http.get<Record<string, unknown>>(`${this.apiUrl}/projetos/ciclo-vida`, { params }))
     });
   }

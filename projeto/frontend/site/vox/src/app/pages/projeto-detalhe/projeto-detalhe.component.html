@@ -11,7 +11,7 @@
   <!-- Erro -->
   <div *ngIf="!isLoading && errorMessage" class="state-message error">
     <p>{{ errorMessage }}</p>
-    <button class="btn-back" (click)="goBack()">← Voltar aos projetos</button>
+    <button class="btn-back" (click)="goBack()">← Voltar</button>
   </div>
 
   <!-- Conteúdo -->
@@ -32,12 +32,24 @@
       <div class="header-actions">
         <button
           *ngIf="isCitizen"
+          class="btn-action btn-support"
+          [class.supported]="supported"
+          [disabled]="supporting"
+          [attr.aria-pressed]="supported"
+          [attr.aria-label]="supported ? 'Remover apoio ao projeto' : 'Apoiar projeto'"
+          (click)="toggleSupport()"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">thumb_up</span>
+          {{ supported ? 'Apoiado' : 'Apoiar' }} ({{ approvalCount }})
+        </button>
+        <button
+          *ngIf="isCitizen"
           class="btn-action btn-sign"
           [class.signed]="signed"
           [disabled]="signing"
           (click)="toggleSign()"
         >{{ signed ? '✓ Assinado' : '✏️ Assinar' }}<span *ngIf="signatureCount > 0"> ({{ signatureCount }})</span></button>
-
+        <span *ngIf="supportError" class="support-error" role="alert">{{ supportError }}</span>
       </div>
     </div>
 

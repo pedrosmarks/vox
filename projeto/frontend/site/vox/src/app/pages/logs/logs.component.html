@@ -15,9 +15,26 @@
   <form class="filters" (ngSubmit)="loadActivities()">
     <label>De<input type="date" name="from" [(ngModel)]="from"></label>
     <label>Até<input type="date" name="to" [(ngModel)]="to"></label>
+    <label>Usuário
+      <select name="userId" [(ngModel)]="userId">
+        <option [ngValue]="null">Todos os usuários</option>
+        <option *ngFor="let user of users" [ngValue]="user.id">{{ userOptionLabel(user) }}</option>
+      </select>
+    </label>
+    <label>Método
+      <select name="method" [(ngModel)]="method">
+        <option value="">Todos os métodos</option>
+        <option *ngFor="let item of methods" [value]="item">{{ item }}</option>
+      </select>
+    </label>
+    <label>Por página
+      <select name="size" [ngModel]="size" (ngModelChange)="changePageSize($event)">
+        <option *ngFor="let item of pageSizes" [ngValue]="item">{{ item }}</option>
+      </select>
+    </label>
     <div class="filter-actions">
-      <button class="clear-button" type="button" (click)="clearPeriod()" title="Limpar período" aria-label="Limpar período"><span class="material-symbols-rounded">restart_alt</span></button>
-      <button class="apply-button" type="submit" [disabled]="isLoading">Aplicar período</button>
+      <button class="clear-button" type="button" (click)="clearFilters()" title="Limpar filtros" aria-label="Limpar filtros"><span class="material-symbols-rounded">restart_alt</span></button>
+      <button class="apply-button" type="submit" [disabled]="isLoading">Aplicar filtros</button>
     </div>
   </form>
 
@@ -38,7 +55,7 @@
     <div class="empty-state" *ngIf="!isLoading && !errorMessage && logs.length === 0">
       <span class="material-symbols-rounded">event_note</span>
       <strong>Nenhuma atividade neste período</strong>
-      <p>Escolha outro intervalo de datas.</p>
+      <p>Ajuste os filtros para ver outros resultados.</p>
     </div>
   </section>
 

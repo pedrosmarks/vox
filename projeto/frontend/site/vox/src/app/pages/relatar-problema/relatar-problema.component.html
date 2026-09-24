@@ -139,14 +139,23 @@
       </div>
 
       <ul *ngIf="!isLoadingIssues && myIssues.length > 0" class="issues-list">
-        <li *ngFor="let i of myIssues" class="issue-item">
-          <div class="issue-meta">
-            <span class="issue-title">{{ i.title }}</span>
-            <span class="issue-date">{{ formatDate(i.createdAt) }}</span>
-          </div>
-          <span class="badge-status" [ngClass]="getStatusClass(i.status)">
-            {{ getStatusLabel(i.status) }}
-          </span>
+        <li *ngFor="let i of myIssues">
+          <a
+            class="issue-item"
+            [routerLink]="['/problemas', i.id]"
+            [state]="{ returnUrl: '/relatar-problema' }"
+          >
+            <div class="issue-meta">
+              <span class="issue-title">{{ i.title }}</span>
+              <span class="issue-date">{{ formatDate(i.createdAt) }}</span>
+            </div>
+            <span class="issue-trailing">
+              <span class="badge-status" [ngClass]="getStatusClass(i.status)">
+                {{ getStatusLabel(i.status) }}
+              </span>
+              <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+            </span>
+          </a>
         </li>
       </ul>
     </div>

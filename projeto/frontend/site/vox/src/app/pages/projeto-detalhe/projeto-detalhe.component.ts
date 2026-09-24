@@ -30,6 +30,10 @@ export class ProjetoDetalheComponent implements OnInit {
   signed = false;
   signing = false;
   signatureCount = 0;
+  supported = false;
+  supporting = false;
+  approvalCount = 0;
+  supportError = '';
   exportMenuOpen = false;
 
   /** Comentário de rejeição/cancelamento lido do histórico do projeto. */
@@ -116,6 +120,7 @@ export class ProjetoDetalheComponent implements OnInit {
     });
 
     this.loadSignatureState(project.id);
+    this.loadSupportState(project.id);
     this.loadRejectionNote(project);
   }
 
@@ -144,12 +149,31 @@ export class ProjetoDetalheComponent implements OnInit {
       .subscribe(res => (this.signatureCount = res.total));
   }
 
+  private loadSupportState(id: number): void {
+    this.projectService
+      .getOpinionStats(id)
+      .pipe(catchError(() => of({ approved: 0, disapproved: 0, neutral: 0, total: 0 })))
+      .subscribe(stats => (this.approvalCount = stats.approved));
+
+    if (this.isCitizen) {
+      this.projectService.getMyOpinion(id).subscribe(opinion => {
+        this.supported = opinion?.opinion === 'APPROVE';
+      });
+    }
+  }
+
   selectImage(url: string): void {
     this.selectedImage = url;
   }
 
   goBack(): void {
-    this.router.navigate([this.isModerationContext ? '/moderacao' : '/projetos']);
+    const returnUrl = window.history.state?.['returnUrl'];
+    const destination = this.isModerationContext
+      ? '/moderacao'
+      : returnUrl === '/sugestoes'
+      ? '/sugestoes'
+      : '/projetos';
+    this.router.navigate([destination]);
   }
 
   promoteProject(): void {
@@ -261,6 +285,28 @@ export class ProjetoDetalheComponent implements OnInit {
         this.signed = wasSigned;
         this.signatureCount += wasSigned ? 1 : -1;
         this.signing = false;
+      }
+    });
+  }
+
+  toggleSupport(): void {
+    if (!this.project || this.supporting) return;
+    const wasSupported = this.supported;
+    this.supporting = true;
+    this.supportError = '';
+    this.supported = !wasSupported;
+    this.approvalCount = Math.max(0, this.approvalCount + (wasSupported ? -1 : 1));
+
+    this.projectService.setOpinion(
+      this.project.id,
+      wasSupported ? 'NEUTRAL' : 'APPROVE'
+    ).subscribe({
+      next: () => (this.supporting = false),
+      error: () => {
+        this.supported = wasSupported;
+        this.approvalCount = Math.max(0, this.approvalCount + (wasSupported ? 1 : -1));
+        this.supporting = false;
+        this.supportError = 'Não foi possível atualizar seu apoio. Tente novamente.';
       }
     });
   }

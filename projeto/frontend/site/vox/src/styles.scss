@@ -1,6 +1,20 @@
 /* You can add global styles to this file, and also import other style files */
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
+.dashboard-page .heatmap-panel { grid-column: 1 / -1; }
+.dashboard-page .heatmap-canvas { width: 100%; height: 360px; overflow: hidden; border-radius: 5px; background: var(--track); }
+.dashboard-page .heatmap-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 0.68rem; }
+.dashboard-page .heatmap-scale { display: flex; align-items: center; gap: 8px; }
+.dashboard-page .heatmap-scale i { display: block; width: 96px; height: 8px; border-radius: 2px; background: linear-gradient(90deg, #67a9cf, #fddbc7, #b2182b); }
+.dashboard-page .heatmap-swatch { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; }
+.dashboard-page .heatmap-swatch-issues { background: #2563eb; }
+.dashboard-page .heatmap-swatch-projects { background: #dc2626; }
+
+@media (max-width: 680px) {
+  .dashboard-page .heatmap-panel { grid-column: auto; }
+  .dashboard-page .heatmap-canvas { height: 300px; }
+}
+
 // Paleta de cores extraída do logo VOX (logo2.jpeg)
 $primary-color: #1b3f8b;   // Azul marinho (fundo do balão e texto VOX)
 $secondary-color: #f5a800; // Amarelo dourado (letra V e círculo)
@@ -506,6 +520,112 @@ html[data-a11y='HIGH_CONTRAST'] .logs-page .error-banner {
 html[data-a11y='PROTANOPIA']   body { filter: url('#vox-protanopia'); }
 html[data-a11y='DEUTERANOPIA'] body { filter: url('#vox-deuteranopia'); }
 html[data-a11y='TRITANOPIA']   body { filter: url('#vox-tritanopia'); }
+
+/* Sugestões e ocorrências: superfícies dos cartões e estados acessíveis. */
+html[data-a11y='DARK'] .sugestoes-page .suggestions-card,
+html[data-a11y='DARK'] .relatar-page .issues-card,
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .suggestions-card,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .issues-card {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-a11y='DARK'] .sugestoes-page .suggestion-item,
+html[data-a11y='DARK'] .relatar-page .issue-item {
+  background: #121212 !important;
+  color: #f5f6f8 !important;
+  border-color: #343a40 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45) !important;
+}
+
+html[data-a11y='DARK'] .sugestoes-page .suggestion-item:hover,
+html[data-a11y='DARK'] .relatar-page .issue-item:hover {
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.7) !important;
+}
+
+html[data-a11y='DARK'] .sugestoes-page .suggestion-title,
+html[data-a11y='DARK'] .relatar-page .issue-title {
+  color: #f5f6f8 !important;
+}
+
+html[data-a11y='DARK'] .sugestoes-page .suggestion-date,
+html[data-a11y='DARK'] .relatar-page .issue-date,
+html[data-a11y='DARK'] .sugestoes-page .page-subtitle,
+html[data-a11y='DARK'] .relatar-page .page-subtitle,
+html[data-a11y='DARK'] .sugestoes-page .form-hint,
+html[data-a11y='DARK'] .relatar-page .form-hint,
+html[data-a11y='DARK'] .sugestoes-page .address-edit-hint,
+html[data-a11y='DARK'] .relatar-page .address-edit-hint {
+  color: #c3c8d0 !important;
+}
+
+html[data-a11y='DARK'] .sugestoes-page .address-fields,
+html[data-a11y='DARK'] .relatar-page .address-fields {
+  background: #1a1a1a !important;
+  color: #f5f6f8 !important;
+  border-color: #343a40 !important;
+}
+
+html[data-a11y='DARK'] .sugestoes-page .alert-success,
+html[data-a11y='DARK'] .relatar-page .alert-success {
+  background: #18372b !important;
+  color: #9be2bb !important;
+  border-color: #286746 !important;
+}
+
+html[data-a11y='DARK'] .sugestoes-page .alert-error,
+html[data-a11y='DARK'] .relatar-page .alert-error {
+  background: #421f22 !important;
+  color: #ffb4ab !important;
+  border-color: #8e3025 !important;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .suggestion-item,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .issue-item,
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .address-fields,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .address-fields,
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .alert,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .alert {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  box-shadow: none !important;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .suggestion-title,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .issue-title,
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .suggestion-date,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .issue-date,
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .page-subtitle,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .page-subtitle,
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .address-fields-title,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .address-fields-title {
+  color: #fff !important;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .sugestoes-page .suggestion-item:focus-visible,
+html[data-a11y='HIGH_CONTRAST'] .relatar-page .issue-item:focus-visible {
+  outline: 3px solid #ff0 !important;
+  outline-offset: 3px;
+}
+
+html[data-a11y='HIGH_CONTRAST'] .dashboard-page .heatmap-swatch {
+  background: #ff0 !important;
+  border: 1px solid #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sugestoes-page .suggestion-item,
+  .relatar-page .issue-item {
+    transition: none !important;
+  }
+
+  .sugestoes-page .suggestion-item:hover,
+  .relatar-page .issue-item:hover {
+    transform: none !important;
+  }
+}
 
 /* --- Documentos legais do cadastro --- */
 .legal-modal-overlay { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 1rem; background: rgba(12, 25, 48, 0.68); backdrop-filter: blur(3px); }

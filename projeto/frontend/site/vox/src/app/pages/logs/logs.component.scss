@@ -26,7 +26,7 @@ h1 { margin: 0 0 4px; color: var(--ink); font-size: 1.65rem; }
 .refresh-button:disabled { opacity: .55; cursor: wait; }
 .filters { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; margin-bottom: 16px; }
 .filters label { display: grid; gap: 5px; color: var(--muted); font-size: 0.72rem; font-weight: 700; }
-.filters input { height: 38px; min-width: 155px; border: 1px solid var(--line); border-radius: 4px; padding: 0 9px; background: var(--surface); color: var(--ink); font: inherit; font-size: 0.8rem; }
+.filters input, .filters select { height: 38px; min-width: 155px; border: 1px solid var(--line); border-radius: 4px; padding: 0 9px; background: var(--surface); color: var(--ink); font: inherit; font-size: 0.8rem; }
 .filter-actions { display: flex; gap: 6px; margin-left: auto; }
 .apply-button { height: 38px; padding: 0 14px; border-radius: 4px; background: var(--action); color: var(--action-text); font-size: 0.77rem; }
 .clear-button { width: 38px; height: 38px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
@@ -105,7 +105,7 @@ html[data-a11y='HIGH_CONTRAST'] .logs-page .error-banner {
   .logs-page { padding: 22px 14px 32px; }
   .filters { align-items: stretch; }
   .filters label { flex: 1 1 135px; }
-  .filters input { width: 100%; min-width: 0; }
+  .filters input, .filters select { width: 100%; min-width: 0; }
   .filter-actions { width: 100%; margin-left: 0; }
   .apply-button { flex: 1; }
   .activity-item { padding: 13px 12px; }

@@ -130,7 +130,13 @@ export class ProblemaDetalheComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate([this.isModerator ? '/moderacao' : '/problemas']);
+    const returnUrl = window.history.state?.['returnUrl'];
+    const destination = this.isModerator
+      ? '/moderacao'
+      : returnUrl === '/relatar-problema'
+      ? '/relatar-problema'
+      : '/problemas';
+    this.router.navigate([destination]);
   }
 
   /** Vereador adota/desvincula a ocorrência. */

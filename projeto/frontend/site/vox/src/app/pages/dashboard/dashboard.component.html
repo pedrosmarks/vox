@@ -37,12 +37,29 @@
     </article>
     <article class="kpi-card kpi-resolution">
       <span class="kpi-label">Taxa de resolução</span>
-      <strong>{{ data?.overview ? (data?.overview?.issueResolutionRate | number:'1.0-1') + '%' : '—' }}</strong>
+      <strong>{{ issueResolutionRate != null ? (issueResolutionRate | number:'1.0-1') + '%' : '—' }}</strong>
       <span class="kpi-note">Ocorrências aprovadas resolvidas</span>
     </article>
   </section>
 
   <section class="chart-grid">
+    <article class="panel heatmap-panel">
+      <div class="panel-heading">
+        <div><h2>Mapa de zonas quentes</h2><p>{{ hotspotType === 'issues' ? 'Ocorrências aprovadas por localização' : 'Projetos aprovados por localização' }}</p></div>
+        <div class="segmented" role="group" aria-label="Tipo de registro no mapa de zonas quentes">
+          <button type="button" [class.active]="hotspotType === 'issues'" [attr.aria-pressed]="hotspotType === 'issues'" (click)="selectHotspotType('issues')"><i class="heatmap-swatch heatmap-swatch-issues"></i>Ocorrências</button>
+          <button type="button" [class.active]="hotspotType === 'projects'" [attr.aria-pressed]="hotspotType === 'projects'" (click)="selectHotspotType('projects')"><i class="heatmap-swatch heatmap-swatch-projects"></i>Projetos</button>
+        </div>
+        <span class="material-symbols-rounded panel-icon">map</span>
+      </div>
+      <div #hotspotMap class="heatmap-canvas" [attr.aria-label]="hotspotType === 'issues' ? 'Mapa de calor de ocorrências' : 'Mapa de calor de projetos'"></div>
+      <div class="heatmap-footer">
+        <span>{{ hotspotZones }} zonas · {{ hotspotTotal }} {{ hotspotType === 'issues' ? 'ocorrências' : 'projetos' }}</span>
+        <span>Círculos maiores = mais registros</span>
+      </div>
+      <p class="empty-note" *ngIf="hotspotZones === 0">{{ hotspotEmptyMessage }}</p>
+    </article>
+
     <article class="panel status-panel">
       <div class="panel-heading">
         <div><h2>Situação das ocorrências</h2><p>{{ statusTotal }} ocorrências no período</p></div>
@@ -141,9 +158,9 @@
   </section>
 
   <section class="bottom-summary" *ngIf="data?.overview">
-    <div><span>Projetos aguardando moderação</span><b>{{ data?.overview?.pendingModerationProjects ?? 0 }}</b></div>
-    <div><span>Projetos publicados</span><b>{{ data?.overview?.publishedProjects ?? 0 }}</b></div>
+    <div><span>Projetos aguardando moderação</span><b>{{ pendingModerationProjects }}</b></div>
+    <div><span>Projetos publicados</span><b>{{ publishedProjects }}</b></div>
     <div><span>Usuários por perfil</span><p><span *ngFor="let role of usersByRole">{{ role.label }} <b>{{ role.value }}</b></span></p></div>
-    <div><span>Execução orçamentária</span><b>{{ data?.projectLifecycle?.['budgetExecutionRate'] ?? '—' }}{{ data?.projectLifecycle?.['budgetExecutionRate'] != null ? '%' : '' }}</b></div>
+    <div><span>Execução orçamentária</span><b>{{ budgetExecutionRate ?? '—' }}{{ budgetExecutionRate != null ? '%' : '' }}</b></div>
   </section>
 </main>

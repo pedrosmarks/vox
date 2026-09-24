@@ -146,6 +146,20 @@ $border:     #e5e7eb;
   &.signed { background: $accent; color: #fff; border-color: $accent; }
 }
 
+.btn-support {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1.5px solid #176b59;
+  background: transparent;
+  color: #176b59;
+
+  .material-symbols-rounded { font-size: 1rem; }
+  &:hover:not(:disabled), &.supported { background: #176b59; color: #fff; }
+}
+
+.support-error { flex-basis: 100%; color: #b42318; font-size: 0.78rem; }
+
 .btn-back {
   padding: 0.45rem 1rem;
   border: 1px solid $border;

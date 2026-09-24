@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService, UserProfile } from '../../services/auth.service';
 import { ProjectService, Category } from '../../services/project.service';
 import { IssueService, IssueReport } from '../../services/issue.service';
@@ -22,7 +22,7 @@ const FALLBACK_CATEGORIES: Category[] = [
 @Component({
   selector: 'app-relatar-problema',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, MapPickerComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, MapPickerComponent, RouterLink],
   templateUrl: './relatar-problema.component.html',
   styleUrls: ['./relatar-problema.component.scss']
 })

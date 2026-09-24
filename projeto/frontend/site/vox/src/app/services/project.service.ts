@@ -15,6 +15,7 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
   isOfficial: boolean;
+  highlighted?: boolean;
   neighborhood: string;
   street: string;
   number: string;
