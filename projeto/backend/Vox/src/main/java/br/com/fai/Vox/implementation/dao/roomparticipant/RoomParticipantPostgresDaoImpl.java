@@ -1,4 +1,6 @@
 package br.com.fai.Vox.implementation.dao.roomparticipant;
+import br.com.fai.Vox.domain.enums.ParticipantStatusEnum;
+import br.com.fai.Vox.domain.enums.SpeechRequestStatusEnum;
 
 import br.com.fai.Vox.domain.RoomParticipant;
 import br.com.fai.Vox.port.dao.roomparticipant.RoomParticipantDao;
@@ -29,7 +31,7 @@ public class RoomParticipantPostgresDaoImpl implements RoomParticipantDao {
             PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setInt(1, roomId);
             ps.setInt(2, userId);
-            ps.setString(3, RoomParticipant.ParticipantStatus.PENDING.name());
+            ps.setString(3, ParticipantStatusEnum.PENDING.name());
 
             ps.executeUpdate();
 
@@ -96,7 +98,7 @@ public class RoomParticipantPostgresDaoImpl implements RoomParticipantDao {
     }
 
     @Override
-    public void updateStatus(int id, RoomParticipant.ParticipantStatus status) {
+    public void updateStatus(int id, ParticipantStatusEnum status) {
         final String sql = "UPDATE room_participant SET status = CAST(? AS participant_status), " +
                 "decided_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {
@@ -131,7 +133,7 @@ public class RoomParticipantPostgresDaoImpl implements RoomParticipantDao {
     }
 
     @Override
-    public void updateSpeechRequestStatus(int id, RoomParticipant.SpeechRequestStatus status) {
+    public void updateSpeechRequestStatus(int id, SpeechRequestStatusEnum status) {
         final String sql = "UPDATE room_participant SET speech_request_status = CAST(? AS speech_request_status), " +
                 "speech_requested_at = CASE WHEN ? = 'PENDING' THEN CURRENT_TIMESTAMP ELSE speech_requested_at END, " +
                 "speech_decided_at = CASE WHEN ? IN ('APPROVED', 'REJECTED') THEN CURRENT_TIMESTAMP ELSE NULL END, " +
@@ -170,8 +172,8 @@ public class RoomParticipantPostgresDaoImpl implements RoomParticipantDao {
         participant.setId(rs.getInt("id"));
         participant.setRoomId(rs.getInt("room_id"));
         participant.setUserId(rs.getInt("user_id"));
-        participant.setStatus(RoomParticipant.ParticipantStatus.valueOf(rs.getString("status").toUpperCase()));
-        participant.setSpeechRequestStatus(RoomParticipant.SpeechRequestStatus.valueOf(
+        participant.setStatus(ParticipantStatusEnum.valueOf(rs.getString("status").toUpperCase()));
+        participant.setSpeechRequestStatus(SpeechRequestStatusEnum.valueOf(
             rs.getString("speech_request_status").toUpperCase()));
         participant.setCanPublishAudio(rs.getBoolean("can_publish_audio"));
         participant.setCanPublishVideo(rs.getBoolean("can_publish_video"));

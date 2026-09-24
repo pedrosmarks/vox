@@ -1,4 +1,5 @@
 package br.com.fai.Vox.domain.dto;
+import br.com.fai.Vox.domain.enums.IssueStatusEnum;
 
 import br.com.fai.Vox.domain.IssueReport;
 import lombok.Getter;
@@ -8,6 +9,6 @@ import lombok.Setter;
 @Setter
 public class UpdateIssueStatusDto {
 
-    private IssueReport.IssueStatus status;
+    private IssueStatusEnum status;
     private String note;
 }

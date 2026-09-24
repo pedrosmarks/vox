@@ -25,13 +25,6 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     private static final Logger logger = Logger.getLogger(AuditLogServiceImpl.class.getName());
 
-    /**
-     * A ESCRITA e o PURGE usam o pool Hikari diretamente (uma conexão própria por
-     * operação, via try-with-resources). Isso é obrigatório porque a Connection
-     * injetada nos DAOs é um bean singleton compartilhado — usá-la a partir de uma
-     * thread assíncrona/agendada geraria condição de corrida no JDBC.
-     * A LEITURA (consulta do admin) roda na thread da request e reutiliza o DAO.
-     */
     private final HikariDataSource dataSource;
     private final AuditLogDao auditLogDao;
 
@@ -63,7 +56,6 @@ public class AuditLogServiceImpl implements AuditLogService {
             ps.setString(12, e.getErrorMessage());
             ps.executeUpdate();
         } catch (SQLException ex) {
-            // Auditoria nunca deve derrubar o fluxo: apenas registra a falha.
             logger.log(Level.WARNING, "Falha ao gravar audit_log", ex);
         }
     }

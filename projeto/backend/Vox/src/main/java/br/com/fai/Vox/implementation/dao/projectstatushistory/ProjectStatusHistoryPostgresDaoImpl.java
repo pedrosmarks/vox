@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.projectstatushistory;
+import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
 
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.ProjectStatusHistory;
@@ -72,12 +73,12 @@ public class ProjectStatusHistoryPostgresDaoImpl implements ProjectStatusHistory
         ProjectStatusHistory h = new ProjectStatusHistory();
         h.setId(rs.getInt("id"));
         h.setProjectId(rs.getInt("project_id"));
-        h.setNewStatus(Project.ProjectStatus.valueOf(rs.getString("new_status")));
+        h.setNewStatus(ProjectStatusEnum.valueOf(rs.getString("new_status")));
         h.setChangedBy(rs.getInt("changed_by"));
         h.setNote(rs.getString("note"));
 
         String prev = rs.getString("previous_status");
-        if (prev != null) h.setPreviousStatus(Project.ProjectStatus.valueOf(prev));
+        if (prev != null) h.setPreviousStatus(ProjectStatusEnum.valueOf(prev));
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) h.setCreatedAt(createdAt.toLocalDateTime());

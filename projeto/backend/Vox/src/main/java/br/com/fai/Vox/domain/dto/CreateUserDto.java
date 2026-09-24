@@ -1,4 +1,5 @@
 package br.com.fai.Vox.domain.dto;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.UserModel;
 import jakarta.validation.constraints.Email;
@@ -9,15 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
-/**
- * Payload de criação/atualização de usuário recebido como
- * {@code multipart/form-data}. Carrega os campos escalares do usuário e,
- * opcionalmente, o arquivo da foto de perfil ({@link #file}).
- *
- * <p>A foto é opcional: quando {@code file} for {@code null} ou vazio, nenhum
- * upload é feito e o usuário fica sem foto (na criação) ou mantém a atual (na
- * atualização).</p>
- */
 @Getter
 @Setter
 public class CreateUserDto {
@@ -37,22 +29,17 @@ public class CreateUserDto {
     @NotBlank(message = "Senha é obrigatória")
     private String password;
 
-    private UserModel.UserRole role;
+    private UserRoleEnum role;
     private LocalDate birthDate;
     private Integer municipalityId;
     private Boolean acceptedTerms;
     private Boolean acceptedPrivacyPolicy;
 
-    /** Foto de perfil (opcional). */
     private MultipartFile file;
 
     public CreateUserDto() {
     }
 
-    /**
-     * Converte este DTO em um {@link UserModel} (sem a foto — o upload e a URL
-     * são tratados na camada de serviço).
-     */
     public UserModel toUserModel() {
         UserModel user = new UserModel();
         user.setId(id);

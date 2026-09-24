@@ -46,7 +46,6 @@ public class AuditLogPostgresDaoImpl implements AuditLogDao {
             ps.setString(12, e.getErrorMessage());
             ps.executeUpdate();
         } catch (SQLException ex) {
-            // Auditoria nunca deve derrubar o fluxo: apenas registra a falha.
             logger.log(Level.WARNING, "Falha ao gravar audit_log", ex);
         }
     }

@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.conferenceroom;
+import br.com.fai.Vox.domain.enums.RoomStatusEnum;
 
 import br.com.fai.Vox.domain.ConferenceRoom;
 import br.com.fai.Vox.domain.dto.CreateConferenceRoomDto;
@@ -32,7 +33,7 @@ public class ConferenceRoomPostgresDaoImpl implements ConferenceRoomDao {
             ps.setString(2, dto.getDescription());
             ps.setInt(3, dto.getModeratorId());
             ps.setInt(4, dto.getMunicipalityId());
-            ps.setString(5, ConferenceRoom.RoomStatus.OPEN.name());
+            ps.setString(5, RoomStatusEnum.OPEN.name());
 
             ps.executeUpdate();
 
@@ -112,7 +113,7 @@ public class ConferenceRoomPostgresDaoImpl implements ConferenceRoomDao {
     }
 
     @Override
-    public void updateStatus(int id, ConferenceRoom.RoomStatus status) {
+    public void updateStatus(int id, RoomStatusEnum status) {
         final String sql = "UPDATE conference_room SET status = CAST(? AS room_status), updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -132,7 +133,7 @@ public class ConferenceRoomPostgresDaoImpl implements ConferenceRoomDao {
         room.setDescription(rs.getString("description"));
         room.setModeratorId(rs.getInt("moderator_id"));
         room.setMunicipalityId(rs.getInt("municipality_id"));
-        room.setStatus(ConferenceRoom.RoomStatus.valueOf(rs.getString("status").toUpperCase()));
+        room.setStatus(RoomStatusEnum.valueOf(rs.getString("status").toUpperCase()));
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) room.setCreatedAt(createdAt.toLocalDateTime());

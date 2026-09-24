@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.user;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.port.dao.user.UserDao;
@@ -80,9 +81,6 @@ public class UserPostgresDaoImpl implements UserDao {
             connection.commit();
             logger.log(Level.INFO, "Usuário removido com sucesso.");
         } catch (SQLException e) {
-            // Sem o rollback, uma transação abortada (ex.: violação de FK) permanece
-            // aberta na conexão compartilhada e derruba todas as consultas seguintes
-            // com "transação atual foi interrompida" (inclusive o login/findByEmail).
             logger.log(Level.SEVERE, "Erro ao remover usuário. Realizando rollback.");
             try {
                 connection.rollback();
@@ -227,7 +225,7 @@ public class UserPostgresDaoImpl implements UserDao {
         user.setCpf(rs.getString("cpf"));
         user.setPhone(rs.getString("phone"));
         user.setPassword(rs.getString("password"));
-        user.setRole(UserModel.UserRole.valueOf(rs.getString("role").toUpperCase()));
+        user.setRole(UserRoleEnum.valueOf(rs.getString("role").toUpperCase()));
         user.setMunicipalityId(rs.getInt("municipality_id"));
         user.setAcceptedTerms(rs.getBoolean("accepted_terms"));
         user.setAcceptedPrivacyPolicy(rs.getBoolean("accepted_privacy_policy"));
@@ -238,4 +236,3 @@ public class UserPostgresDaoImpl implements UserDao {
     }
 
 }
-

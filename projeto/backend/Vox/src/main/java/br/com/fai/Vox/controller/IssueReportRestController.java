@@ -130,14 +130,10 @@ public class IssueReportRestController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- HISTÓRICO DE STATUS ---
-
     @GetMapping("/{id}/history")
     public ResponseEntity<List<IssueStatusHistory>> getHistory(@PathVariable final int id) {
         return ResponseEntity.ok(issueStatusHistoryService.findByIssueId(id));
     }
-
-    // --- IMAGENS ---
 
     @PostMapping(value = "/{id}/images", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> addImage(@PathVariable final int id,

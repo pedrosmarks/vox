@@ -5,15 +5,10 @@ import lombok.Setter;
 
 import java.util.List;
 
-/**
- * Séries temporais: volume de issues e projetos criados ao longo do tempo,
- * agrupados por dia, semana ou mês. Escopado por município e intervalo de datas.
- */
 @Getter
 @Setter
 public class TimeSeriesDto {
 
-    /** Granularidade aplicada: {@code day}, {@code week} ou {@code month}. */
     private String granularity;
 
     private List<TimeSeriesPointDto> points;
@@ -28,7 +23,6 @@ public class TimeSeriesDto {
     @Getter
     @Setter
     public static class TimeSeriesPointDto {
-        /** Início do período (ISO {@code yyyy-MM-dd}). */
         private String period;
         private long issueCount;
         private long projectCount;

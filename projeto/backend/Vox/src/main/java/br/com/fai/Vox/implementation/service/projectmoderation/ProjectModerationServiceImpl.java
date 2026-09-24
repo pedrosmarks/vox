@@ -1,11 +1,14 @@
 package br.com.fai.Vox.implementation.service.projectmoderation;
+import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
+import br.com.fai.Vox.domain.enums.NotificationTypeEnum;
+import br.com.fai.Vox.domain.enums.SubscriptionTypeEnum;
 
 import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.domain.Project;
 import br.com.fai.Vox.domain.ProjectModeration;
 import br.com.fai.Vox.domain.Subscription;
 import br.com.fai.Vox.domain.dto.PageResponse;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
 import br.com.fai.Vox.port.dao.project.ProjectDao;
 import br.com.fai.Vox.port.dao.projectmoderation.ProjectModerationDao;
 import br.com.fai.Vox.port.service.notification.NotificationService;
@@ -45,7 +48,7 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
     public List<Project> findPending(int municipalityId) {
         if (municipalityId <= 0) return List.of();
         return projectDao.findByMunicipalityId(municipalityId).stream()
-                .filter(p -> ModerationStatus.PENDING.equals(p.getModerationStatus()))
+                .filter(p -> ModerationStatusEnum.PENDING.equals(p.getModerationStatus()))
                 .toList();
     }
 
@@ -66,60 +69,55 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         Project project = projectDao.findByid(projectId);
         if (project == null) return;
 
-        Project.ProjectStatus previousStatus = project.getStatus();
-        project.setModerationStatus(ModerationStatus.APPROVED);
-        project.setStatus(Project.ProjectStatus.PUBLISHED);
+        ProjectStatusEnum previousStatus = project.getStatus();
+        project.setModerationStatus(ModerationStatusEnum.APPROVED);
+        project.setStatus(ProjectStatusEnum.PUBLISHED);
         projectDao.update(projectId, project);
 
-        // Registrar no histórico para que o feedback fique recuperável via GET .../history
         projectStatusHistoryService.recordStatusChange(
-                projectId, previousStatus, Project.ProjectStatus.PUBLISHED, moderatorId, feedback);
+                projectId, previousStatus, ProjectStatusEnum.PUBLISHED, moderatorId, feedback);
 
         ProjectModeration moderation = new ProjectModeration();
         moderation.setProjectId(projectId);
         moderation.setModeratorId(moderatorId);
-        moderation.setAction(ModerationStatus.APPROVED);
+        moderation.setAction(ModerationStatusEnum.APPROVED);
         moderation.setFeedback(feedback);
         projectModerationDao.create(moderation);
 
         logger.log(Level.INFO, "Projeto aprovado. ID: " + projectId);
 
-        // Notificar autor
         notificationService.send(project.getAuthorId(),
                 "Projeto aprovado",
                 "Seu projeto \"" + project.getTitle() + "\" foi aprovado.",
-                Notification.NotificationType.PROJECT_STATUS_CHANGED);
+                NotificationTypeEnum.PROJECT_STATUS_CHANGED);
 
-        // Notificar assinantes de ALL_PROJECTS
         List<Integer> allSubs = subscriptionService.findSubscriberUserIds(
-                Subscription.SubscriptionType.ALL_PROJECTS, null);
+                SubscriptionTypeEnum.ALL_PROJECTS, null);
         for (int userId : allSubs) {
             notificationService.send(userId,
                     "Novo projeto publicado",
                     "O projeto \"" + project.getTitle() + "\" está disponível.",
-                    Notification.NotificationType.PROJECT_CREATED);
+                    NotificationTypeEnum.PROJECT_CREATED);
         }
 
-        // Notificar assinantes da categoria
         if (project.getCategoryId() != null) {
             List<Integer> catSubs = subscriptionService.findSubscriberUserIds(
-                    Subscription.SubscriptionType.CATEGORY, project.getCategoryId());
+                    SubscriptionTypeEnum.CATEGORY, project.getCategoryId());
             for (int userId : catSubs) {
                 notificationService.send(userId,
                         "Novo projeto na sua categoria",
                         "O projeto \"" + project.getTitle() + "\" foi publicado na sua categoria.",
-                        Notification.NotificationType.PROJECT_CREATED);
+                        NotificationTypeEnum.PROJECT_CREATED);
             }
         }
 
-        // Notificar assinantes do vereador autor (se for COUNCILOR)
         List<Integer> councilorSubs = subscriptionService.findSubscriberUserIds(
-                Subscription.SubscriptionType.COUNCILOR, project.getAuthorId());
+                SubscriptionTypeEnum.COUNCILOR, project.getAuthorId());
         for (int userId : councilorSubs) {
             notificationService.send(userId,
                     "Novo projeto do vereador que você segue",
                     "O vereador publicou o projeto \"" + project.getTitle() + "\".",
-                    Notification.NotificationType.PROJECT_CREATED);
+                    NotificationTypeEnum.PROJECT_CREATED);
         }
     }
 
@@ -130,33 +128,31 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         Project project = projectDao.findByid(projectId);
         if (project == null) return;
 
-        Project.ProjectStatus previousStatus = project.getStatus();
-        project.setModerationStatus(ModerationStatus.REJECTED);
-        project.setStatus(Project.ProjectStatus.REJECTED);
+        ProjectStatusEnum previousStatus = project.getStatus();
+        project.setModerationStatus(ModerationStatusEnum.REJECTED);
+        project.setStatus(ProjectStatusEnum.REJECTED);
         projectDao.update(projectId, project);
 
-        // Registrar no histórico para que o motivo da rejeição fique recuperável via GET .../history
         projectStatusHistoryService.recordStatusChange(
-                projectId, previousStatus, Project.ProjectStatus.REJECTED, moderatorId, feedback);
+                projectId, previousStatus, ProjectStatusEnum.REJECTED, moderatorId, feedback);
 
         ProjectModeration moderation = new ProjectModeration();
         moderation.setProjectId(projectId);
         moderation.setModeratorId(moderatorId);
-        moderation.setAction(ModerationStatus.REJECTED);
+        moderation.setAction(ModerationStatusEnum.REJECTED);
         moderation.setFeedback(feedback);
         projectModerationDao.create(moderation);
 
         logger.log(Level.INFO, "Projeto rejeitado. ID: " + projectId);
 
-        // Notificar autor
         notificationService.send(project.getAuthorId(),
                 "Projeto rejeitado",
                 "Seu projeto \"" + project.getTitle() + "\" foi rejeitado. Motivo: " + feedback,
-                Notification.NotificationType.PROJECT_STATUS_CHANGED);
+                NotificationTypeEnum.PROJECT_STATUS_CHANGED);
     }
 
     @Override
-    public void updateStatus(int projectId, Project.ProjectStatus status, int moderatorId, String note) {
+    public void updateStatus(int projectId, ProjectStatusEnum status, int moderatorId, String note) {
         if (projectId <= 0 || status == null) return;
 
         Project existing = projectDao.findByid(projectId);
@@ -166,21 +162,19 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         existing.setStatus(status);
         projectDao.update(projectId, existing);
 
-        // Notificar autor
         notificationService.send(existing.getAuthorId(),
                 "Status do projeto atualizado",
                 "O status do projeto \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
-                Notification.NotificationType.PROJECT_STATUS_CHANGED);
+                NotificationTypeEnum.PROJECT_STATUS_CHANGED);
 
-        // Notificar assinantes do projeto
         List<Integer> projectSubs = subscriptionService.findSubscriberUserIds(
-                Subscription.SubscriptionType.PROJECT, projectId);
+                SubscriptionTypeEnum.PROJECT, projectId);
         for (int userId : projectSubs) {
             if (userId != existing.getAuthorId()) {
                 notificationService.send(userId,
                         "Status do projeto atualizado",
                         "O projeto \"" + existing.getTitle() + "\" teve seu status alterado.",
-                        Notification.NotificationType.PROJECT_STATUS_CHANGED);
+                        NotificationTypeEnum.PROJECT_STATUS_CHANGED);
             }
         }
     }

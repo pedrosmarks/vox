@@ -14,10 +14,10 @@ import java.math.BigDecimal;
 @Setter
 public class CreateIssueReportDto {
 
-    private Integer municipalityId;   // preenchido pelo backend via token
+    private Integer municipalityId;
     @NotNull(message = "Categoria é obrigatória")
     private Integer categoryId;
-    private Integer authorId;         // preenchido pelo backend via token
+    private Integer authorId;
     private Integer councilorId;
     @NotBlank(message = "Título é obrigatório")
     private String title;

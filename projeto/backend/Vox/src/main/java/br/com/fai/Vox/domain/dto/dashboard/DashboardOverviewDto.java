@@ -5,36 +5,26 @@ import lombok.Setter;
 
 import java.util.Map;
 
-/**
- * KPIs de visão geral do painel administrativo, escopados por município.
- * Os mapas usam a chave = nome do status (ou tipo) e valor = contagem,
- * o que mantém a resposta flexível conforme os enums evoluem.
- */
 @Getter
 @Setter
 public class DashboardOverviewDto {
 
-    // --- Ocorrências (issues) ---
     private long totalIssues;
-    private long approvedIssues;      // moderation_status = APPROVED
-    private long pendingModerationIssues; // moderation_status = PENDING
-    private long resolvedIssues;      // status = RESOLVED
-    private Map<String, Long> issuesByStatus;         // issue_status -> total
-    private Map<String, Long> issuesByModeration;     // moderation_status -> total
+    private long approvedIssues;
+    private long pendingModerationIssues;
+    private long resolvedIssues;
+    private Map<String, Long> issuesByStatus;
+    private Map<String, Long> issuesByModeration;
 
-    // --- Projetos ---
     private long totalProjects;
-    private long publishedProjects;   // status = PUBLISHED
+    private long publishedProjects;
     private long pendingModerationProjects;
-    private Map<String, Long> projectsByStatus;       // project_status -> total
-    private Map<String, Long> projectsByModeration;   // moderation_status -> total
+    private Map<String, Long> projectsByStatus;
+    private Map<String, Long> projectsByModeration;
 
-    // --- Pessoas / engajamento ---
     private long totalUsers;
-    private Map<String, Long> usersByRole;            // user_role -> total
+    private Map<String, Long> usersByRole;
 
-    // --- Métricas derivadas ---
-    /** Percentual de issues aprovadas que estão resolvidas (0..100). */
     private double issueResolutionRate;
 
     public DashboardOverviewDto() {}

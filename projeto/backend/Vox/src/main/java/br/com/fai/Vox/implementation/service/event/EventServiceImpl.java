@@ -49,7 +49,6 @@ public class EventServiceImpl implements EventService {
         int eventId = eventDao.create(entity);
         logger.log(Level.INFO, "Evento criado. ID: " + eventId);
 
-        // Imagem opcional na criação (imagens adicionais via sub-recurso).
         if (dto.getFile() != null && !dto.getFile().isEmpty()) {
             eventImageService.create(eventId, dto.getFile());
         }
@@ -90,7 +89,7 @@ public class EventServiceImpl implements EventService {
         Event entity = new Event();
         entity.setTitle(dto.getTitle());
         entity.setDescription(dto.getDescription());
-        entity.setCategoryId(dto.getCategoryId()); // null preserva a atual (COALESCE no DAO)
+        entity.setCategoryId(dto.getCategoryId());
         entity.setPrice(dto.getPrice());
         entity.setStartDate(dto.getStartDate());
         entity.setEndDate(dto.getEndDate());
@@ -99,7 +98,6 @@ public class EventServiceImpl implements EventService {
         eventDao.update(id, entity);
         logger.log(Level.INFO, "Evento atualizado. ID: " + id);
 
-        // Se veio uma nova imagem no update, adiciona (não remove as existentes).
         if (dto.getFile() != null && !dto.getFile().isEmpty()) {
             eventImageService.create(id, dto.getFile());
         }
@@ -108,7 +106,6 @@ public class EventServiceImpl implements EventService {
     @Override
     public void delete(int id) {
         if (id <= 0) return;
-        // event_image tem ON DELETE CASCADE no banco: as imagens somem junto.
         eventDao.delete(id);
         logger.log(Level.INFO, "Evento removido. ID: " + id);
     }

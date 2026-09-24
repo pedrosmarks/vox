@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.service.issuestatushistory;
+import br.com.fai.Vox.domain.enums.IssueStatusEnum;
 
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.IssueStatusHistory;
@@ -18,7 +19,7 @@ public class IssueStatusHistoryServiceImpl implements IssueStatusHistoryService 
     }
 
     @Override
-    public void recordStatusChange(int issueId, IssueReport.IssueStatus previousStatus, IssueReport.IssueStatus newStatus, int changedBy, String note) {
+    public void recordStatusChange(int issueId, IssueStatusEnum previousStatus, IssueStatusEnum newStatus, int changedBy, String note) {
         IssueStatusHistory history = new IssueStatusHistory();
         history.setIssueId(issueId);
         history.setPreviousStatus(previousStatus);

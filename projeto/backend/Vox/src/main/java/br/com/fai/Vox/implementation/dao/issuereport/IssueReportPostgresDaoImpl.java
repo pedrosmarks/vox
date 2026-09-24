@@ -1,8 +1,9 @@
 package br.com.fai.Vox.implementation.dao.issuereport;
+import br.com.fai.Vox.domain.enums.IssueStatusEnum;
 
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
 import br.com.fai.Vox.port.dao.issuereport.IssueReportDao;
 
 import java.sql.*;
@@ -42,8 +43,8 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
             ps.setString(9, dto.getNumber());
             ps.setBigDecimal(10, dto.getLatitude());
             ps.setBigDecimal(11, dto.getLongitude());
-            ps.setString(12, IssueReport.IssueStatus.OPEN.name());
-            ps.setString(13, ModerationStatus.PENDING.name());
+            ps.setString(12, IssueStatusEnum.OPEN.name());
+            ps.setString(13, ModerationStatusEnum.PENDING.name());
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             int id = 0;
@@ -159,7 +160,7 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     }
 
     @Override
-    public List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus) {
+    public List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatusEnum moderationStatus) {
         final List<IssueReport> list = new ArrayList<>();
         final String sql = "SELECT * FROM issue_report WHERE municipality_id = ? AND moderation_status = CAST(? AS moderation_status) ORDER BY created_at DESC";
         try {
@@ -177,7 +178,7 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     }
 
     @Override
-    public List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus, int limit, int offset) {
+    public List<IssueReport> findByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatusEnum moderationStatus, int limit, int offset) {
         final List<IssueReport> list = new ArrayList<>();
         final String sql = "SELECT * FROM issue_report WHERE municipality_id = ? AND moderation_status = CAST(? AS moderation_status) ORDER BY created_at DESC LIMIT ? OFFSET ?";
         try {
@@ -197,7 +198,7 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     }
 
     @Override
-    public long countByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatus moderationStatus) {
+    public long countByMunicipalityIdAndModerationStatus(int municipalityId, ModerationStatusEnum moderationStatus) {
         final String sql = "SELECT COUNT(*) FROM issue_report WHERE municipality_id = ? AND moderation_status = CAST(? AS moderation_status)";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -215,7 +216,6 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
 
     @Override
     public void update(int id, IssueReport entity) {
-        // category_id só é atualizado quando informado (COALESCE preserva o valor atual se vier null)
         final String sql = "UPDATE issue_report SET category_id = COALESCE(?, category_id), " +
                 "councilor_id = ?, title = ?, description = ?, " +
                 "neighborhood = ?, street = ?, number = ?, latitude = ?, longitude = ?, " +
@@ -264,8 +264,6 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
 
     @Override
     public boolean unassignCouncilor(int issueId, int councilorId, int municipalityId) {
-        // Só desassocia se a denúncia estiver atribuída a ESTE vereador (councilor_id = ?),
-        // garantindo que um vereador não remova a associação de outro.
         final String sql = "UPDATE issue_report SET councilor_id = NULL, updated_at = CURRENT_TIMESTAMP " +
                 "WHERE id = ? AND municipality_id = ? AND councilor_id = ?";
         try {
@@ -282,7 +280,7 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     }
 
     @Override
-    public void updateModerationStatus(int id, ModerationStatus status) {
+    public void updateModerationStatus(int id, ModerationStatusEnum status) {
         final String sql = "UPDATE issue_report SET moderation_status = CAST(? AS moderation_status), updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -296,7 +294,7 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
     }
 
     @Override
-    public void updateStatus(int id, IssueReport.IssueStatus status) {
+    public void updateStatus(int id, IssueStatusEnum status) {
         final String sql = "UPDATE issue_report SET status = CAST(? AS issue_status), updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -325,8 +323,8 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
         entity.setNumber(rs.getString("number"));
         entity.setLatitude(rs.getBigDecimal("latitude"));
         entity.setLongitude(rs.getBigDecimal("longitude"));
-        entity.setStatus(IssueReport.IssueStatus.valueOf(rs.getString("status").toUpperCase()));
-        entity.setModerationStatus(ModerationStatus.valueOf(rs.getString("moderation_status").toUpperCase()));
+        entity.setStatus(IssueStatusEnum.valueOf(rs.getString("status").toUpperCase()));
+        entity.setModerationStatus(ModerationStatusEnum.valueOf(rs.getString("moderation_status").toUpperCase()));
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) entity.setCreatedAt(createdAt.toLocalDateTime());
         Timestamp updatedAt = rs.getTimestamp("updated_at");

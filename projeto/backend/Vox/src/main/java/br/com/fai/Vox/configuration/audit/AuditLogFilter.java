@@ -14,13 +14,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Set;
 
-/**
- * Filtro de auditoria: registra chamadas de escrita (POST/PUT/PATCH/DELETE) e a
- * autenticação (/authenticate). GETs e a documentação (Swagger) são ignorados.
- *
- * <p>Não guarda o corpo da requisição, apenas metadados da atividade. A gravação
- * é assíncrona ({@link AuditLogService#record}) e nunca interrompe a resposta.</p>
- */
 @Profile("jwt")
 @Component
 public class AuditLogFilter extends OncePerRequestFilter {
@@ -52,15 +45,11 @@ public class AuditLogFilter extends OncePerRequestFilter {
                     auditLogService.record(buildEntry(request, response, duration, errorMessage));
                 }
             } catch (Exception auditEx) {
-                // Auditoria jamais deve afetar a resposta ao cliente.
                 logger.warn("Falha ao registrar auditoria da requisição", auditEx);
             }
         }
     }
 
-    /**
-     * Audita apenas mutações e o login. Ignora GET/HEAD/OPTIONS e a documentação.
-     */
     private boolean shouldAudit(HttpServletRequest request) {
         String path = request.getRequestURI();
         if (path != null && (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs")
@@ -71,7 +60,6 @@ public class AuditLogFilter extends OncePerRequestFilter {
         if (AUDITED_METHODS.contains(method)) {
             return true;
         }
-        // Login: POST já é coberto acima; /authenticate é POST, então entra na regra.
         return false;
     }
 
@@ -90,8 +78,6 @@ public class AuditLogFilter extends OncePerRequestFilter {
         log.setUserAgent(truncate(request.getHeader("User-Agent"), 512));
         log.setErrorMessage(truncate(errorMessage, 1024));
 
-        // Usuário: extraído diretamente do token (quando presente e válido).
-        // Chamadas não autenticadas (login, forgot-password) ficam com user nulo.
         populateUserFromToken(request, log);
         return log;
     }
@@ -108,14 +94,12 @@ public class AuditLogFilter extends OncePerRequestFilter {
             Object role = jwtService.getAllClaimsFromToken(token).get("role");
             if (role != null) log.setUserRole(role.toString());
         } catch (Exception ignored) {
-            // Token ausente, expirado ou inválido: registra sem identificação de usuário.
         }
     }
 
     private String resolveClientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
-            // Primeiro IP da cadeia é o cliente original.
             int comma = forwarded.indexOf(',');
             return comma > 0 ? forwarded.substring(0, comma).trim() : forwarded.trim();
         }
