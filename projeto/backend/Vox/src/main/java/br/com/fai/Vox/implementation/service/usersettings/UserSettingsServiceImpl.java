@@ -24,7 +24,6 @@ public class UserSettingsServiceImpl implements UserSettingsService {
 
         UserSettings settings = userSettingsDao.findByUserId(userId);
 
-        // Se o usuário ainda não tem configurações, retorna o padrão sem persistir
         if (settings == null) {
             settings = new UserSettings();
             settings.setUserId(userId);
@@ -37,11 +36,6 @@ public class UserSettingsServiceImpl implements UserSettingsService {
     @Override
     public void update(int userId, UpdateUserSettingsDto dto) {
         if (userId <= 0 || dto == null) return;
-
-        // Regra de negócio: apenas um modo pode estar ativo por vez.
-        // O fontSize pode ser alterado junto com qualquer modo.
-        // A validação de conflito de modos é responsabilidade do front,
-        // mas garantimos que o valor recebido seja um dos modos válidos via Bean Validation no DTO.
 
         UserSettings settings = new UserSettings();
         settings.setUserId(userId);

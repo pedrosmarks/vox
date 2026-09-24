@@ -47,7 +47,7 @@ class CitizenWeeklyLimitServiceTest {
 
     @Test
     void projectService_rejectsCitizenWhenWeeklyLimitReached() {
-        ProjectService service = new ProjectServiceImpl(projectDao, projectImageDao, cloudinaryService, projectStatusHistoryService);
+        ProjectService service = new ProjectServiceImpl(projectDao, projectImageDao, cloudinaryService, projectStatusHistoryService, notificationService, subscriptionService);
 
         when(projectDao.countCreatedInLastWeek(10)).thenReturn(3L);
 
@@ -56,7 +56,7 @@ class CitizenWeeklyLimitServiceTest {
 
     @Test
     void projectService_allowsCitizenBelowWeeklyLimit() {
-        ProjectService service = new ProjectServiceImpl(projectDao, projectImageDao, cloudinaryService, projectStatusHistoryService);
+        ProjectService service = new ProjectServiceImpl(projectDao, projectImageDao, cloudinaryService, projectStatusHistoryService, notificationService, subscriptionService);
 
         when(projectDao.countCreatedInLastWeek(10)).thenReturn(2L);
 

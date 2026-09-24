@@ -95,10 +95,6 @@ class ConferenceRoomServiceTest {
         otherModeratorUser.setMunicipalityId(100);
     }
 
-    // =============================
-    // Criação de sala
-    // =============================
-
     @Test
     @DisplayName("Criar sala com dados válidos deve retornar ID positivo")
     void createRoom_validData_returnsId() {
@@ -125,10 +121,6 @@ class ConferenceRoomServiceTest {
                 () -> service.create(dto, MODERATOR_ID, 100));
         verifyNoInteractions(conferenceRoomDao);
     }
-
-    // =============================
-    // Controle de acesso à sala
-    // =============================
 
     @Test
     @DisplayName("Moderador da sala pode encerrá-la")
@@ -170,10 +162,6 @@ class ConferenceRoomServiceTest {
         assertThrows(SecurityException.class,
                 () -> service.delete(ROOM_ID, OTHER_MODERATOR_ID));
     }
-
-    // =============================
-    // Solicitação de entrada
-    // =============================
 
     @Test
     @DisplayName("Cidadão pode solicitar entrada em sala aberta")
@@ -224,10 +212,6 @@ class ConferenceRoomServiceTest {
         verify(roomParticipantDao).updateSpeechRequestStatus(
                 50, SpeechRequestStatusEnum.PENDING);
     }
-
-    // =============================
-    // Aprovação / Rejeição
-    // =============================
 
     @Test
     @DisplayName("Moderador pode aprovar solicitação PENDING")
@@ -311,10 +295,6 @@ class ConferenceRoomServiceTest {
             50, SpeechRequestStatusEnum.REJECTED);
         }
 
-    // =============================
-    // Controle de microfone
-    // =============================
-
     @Test
     @DisplayName("Moderador pode liberar microfone de participante aprovado")
     void enableMicrophone_approvedParticipant_succeeds() {
@@ -361,17 +341,13 @@ class ConferenceRoomServiceTest {
                 () -> service.enableMicrophone(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
     }
 
-    // =============================
-    // Controle de câmera
-    // =============================
-
     @Test
     @DisplayName("Moderador pode liberar câmera sem afetar estado do microfone")
     void enableCamera_doesNotChangeAudioPermission() {
         RoomParticipant approved = new RoomParticipant();
         approved.setId(50);
         approved.setStatus(ParticipantStatusEnum.APPROVED);
-        approved.setCanPublishAudio(true);  // já tinha áudio liberado
+        approved.setCanPublishAudio(true);
         approved.setCanPublishVideo(false);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
@@ -381,7 +357,6 @@ class ConferenceRoomServiceTest {
 
         assertDoesNotThrow(() -> service.enableCamera(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
 
-        // Áudio deve continuar true, vídeo deve virar true
         verify(roomParticipantDao).updatePermissions(50, true, true);
         verify(liveKitService).updateParticipantPermissions("room_" + ROOM_ID, String.valueOf(CITIZEN_ID), true, true);
     }
@@ -392,8 +367,8 @@ class ConferenceRoomServiceTest {
         RoomParticipant approved = new RoomParticipant();
         approved.setId(50);
         approved.setStatus(ParticipantStatusEnum.APPROVED);
-        approved.setCanPublishAudio(true);  // áudio liberado
-        approved.setCanPublishVideo(true);  // câmera liberada
+        approved.setCanPublishAudio(true);
+        approved.setCanPublishVideo(true);
 
         when(conferenceRoomDao.findById(ROOM_ID)).thenReturn(openRoom);
         when(userService.findByid(MODERATOR_ID)).thenReturn(moderatorUser);
@@ -402,14 +377,9 @@ class ConferenceRoomServiceTest {
 
         assertDoesNotThrow(() -> service.disableCamera(ROOM_ID, CITIZEN_ID, MODERATOR_ID));
 
-        // Áudio deve continuar true, vídeo deve virar false
         verify(roomParticipantDao).updatePermissions(50, true, false);
         verify(liveKitService).updateParticipantPermissions("room_" + ROOM_ID, String.valueOf(CITIZEN_ID), true, false);
     }
-
-    // =============================
-    // Expulsão
-    // =============================
 
     @Test
     @DisplayName("Moderador pode expulsar participante da sala")
@@ -439,10 +409,6 @@ class ConferenceRoomServiceTest {
                 () -> service.removeParticipant(ROOM_ID, CITIZEN_ID, CITIZEN_ID));
         verify(roomParticipantDao, never()).updateStatus(anyInt(), any());
     }
-
-    // =============================
-    // Geração de token LiveKit
-    // =============================
 
     @Test
     @DisplayName("Moderador da sala recebe token com permissões completas")

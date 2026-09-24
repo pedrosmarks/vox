@@ -13,16 +13,6 @@ import br.com.fai.Vox.domain.dto.dashboard.TimeSeriesDto;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Serviço do painel administrativo. Todas as operações são escopadas ao
- * município informado (obtido do token do administrador no controller).
- *
- * <p>Os parâmetros {@code from} e {@code to} delimitam o intervalo de datas
- * (sobre {@code created_at}) considerado nas agregações. Ambos são opcionais:
- * o caso de uso típico é informar apenas {@code from} (ex.: início do último
- * mês/semana/bimestre) para buscar tudo daquela data até hoje. Quando ambos
- * são {@code null}, nenhum filtro de data é aplicado.</p>
- */
 public interface DashboardService {
 
     DashboardOverviewDto getOverview(int municipalityId, LocalDate from, LocalDate to);
@@ -39,11 +29,6 @@ public interface DashboardService {
 
     CategoryAnalysisDto getCategoryAnalysis(int municipalityId, LocalDate from, LocalDate to);
 
-    /**
-     * Séries temporais de criação de issues e projetos.
-     *
-     * @param granularity {@code day}, {@code week} ou {@code month} (padrão {@code day} quando nulo)
-     */
     TimeSeriesDto getTimeSeries(int municipalityId, String granularity, LocalDate from, LocalDate to);
 
     ProjectLifecycleDto getProjectLifecycle(int municipalityId, LocalDate from, LocalDate to);

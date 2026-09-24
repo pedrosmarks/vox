@@ -127,15 +127,13 @@ public class SubscriptionPostgresDaoImpl implements SubscriptionDao {
         }
     }
 
-    // --- Helpers ---
-
     private String resolveColumn(SubscriptionTypeEnum type) {
         return switch (type) {
             case PROJECT -> "project_id";
             case ISSUE -> "issue_id";
             case CATEGORY -> "category_id";
             case COUNCILOR -> "councilor_id";
-            default -> null; // ALL_PROJECTS, ALL_ISSUES não têm coluna alvo
+            default -> null;
         };
     }
 

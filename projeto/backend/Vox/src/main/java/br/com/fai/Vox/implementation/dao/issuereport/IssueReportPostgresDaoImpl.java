@@ -216,7 +216,6 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
 
     @Override
     public void update(int id, IssueReport entity) {
-        // category_id só é atualizado quando informado (COALESCE preserva o valor atual se vier null)
         final String sql = "UPDATE issue_report SET category_id = COALESCE(?, category_id), " +
                 "councilor_id = ?, title = ?, description = ?, " +
                 "neighborhood = ?, street = ?, number = ?, latitude = ?, longitude = ?, " +
@@ -265,8 +264,6 @@ public class IssueReportPostgresDaoImpl implements IssueReportDao {
 
     @Override
     public boolean unassignCouncilor(int issueId, int councilorId, int municipalityId) {
-        // Só desassocia se a denúncia estiver atribuída a ESTE vereador (councilor_id = ?),
-        // garantindo que um vereador não remova a associação de outro.
         final String sql = "UPDATE issue_report SET councilor_id = NULL, updated_at = CURRENT_TIMESTAMP " +
                 "WHERE id = ? AND municipality_id = ? AND councilor_id = ?";
         try {

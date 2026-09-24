@@ -14,10 +14,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
-/**
- * CRUD de categorias de evento. Leitura pública; escrita restrita a
- * MODERATOR/ADMINISTRATOR.
- */
 @RestController
 @RequestMapping("/api/event-categories")
 public class EventCategoryRestController {

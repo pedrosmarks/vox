@@ -14,10 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
-/**
- * Consulta dos logs de auditoria. Restrito a ADMINISTRATOR e sempre escopado ao
- * município do administrador autenticado (via token).
- */
 @RestController
 @RequestMapping("/api/admin/logs")
 public class AuditLogRestController {
@@ -34,15 +30,6 @@ public class AuditLogRestController {
         this.authHelper = authHelper;
     }
 
-    /**
-     * GET /api/admin/logs?page=0&size=20&userId=7&method=POST&from=2026-09-01&to=2026-09-16
-     * Lista os registros de auditoria do município, ordenados do mais recente.
-     *
-     * @param userId filtra por usuário (opcional)
-     * @param method filtra por método HTTP: POST, PUT, PATCH ou DELETE (opcional)
-     * @param from   limite inferior de data (opcional, ISO yyyy-MM-dd)
-     * @param to     limite superior de data (opcional, ISO yyyy-MM-dd)
-     */
     @GetMapping
     public ResponseEntity<PageResponse<AuditLog>> find(
             @RequestParam(defaultValue = "0") int page,

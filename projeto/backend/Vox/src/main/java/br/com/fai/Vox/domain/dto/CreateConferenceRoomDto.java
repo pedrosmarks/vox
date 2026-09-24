@@ -13,7 +13,6 @@ public class CreateConferenceRoomDto {
 
     private String description;
 
-    // Preenchido pelo backend via token JWT
     private Integer moderatorId;
     private Integer municipalityId;
 

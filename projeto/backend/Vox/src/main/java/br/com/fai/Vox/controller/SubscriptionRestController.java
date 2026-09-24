@@ -29,8 +29,6 @@ public class SubscriptionRestController {
         return ResponseEntity.ok(subscriptionService.findByUserId(userId));
     }
 
-    // --- ALL PROJECTS ---
-
     @PostMapping("/all-projects")
     public ResponseEntity<Void> subscribeAllProjects(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
@@ -45,8 +43,6 @@ public class SubscriptionRestController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- ALL ISSUES ---
-
     @PostMapping("/all-issues")
     public ResponseEntity<Void> subscribeAllIssues(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
@@ -60,8 +56,6 @@ public class SubscriptionRestController {
         subscriptionService.unsubscribe(userId, SubscriptionTypeEnum.ALL_ISSUES, null);
         return ResponseEntity.noContent().build();
     }
-
-    // --- PROJECTS ---
 
     @PostMapping("/projects/{projectId}")
     public ResponseEntity<Void> subscribeProject(@PathVariable final int projectId,
@@ -79,8 +73,6 @@ public class SubscriptionRestController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- ISSUES ---
-
     @PostMapping("/issues/{issueId}")
     public ResponseEntity<Void> subscribeIssue(@PathVariable final int issueId,
                                                 HttpServletRequest request) {
@@ -97,8 +89,6 @@ public class SubscriptionRestController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- CATEGORIES ---
-
     @PostMapping("/categories/{categoryId}")
     public ResponseEntity<Void> subscribeCategory(@PathVariable final int categoryId,
                                                     HttpServletRequest request) {
@@ -114,8 +104,6 @@ public class SubscriptionRestController {
         subscriptionService.unsubscribe(userId, SubscriptionTypeEnum.CATEGORY, categoryId);
         return ResponseEntity.noContent().build();
     }
-
-    // --- COUNCILORS ---
 
     @PostMapping("/councilors/{councilorId}")
     public ResponseEntity<Void> subscribeCouncilor(@PathVariable final int councilorId,

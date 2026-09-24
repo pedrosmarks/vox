@@ -31,10 +31,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         this.connection = connection;
     }
 
-    // =========================================================
-    // OVERVIEW / KPIs
-    // =========================================================
-
     @Override
     public DashboardOverviewDto getOverview(int municipalityId, DateRangeFilter dateRange) {
         DashboardOverviewDto dto = new DashboardOverviewDto();
@@ -85,14 +81,8 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         return dto;
     }
 
-    // =========================================================
-    // MAPA - ZONAS QUENTES POR COORDENADA
-    // =========================================================
-
     @Override
     public List<MapPointDto> getMapHotspots(int municipalityId, int precision, DateRangeFilter dateRange) {
-        // Quantiza as coordenadas em uma grade arredondando por 'precision' casas.
-        // Considera apenas registros aprovados na moderação (visão pública).
         final String sql =
                 "SELECT lat, lng, " +
                 "       SUM(CASE WHEN src = 'issue' THEN 1 ELSE 0 END) AS issue_count, " +
@@ -135,10 +125,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         }
         return points;
     }
-
-    // =========================================================
-    // MAPA - ZONAS QUENTES POR BAIRRO
-    // =========================================================
 
     @Override
     public List<NeighborhoodHotspotDto> getNeighborhoodHotspots(int municipalityId, DateRangeFilter dateRange) {
@@ -203,10 +189,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         return new HotspotDetailDto(issues, projects);
     }
 
-    // =========================================================
-    // SAÚDE DA MODERAÇÃO
-    // =========================================================
-
     @Override
     public ModerationHealthDto getModerationHealth(int municipalityId, DateRangeFilter dateRange) {
         ModerationHealthDto dto = new ModerationHealthDto();
@@ -266,7 +248,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
     }
 
     private List<ModerationHealthDto.ModeratorStatDto> fetchTopModerators(int municipalityId, DateRangeFilter dateRange) {
-        // Une decisões de issues e projetos por moderador, escopado ao município.
         final String sql =
                 "SELECT u.id AS moderator_id, u.name AS moderator_name, COUNT(*) AS decisions FROM ( " +
                 "   SELECT m.moderator_id FROM issue_moderation m JOIN issue_report i ON i.id = m.issue_id " +
@@ -301,16 +282,10 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         return list;
     }
 
-    // =========================================================
-    // ENGAJAMENTO CIDADÃO
-    // =========================================================
-
     @Override
     public EngagementDto getEngagement(int municipalityId, DateRangeFilter dateRange) {
         EngagementDto dto = new EngagementDto();
 
-        // Projetos mais assinados (project_signature). O filtro de data é sobre a
-        // assinatura (s.created_at), medindo apoios no período.
         dto.setTopSignedProjects(fetchRankedProjects(
                 "SELECT p.id AS project_id, p.title AS title, COUNT(s.id) AS c " +
                 "FROM project p JOIN project_signature s ON s.project_id = p.id " +
@@ -318,7 +293,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
                 "GROUP BY p.id, p.title ORDER BY c DESC LIMIT 10",
                 municipalityId, dateRange));
 
-        // Projetos mais opinados (project_opinion), por volume de opiniões no período.
         dto.setTopOpinedProjects(fetchRankedProjects(
                 "SELECT p.id AS project_id, p.title AS title, COUNT(o.id) AS c " +
                 "FROM project p JOIN project_opinion o ON o.project_id = p.id " +
@@ -326,7 +300,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
                 "GROUP BY p.id, p.title ORDER BY c DESC LIMIT 10",
                 municipalityId, dateRange));
 
-        // Distribuição global de opiniões por tipo (APPROVE, NEUTRAL) no município.
         dto.setOpinionDistribution(countGroupBy(
                 "SELECT o.opinion::text AS k, COUNT(*) AS c " +
                 "FROM project_opinion o JOIN project p ON p.id = o.project_id " +
@@ -334,7 +307,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
                 "GROUP BY o.opinion",
                 municipalityId, dateRange));
 
-        // Ocorrências mais acompanhadas (subscription do tipo ISSUE).
         dto.setTopFollowedIssues(fetchRankedIssues(
                 "SELECT i.id AS issue_id, i.title AS title, COUNT(s.id) AS c " +
                 "FROM issue_report i JOIN subscription s ON s.issue_id = i.id AND s.type = 'ISSUE' " +
@@ -342,7 +314,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
                 "GROUP BY i.id, i.title ORDER BY c DESC LIMIT 10",
                 municipalityId, dateRange));
 
-        // Usuários mais ativos: soma de projetos + issues criados no período.
         dto.setTopActiveUsers(fetchActiveUsers(municipalityId, dateRange));
 
         return dto;
@@ -387,7 +358,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
     }
 
     private List<EngagementDto.ActiveUserDto> fetchActiveUsers(int municipalityId, DateRangeFilter dateRange) {
-        // Une contagens de projetos e issues por autor, escopado ao município.
         final String sql =
                 "SELECT u.id AS user_id, u.name AS user_name, " +
                 "       SUM(CASE WHEN src = 'project' THEN 1 ELSE 0 END) AS projects_created, " +
@@ -423,17 +393,11 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         return list;
     }
 
-    // =========================================================
-    // ANÁLISE POR CATEGORIA
-    // =========================================================
-
     @Override
     public CategoryAnalysisDto getCategoryAnalysis(int municipalityId, DateRangeFilter dateRange) {
-        // Contagens agregadas de issues e projetos por categoria.
-        Map<Integer, long[]> counts = new LinkedHashMap<>(); // categoryId -> [issueCount, projectCount, openIssues]
+        Map<Integer, long[]> counts = new LinkedHashMap<>();
         Map<Integer, String> names = new LinkedHashMap<>();
 
-        // Issues por categoria (total e abertas).
         final String issueSql =
                 "SELECT c.id AS category_id, c.name AS category_name, COUNT(i.id) AS total, " +
                 "       SUM(CASE WHEN i.status = 'OPEN' THEN 1 ELSE 0 END) AS open_count " +
@@ -457,7 +421,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
             throw new RuntimeException(e);
         }
 
-        // Projetos por categoria.
         final String projectSql =
                 "SELECT c.id AS category_id, c.name AS category_name, COUNT(p.id) AS total " +
                 "FROM category c JOIN project p ON p.category_id = c.id " +
@@ -479,7 +442,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
             throw new RuntimeException(e);
         }
 
-        // Cruzamento categoria × status (issues e projetos).
         Map<Integer, Map<String, Long>> issuesByStatus = categoryStatusBreakdown(
                 "SELECT i.category_id AS category_id, i.status::text AS st, COUNT(*) AS c " +
                 "FROM issue_report i WHERE i.municipality_id = ?" + dateClause("i.created_at", dateRange) + " " +
@@ -502,7 +464,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
             stat.setProjectsByStatus(projectsByStatus.getOrDefault(catId, new LinkedHashMap<>()));
             categories.add(stat);
         }
-        // Ordena por total (issues + projetos) desc.
         categories.sort((a, b) -> Long.compare(b.getTotal(), a.getTotal()));
 
         return new CategoryAnalysisDto(categories);
@@ -528,14 +489,8 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         return result;
     }
 
-    // =========================================================
-    // SÉRIES TEMPORAIS
-    // =========================================================
-
     @Override
     public TimeSeriesDto getTimeSeries(int municipalityId, String granularity, DateRangeFilter dateRange) {
-        // 'granularity' já vem validado pelo service (day|week|month) e é usado
-        // diretamente como unidade do date_trunc — nunca é entrada crua do usuário.
         final String sql =
                 "SELECT to_char(period, 'YYYY-MM-DD') AS period, " +
                 "       SUM(CASE WHEN src = 'issue' THEN 1 ELSE 0 END) AS issue_count, " +
@@ -569,23 +524,15 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         return new TimeSeriesDto(granularity, points);
     }
 
-    // =========================================================
-    // CICLO DE VIDA DOS PROJETOS
-    // =========================================================
-
     @Override
     public ProjectLifecycleDto getProjectLifecycle(int municipalityId, DateRangeFilter dateRange) {
         ProjectLifecycleDto dto = new ProjectLifecycleDto();
 
-        // Distribuição de projetos por status.
         dto.setProjectsByStatus(countGroupBy(
                 "SELECT status::text AS k, COUNT(*) AS c FROM project WHERE municipality_id = ?"
                         + dateClause("created_at", dateRange) + " GROUP BY status",
                 municipalityId, dateRange));
 
-        // Tempo médio (horas) em cada etapa: diferença entre transições consecutivas
-        // no histórico. Usa LEAD para pegar o created_at da próxima transição do
-        // mesmo projeto; a etapa é o previous_status da transição atual.
         final String stageSql =
                 "SELECT status, AVG(hours) AS avg_hours FROM ( " +
                 "   SELECT h.previous_status::text AS status, " +
@@ -613,7 +560,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         }
         dto.setAvgTimePerStage(stages);
 
-        // Execução orçamentária: soma de estimated_cost e approved_budget.
         final String budgetSql =
                 "SELECT COALESCE(SUM(estimated_cost), 0) AS est, COALESCE(SUM(approved_budget), 0) AS appr " +
                 "FROM project WHERE municipality_id = ?" + dateClause("created_at", dateRange);
@@ -642,14 +588,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         return dto;
     }
 
-    // =========================================================
-    // HELPERS
-    // =========================================================
-
-    /**
-     * Monta a cláusula SQL de intervalo de datas (com AND inicial) para a coluna
-     * informada. Retorna string vazia quando não há limites definidos.
-     */
     private static String dateClause(String column, DateRangeFilter dateRange) {
         if (dateRange == null || !dateRange.hasAnyBound()) {
             return "";
@@ -664,12 +602,6 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
         return sb.toString();
     }
 
-    /**
-     * Vincula os parâmetros do intervalo de datas na ordem em que
-     * {@link #dateClause(String, DateRangeFilter)} os adicionou.
-     *
-     * @return o próximo índice de parâmetro disponível
-     */
     private static int bindDateRange(PreparedStatement ps, int startIndex, DateRangeFilter dateRange) throws SQLException {
         int idx = startIndex;
         if (dateRange == null || !dateRange.hasAnyBound()) {

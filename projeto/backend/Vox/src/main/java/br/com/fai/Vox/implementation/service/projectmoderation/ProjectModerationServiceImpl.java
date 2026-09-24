@@ -74,7 +74,6 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         project.setStatus(ProjectStatusEnum.PUBLISHED);
         projectDao.update(projectId, project);
 
-        // Registrar no histórico para que o feedback fique recuperável via GET .../history
         projectStatusHistoryService.recordStatusChange(
                 projectId, previousStatus, ProjectStatusEnum.PUBLISHED, moderatorId, feedback);
 
@@ -87,13 +86,11 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
 
         logger.log(Level.INFO, "Projeto aprovado. ID: " + projectId);
 
-        // Notificar autor
         notificationService.send(project.getAuthorId(),
                 "Projeto aprovado",
                 "Seu projeto \"" + project.getTitle() + "\" foi aprovado.",
                 NotificationTypeEnum.PROJECT_STATUS_CHANGED);
 
-        // Notificar assinantes de ALL_PROJECTS
         List<Integer> allSubs = subscriptionService.findSubscriberUserIds(
                 SubscriptionTypeEnum.ALL_PROJECTS, null);
         for (int userId : allSubs) {
@@ -103,7 +100,6 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
                     NotificationTypeEnum.PROJECT_CREATED);
         }
 
-        // Notificar assinantes da categoria
         if (project.getCategoryId() != null) {
             List<Integer> catSubs = subscriptionService.findSubscriberUserIds(
                     SubscriptionTypeEnum.CATEGORY, project.getCategoryId());
@@ -115,7 +111,6 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
             }
         }
 
-        // Notificar assinantes do vereador autor (se for COUNCILOR)
         List<Integer> councilorSubs = subscriptionService.findSubscriberUserIds(
                 SubscriptionTypeEnum.COUNCILOR, project.getAuthorId());
         for (int userId : councilorSubs) {
@@ -138,7 +133,6 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         project.setStatus(ProjectStatusEnum.REJECTED);
         projectDao.update(projectId, project);
 
-        // Registrar no histórico para que o motivo da rejeição fique recuperável via GET .../history
         projectStatusHistoryService.recordStatusChange(
                 projectId, previousStatus, ProjectStatusEnum.REJECTED, moderatorId, feedback);
 
@@ -151,7 +145,6 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
 
         logger.log(Level.INFO, "Projeto rejeitado. ID: " + projectId);
 
-        // Notificar autor
         notificationService.send(project.getAuthorId(),
                 "Projeto rejeitado",
                 "Seu projeto \"" + project.getTitle() + "\" foi rejeitado. Motivo: " + feedback,
@@ -169,13 +162,11 @@ public class ProjectModerationServiceImpl implements ProjectModerationService {
         existing.setStatus(status);
         projectDao.update(projectId, existing);
 
-        // Notificar autor
         notificationService.send(existing.getAuthorId(),
                 "Status do projeto atualizado",
                 "O status do projeto \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
                 NotificationTypeEnum.PROJECT_STATUS_CHANGED);
 
-        // Notificar assinantes do projeto
         List<Integer> projectSubs = subscriptionService.findSubscriberUserIds(
                 SubscriptionTypeEnum.PROJECT, projectId);
         for (int userId : projectSubs) {

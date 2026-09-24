@@ -5,10 +5,6 @@ import lombok.Setter;
 
 import java.util.List;
 
-/**
- * Detalhe de uma zona (bairro ou célula de coordenada) exibido no drill-down
- * do mapa: lista de issues e projetos daquela região.
- */
 @Getter
 @Setter
 public class HotspotDetailDto {
@@ -23,9 +19,6 @@ public class HotspotDetailDto {
         this.projects = projects;
     }
 
-    /**
-     * Item resumido (issue ou projeto) para exibição na lista do drill-down.
-     */
     @Getter
     @Setter
     public static class HotspotItemDto {

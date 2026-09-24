@@ -47,7 +47,6 @@ public class LiveKitServiceImpl implements LiveKitService {
                 || user.getRole() == UserRoleEnum.ADMINISTRATOR;
 
         if (isModerator) {
-            // Moderador: entra na sala, publica tudo, assina tudo, administra
             token.addGrants(
                     new RoomJoin(true),
                     new RoomName(roomName),
@@ -57,7 +56,6 @@ public class LiveKitServiceImpl implements LiveKitService {
                     new RoomAdmin(true)
             );
         } else {
-            // Cidadão: entra na sala, assina tudo, publica somente o que o moderador liberou
             boolean canPublishAudio = Boolean.TRUE.equals(participant.getCanPublishAudio());
             boolean canPublishVideo = Boolean.TRUE.equals(participant.getCanPublishVideo());
 
@@ -95,7 +93,6 @@ public class LiveKitServiceImpl implements LiveKitService {
                 logger.log(Level.INFO, "Sala criada no LiveKit: " + roomName);
             }
         } catch (IOException e) {
-            // Sala pode ser criada automaticamente pelo LiveKit na primeira conexão
             logger.log(Level.WARNING, "Erro de comunicação ao criar sala no LiveKit (não crítico): "
                     + e.getMessage());
         }
@@ -115,7 +112,6 @@ public class LiveKitServiceImpl implements LiveKitService {
                         + " identity=" + participantIdentity);
             }
         } catch (IOException e) {
-            // Participante pode não estar conectado — não é erro crítico
             logger.log(Level.INFO, "Participante não encontrado no LiveKit ao remover "
                     + "(pode não estar conectado): " + participantIdentity);
         }
@@ -136,10 +132,10 @@ public class LiveKitServiceImpl implements LiveKitService {
             Call<LivekitModels.ParticipantInfo> call = roomServiceClient.updateParticipant(
                     roomName,
                     participantIdentity,
-                    null,   // name — sem alteração
-                    null,   // metadata — sem alteração
+                    null,
+                    null,
                     permission,
-                    null    // attributes — sem alteração
+                    null
             );
             Response<LivekitModels.ParticipantInfo> response = call.execute();
 
@@ -156,7 +152,6 @@ public class LiveKitServiceImpl implements LiveKitService {
                     + " canPublishVideo=" + canPublishVideo);
 
         } catch (IOException e) {
-            // Participante pode não estar conectado — as permissões serão aplicadas via token na reconexão
             logger.log(Level.INFO, "Participante não conectado ao LiveKit durante atualização "
                     + "de permissões: " + participantIdentity);
         }

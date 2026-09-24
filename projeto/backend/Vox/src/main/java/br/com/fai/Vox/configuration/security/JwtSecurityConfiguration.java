@@ -48,8 +48,6 @@ public class JwtSecurityConfiguration extends BasicSecurityConfiguration {
                                 .requestMatchers("/api/councilor/**").hasAuthority("ADMINISTRATOR")
                                 .requestMatchers("/api/salas/**").authenticated()
                                 .requestMatchers("/api/municipality/**").permitAll()
-                                // Eventos: leitura pública (qualquer um vê eventos de qualquer município);
-                                // a escrita é autenticada e a role (MODERATOR/ADMINISTRATOR) é validada no controller.
                                 .requestMatchers(HttpMethod.GET, "/api/events/**", "/api/event-categories/**").permitAll()
                                 .anyRequest().authenticated()
                 )

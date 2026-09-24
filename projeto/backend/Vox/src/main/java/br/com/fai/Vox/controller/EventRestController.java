@@ -25,11 +25,6 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * CRUD de eventos. Leitura pública (qualquer usuário vê eventos de qualquer
- * município). Criação, edição e exclusão restritas a MODERATOR/ADMINISTRATOR.
- * Eventos não passam por moderação.
- */
 @RestController
 @RequestMapping("/api/events")
 public class EventRestController {
@@ -49,13 +44,6 @@ public class EventRestController {
         this.authHelper = authHelper;
     }
 
-    // --- Leitura pública ---
-
-    /**
-     * GET /api/events — listagem pública paginada com filtros opcionais:
-     * categoryId, municipalityId, search, minPrice, maxPrice, free, hasImage,
-     * startFrom, startTo, page, size.
-     */
     @GetMapping
     public ResponseEntity<PageResponse<Event>> find(
             @RequestParam(required = false) Integer categoryId,
@@ -96,8 +84,6 @@ public class EventRestController {
     public ResponseEntity<List<EventImage>> getImages(@PathVariable final int id) {
         return ResponseEntity.ok(eventImageService.findByEventId(id));
     }
-
-    // --- Escrita (MODERATOR/ADMINISTRATOR) ---
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<Void> create(@Valid @ModelAttribute final CreateEventDto data,

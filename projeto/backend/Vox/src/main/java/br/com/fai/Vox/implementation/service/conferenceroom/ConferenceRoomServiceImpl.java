@@ -149,14 +149,10 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         RoomParticipant participant = getApprovedParticipantInRoom(roomId, userId);
         SpeechRequestStatusEnum status = participant.getSpeechRequestStatus();
 
-        // Só bloqueia se já houver um pedido pendente (evita duplicar na fila do moderador).
-        // NOT_REQUESTED, REJECTED e APPROVED podem reabrir uma nova solicitação.
         if (status == SpeechRequestStatusEnum.PENDING) {
             throw new IllegalArgumentException("Já existe uma solicitação de fala pendente");
         }
 
-        // Ao reabrir o pedido, zera permissões e propaga ao LiveKit para que o cidadão
-        // não continue publicando áudio/vídeo enquanto aguarda nova aprovação.
         boolean hadPermissions = Boolean.TRUE.equals(participant.getCanPublishAudio())
                 || Boolean.TRUE.equals(participant.getCanPublishVideo());
         if (hadPermissions) {
@@ -234,7 +230,6 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         boolean previousAudio = Boolean.TRUE.equals(participant.getCanPublishAudio());
         boolean previousVideo = Boolean.TRUE.equals(participant.getCanPublishVideo());
 
-        // Encerra a aprovação da fala e bloqueia microfone e câmera.
         roomParticipantDao.updateSpeechRequestStatus(
                 participant.getId(), SpeechRequestStatusEnum.REJECTED);
         roomParticipantDao.updatePermissions(participant.getId(), false, false);
@@ -243,7 +238,6 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
             liveKitService.updateParticipantPermissions(
                     buildRoomName(roomId), String.valueOf(participantId), false, false);
         } catch (RuntimeException e) {
-            // Rollback do banco caso o LiveKit falhe
             roomParticipantDao.updateSpeechRequestStatus(
                     participant.getId(), SpeechRequestStatusEnum.APPROVED);
             roomParticipantDao.updatePermissions(participant.getId(), previousAudio, previousVideo);
@@ -271,7 +265,6 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
                     newCanPublishVideo
             );
         } catch (RuntimeException e) {
-            // Rollback do estado no banco
             roomParticipantDao.updatePermissions(participant.getId(),
                     Boolean.TRUE.equals(participant.getCanPublishAudio()), newCanPublishVideo);
             throw new RuntimeException("Falha ao liberar microfone no LiveKit: " + e.getMessage());
@@ -303,7 +296,6 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
             throw new RuntimeException("Falha ao bloquear microfone no LiveKit: " + e.getMessage());
         }
 
-        // Se microfone e câmera ficaram ambos bloqueados, encerra a aprovação de fala.
         endSpeechApprovalIfFullyMuted(participant.getId(), false, currentCanPublishVideo,
                 participant.getSpeechRequestStatus());
 
@@ -359,18 +351,12 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
             throw new RuntimeException("Falha ao bloquear câmera no LiveKit: " + e.getMessage());
         }
 
-        // Se microfone e câmera ficaram ambos bloqueados, encerra a aprovação de fala.
         endSpeechApprovalIfFullyMuted(participant.getId(), currentCanPublishAudio, false,
                 participant.getSpeechRequestStatus());
 
         logger.log(Level.INFO, "Câmera bloqueada. roomId=" + roomId + " userId=" + participantId);
     }
 
-    /**
-     * Quando áudio e vídeo ficam ambos bloqueados e a fala estava aprovada,
-     * encerra a aprovação (volta o status para REJECTED) para manter a máquina
-     * de estados coerente e permitir um novo pedido de fala depois.
-     */
     private void endSpeechApprovalIfFullyMuted(int participantId, boolean canPublishAudio,
                                                 boolean canPublishVideo,
                                                 SpeechRequestStatusEnum currentSpeechStatus) {
@@ -390,7 +376,6 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
 
         roomParticipantDao.updateStatus(participant.getId(), ParticipantStatusEnum.REMOVED);
 
-        // Tenta remover do LiveKit - se falhar (participante desconectado), não é erro crítico
         liveKitService.removeParticipant(buildRoomName(roomId), String.valueOf(participantId));
 
         logger.log(Level.INFO, "Participante removido da sala. roomId=" + roomId + " userId=" + participantId);
@@ -420,11 +405,9 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
                 throw new SecurityException("Acesso negado: participante não aprovado para esta sala");
             }
         } else {
-            // Moderador: verifica se é o dono da sala ou ADMINISTRATOR
             if (user.getRole() == UserRoleEnum.MODERATOR && !room.getModeratorId().equals(userId)) {
                 throw new SecurityException("Acesso negado: você não é o moderador desta sala");
             }
-            // Cria um participante fictício com permissões completas para o moderador
             participant = new RoomParticipant();
             participant.setCanPublishAudio(true);
             participant.setCanPublishVideo(true);
@@ -434,8 +417,6 @@ public class ConferenceRoomServiceImpl implements ConferenceRoomService {
         logger.log(Level.INFO, "Token LiveKit gerado. roomId=" + roomId + " userId=" + userId);
         return token;
     }
-
-    // --- Helpers privados ---
 
     private ConferenceRoom getExistingRoom(int roomId) {
         ConferenceRoom room = conferenceRoomDao.findById(roomId);

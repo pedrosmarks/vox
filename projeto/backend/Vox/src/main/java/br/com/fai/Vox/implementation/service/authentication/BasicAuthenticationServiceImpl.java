@@ -4,7 +4,6 @@ import br.com.fai.Vox.domain.UserModel;
 import br.com.fai.Vox.port.service.authentication.AuthenticationService;
 import br.com.fai.Vox.port.service.user.UserService;
 
-//@Service
 public class BasicAuthenticationServiceImpl implements AuthenticationService {
 
     private final UserService userService;

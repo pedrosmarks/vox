@@ -81,9 +81,6 @@ public class UserPostgresDaoImpl implements UserDao {
             connection.commit();
             logger.log(Level.INFO, "Usuário removido com sucesso.");
         } catch (SQLException e) {
-            // Sem o rollback, uma transação abortada (ex.: violação de FK) permanece
-            // aberta na conexão compartilhada e derruba todas as consultas seguintes
-            // com "transação atual foi interrompida" (inclusive o login/findByEmail).
             logger.log(Level.SEVERE, "Erro ao remover usuário. Realizando rollback.");
             try {
                 connection.rollback();
@@ -239,4 +236,3 @@ public class UserPostgresDaoImpl implements UserDao {
     }
 
 }
-

@@ -11,9 +11,7 @@ public interface EventDao {
     void update(int id, Event entity);
     void delete(int id);
 
-    /** Lista eventos aplicando os filtros e a paginação do {@link EventFilterDto}. */
     List<Event> find(EventFilterDto filter);
 
-    /** Conta o total de eventos que satisfazem os filtros (ignorando paginação). */
     long count(EventFilterDto filter);
 }

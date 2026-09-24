@@ -68,9 +68,6 @@ public class IssueModerationServiceImpl implements IssueModerationService {
 
         issueReportDao.updateModerationStatus(issueId, ModerationStatusEnum.APPROVED);
 
-        // Registrar no histórico para que o feedback fique recuperável via GET /api/issues/{id}/history.
-        // Aprovar não altera o IssueStatus (a ocorrência permanece no estado atual), então
-        // previousStatus e newStatus são iguais; o objetivo é apenas persistir o feedback/decisão.
         issueStatusHistoryService.recordStatusChange(
                 issueId, issue.getStatus(), issue.getStatus(), moderatorId, feedback);
 
@@ -83,7 +80,6 @@ public class IssueModerationServiceImpl implements IssueModerationService {
 
         logger.log(Level.INFO, "Issue aprovada. ID: " + issueId);
 
-        // Notificar vereador responsável se houver
         if (issue.getCouncilorId() != null) {
             notificationService.send(
                     issue.getCouncilorId(),
@@ -92,7 +88,6 @@ public class IssueModerationServiceImpl implements IssueModerationService {
                     NotificationTypeEnum.ISSUE_TAGGED);
         }
 
-        // Notificar assinantes de ALL_ISSUES
         List<Integer> allIssueSubscribers = subscriptionService.findSubscriberUserIds(
                 SubscriptionTypeEnum.ALL_ISSUES, null);
         for (int userId : allIssueSubscribers) {
@@ -112,10 +107,8 @@ public class IssueModerationServiceImpl implements IssueModerationService {
 
         IssueStatusEnum previousStatus = issue.getStatus();
         issueReportDao.updateModerationStatus(issueId, ModerationStatusEnum.REJECTED);
-        // Espelha o comportamento de projetos: rejeitar também reflete no status da ocorrência.
         issueReportDao.updateStatus(issueId, IssueStatusEnum.REJECTED);
 
-        // Registrar no histórico para que o motivo da rejeição fique recuperável via GET /api/issues/{id}/history
         issueStatusHistoryService.recordStatusChange(
                 issueId, previousStatus, IssueStatusEnum.REJECTED, moderatorId, feedback);
 
@@ -139,7 +132,6 @@ public class IssueModerationServiceImpl implements IssueModerationService {
         issueStatusHistoryService.recordStatusChange(issueId, existing.getStatus(), status, moderatorId, note);
         issueReportDao.updateStatus(issueId, status);
 
-        // Notificar autor
         notificationService.send(
                 existing.getAuthorId(),
                 "Status da ocorrência atualizado",

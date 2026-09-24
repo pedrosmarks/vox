@@ -56,10 +56,6 @@ public class ProjectServiceImpl implements ProjectService {
     public int create(CreateProjectDto dto) {
         if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) return -1;
 
-        // O limite semanal é aplicado apenas para CITIZEN, e essa checagem de role
-        // é feita no controller antes de chamar create(). Os demais papéis
-        // (COUNCILOR, MODERATOR, ADMINISTRATOR) não têm limite.
-
         final int projectId = projectDao.create(dto);
         logger.log(Level.INFO, "Projeto criado. ID: " + projectId);
 
@@ -137,8 +133,6 @@ public class ProjectServiceImpl implements ProjectService {
         Project existing = findByid(id);
         if (existing == null) return;
 
-        // latitude/longitude são obrigatórios: em updates parciais que não os enviem,
-        // preserva os valores atuais para não violar o NOT NULL da coluna.
         if (entity.getLatitude() == null) entity.setLatitude(existing.getLatitude());
         if (entity.getLongitude() == null) entity.setLongitude(existing.getLongitude());
 
@@ -150,20 +144,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         projectDao.update(id, entity);
 
-        // Notifica automaticamente quando o status do projeto muda (inclui publicação),
-        // respeitando quem assina o projeto e quem assina todos os projetos.
         if (statusChanged) {
             notifyStatusChange(id, entity, changedBy);
         }
     }
 
-    /**
-     * Envia notificações de mudança de status/publicação de projeto para:
-     * - o autor do projeto;
-     * - assinantes do projeto específico (SubscriptionType.PROJECT);
-     * - assinantes de todos os projetos (SubscriptionType.ALL_PROJECTS).
-     * Evita duplicar notificação para o mesmo usuário e não notifica quem fez a alteração.
-     */
     private void notifyStatusChange(int projectId, Project project, int changedBy) {
         boolean published = project.getStatus() == ProjectStatusEnum.PUBLISHED;
         String title = published ? "Projeto publicado" : "Status do projeto atualizado";

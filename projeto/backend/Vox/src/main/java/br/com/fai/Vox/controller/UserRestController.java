@@ -24,7 +24,6 @@ public class UserRestController {
         this.userService = userService;
     }
 
-
     @GetMapping()
     public ResponseEntity<List<UserModel>> getEntities() {
         List<UserModel> entities = userService.findAll();

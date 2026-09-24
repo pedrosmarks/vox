@@ -60,7 +60,6 @@ public class EventPostgresDaoImpl implements EventDao {
 
     @Override
     public void update(int id, Event e) {
-        // category_id preservado quando não informado (COALESCE).
         final String sql = "UPDATE event SET title = ?, description = ?, " +
                 "category_id = COALESCE(?, category_id), price = ?, start_date = ?, end_date = ?, " +
                 "location = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
@@ -129,7 +128,6 @@ public class EventPostgresDaoImpl implements EventDao {
         }
     }
 
-    /** Monta as cláusulas de filtro compartilhadas por find() e count(). */
     private void appendFilters(StringBuilder sql, List<Object> params, EventFilterDto f) {
         if (f.getCategoryId() != null) {
             sql.append(" AND category_id = ?");
@@ -145,7 +143,6 @@ public class EventPostgresDaoImpl implements EventDao {
             params.add(like);
             params.add(like);
         }
-        // free=true tem precedência sobre faixa de preço.
         if (Boolean.TRUE.equals(f.getFree())) {
             sql.append(" AND (price IS NULL OR price = 0)");
         } else {

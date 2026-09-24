@@ -58,10 +58,6 @@ public class IssueReportServiceImpl implements IssueReportService {
     public int create(CreateIssueReportDto dto) {
         if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) return -1;
 
-        // O limite semanal é aplicado apenas para CITIZEN, e essa checagem de role
-        // é feita no controller antes de chamar create(). Os demais papéis
-        // (COUNCILOR, MODERATOR, ADMINISTRATOR) não têm limite.
-
         final int issueId = issueReportDao.create(dto);
         logger.log(Level.INFO, "IssueReport criada. ID: " + issueId);
 
@@ -147,8 +143,6 @@ public class IssueReportServiceImpl implements IssueReportService {
         IssueReport existing = findByid(id);
         if (existing == null) return;
 
-        // latitude/longitude são obrigatórios: em updates parciais que não os enviem,
-        // preserva os valores atuais para não violar o NOT NULL da coluna.
         if (entity.getLatitude() == null) entity.setLatitude(existing.getLatitude());
         if (entity.getLongitude() == null) entity.setLongitude(existing.getLongitude());
 
@@ -156,7 +150,6 @@ public class IssueReportServiceImpl implements IssueReportService {
             issueStatusHistoryService.recordStatusChange(
                     id, existing.getStatus(), entity.getStatus(), changedBy, null);
 
-            // Notificar autor quando status muda
             notificationService.send(
                     existing.getAuthorId(),
                     "Ocorrência atualizada",
@@ -166,7 +159,6 @@ public class IssueReportServiceImpl implements IssueReportService {
 
         issueReportDao.update(id, entity);
 
-        // Notificar assinantes da ocorrência e da sua categoria
         Set<Integer> subscribers = new HashSet<>(
                 subscriptionService.findSubscriberUserIds(SubscriptionTypeEnum.ISSUE, id));
         Integer categoryId = existing.getCategoryId();
@@ -221,14 +213,12 @@ public class IssueReportServiceImpl implements IssueReportService {
         issueStatusHistoryService.recordStatusChange(id, existing.getStatus(), status, changedBy, note);
         issueReportDao.updateStatus(id, status);
 
-        // Notificar autor
         notificationService.send(
                 existing.getAuthorId(),
                 "Status da ocorrência atualizado",
                 "O status da sua ocorrência \"" + existing.getTitle() + "\" foi alterado para " + status.name() + ".",
                 NotificationTypeEnum.ISSUE_STATUS_CHANGED);
 
-        // Notificar assinantes da ocorrência e da sua categoria
         Set<Integer> subscribers = new HashSet<>(
                 subscriptionService.findSubscriberUserIds(SubscriptionTypeEnum.ISSUE, id));
         Integer categoryId = existing.getCategoryId();
