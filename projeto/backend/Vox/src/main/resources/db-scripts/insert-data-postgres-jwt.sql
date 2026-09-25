@@ -478,7 +478,56 @@ VALUES
      6, 25.00,
      CURRENT_DATE + INTERVAL '25 days' + TIME '10:00',
      CURRENT_DATE + INTERVAL '27 days' + TIME '18:00',
-     'Zona Rural', 'Estrada do Parque de Exposições', 'km 3', -22.20450000, -45.95120000, 1, 3);
+     'Zona Rural', 'Estrada do Parque de Exposições', 'km 3', -22.20450000, -45.95120000, 1, 3),
+
+    -- Eventos reais de Santa Rita do Sapucaí (município 1)
+    ('Carnaval Oficial da Cidade',
+     'A maior festa carnavalesca do Sul de Minas Gerais. Reúne programação municipal com blocos de rua no Centro de Eventos.',
+     1, 0.00,
+     TIMESTAMP '2026-02-13 00:00', TIMESTAMP '2026-02-17 23:59',
+     'Santa Rita do Sapucaí', 'R. Sete', '245', -22.25200000, -45.70300000, 1, 3),
+
+    ('Bloco do Urso',
+     'O grandioso evento privado de escala nacional Bloco do Urso, que conta com atrações de peso como Alok, Ivete Sangalo e Léo Santana em uma arena open bar.',
+     1, 500.00,
+     TIMESTAMP '2026-02-13 00:00', TIMESTAMP '2026-02-17 23:59',
+     'Cidade do Urso', 'Cidade do Urso', 'S/N', -22.25600000, -45.71000000, 1, 3),
+
+    ('Fest Rock Sul de Minas (14ª Edição)',
+     'Tradicional encontro de rock da cidade com apresentações de bandas regionais e tributos oficiais, contando com praça de alimentação e área de convivência.',
+     1, 0.00,
+     TIMESTAMP '2026-05-16 16:00', TIMESTAMP '2026-05-17 00:00',
+     'Santa Rita do Sapucaí', 'R. Sete', '245', -22.25200000, -45.70300000, 1, 3),
+
+    ('Festa da Padroeira Santa Rita de Cássia',
+     'Uma das celebrações religiosas e culturais mais tradicionais da região. Além do tríduo e procissões, conta com grandiosa praça de alimentação e grandes shows nacionais (como Paralamas do Sucesso, Edson & Hudson, Katinguelê) organizados pela Prefeitura.',
+     1, 0.00,
+     TIMESTAMP '2026-05-13 00:00', TIMESTAMP '2026-05-24 23:59',
+     'Centro', 'Praça Santa Rita', '113', -22.25230000, -45.70260000, 1, 3),
+
+    ('Feirão Folclórico 2026',
+     'Evento multicultural focado nas tradições locais, apresentações sertanejas (Bruna Viola, Felipe & Falcão), Encontro de Carros Antigos e Show de Calouros.',
+     1, 0.00,
+     TIMESTAMP '2026-08-14 00:00', TIMESTAMP '2026-08-17 23:59',
+     'Santa Rita do Sapucaí', 'R. Sete', '245', -22.25200000, -45.70300000, 1, 3),
+
+    ('Eros Prado - Stand-up "A Quinta Série Venceu"',
+     'Apresentação de comédia solo com o humorista Eros Prado, reunindo piadas, interações com a plateia e personagens cômicos.',
+     1, 50.00,
+     TIMESTAMP '2026-09-26 20:00', TIMESTAMP '2026-09-26 21:30',
+     'Centro', 'Praça Santa Rita', 'S/N', -22.25230000, -45.70260000, 1, 3),
+
+    ('HackTown 2026',
+     'Considerado o maior festival de inovação, tecnologia, criatividade e música do Brasil. Reúne centenas de palestras simultâneas, workshops, shows e atrações distribuídas por toda a cidade em um formato similar ao SXSW americano.',
+     5, 500.00,
+     TIMESTAMP '2026-10-01 00:00', TIMESTAMP '2026-10-04 23:59',
+     'Centro', 'Inatel, FAI, ETE e múltiplos pontos urbanos', 'S/N', -22.25730000, -45.70590000, 1, 3),
+
+    ('FAITEC 2026 (37ª Feira de Tecnologia e Empreendedorismo da FAI)',
+     'Exposição anual de projetos tecnológicos, soluções digitais, protótipos de software e planos de negócios inovadores da FAI. O evento atrai investidores, empresas parceiras do ecossistema do Vale da Eletrônica e visitantes de toda a região.',
+     5, 0.00,
+     TIMESTAMP '2026-09-30 00:00', TIMESTAMP '2026-10-02 23:59',
+     'Centro', 'Av. Sinhá Moreira', '161-221', -22.25400000, -45.70450000, 1, 3);
 
 -- ---------------------------------------------------------------------
 -- Imagens de eventos (alguns eventos sem imagem para exercitar o filtro hasImage)
@@ -491,4 +540,12 @@ VALUES
     (3, 'https://picsum.photos/seed/feira-ciencias/800/600'),
     (5, 'https://picsum.photos/seed/hackathon/800/600'),
     (7, 'https://picsum.photos/seed/city-tour/800/600'),
-    (8, 'https://picsum.photos/seed/turismo-rural/800/600');
+    (8, 'https://picsum.photos/seed/turismo-rural/800/600'),
+    (9,  'https://res.cloudinary.com/dohegns1y/image/upload/v1790347338/carnaval_ejyg9a.jpg'),
+    (10, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347330/bloco_do_urso_q9zvmv.avif'),
+    (11, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347515/festa_rock_rxppbv.png'),
+    (12, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347800/IMG_20260925_114907.jpg_yjzvmh.jpg'),
+    (13, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347935/feirao_vrpec6.jpg'),
+    (14, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347980/eros_gvcc17.jpg'),
+    (15, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790348139/hacktown_jvt9do.jpg'),
+    (16, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790348207/faitec_vla23f.jpg');
