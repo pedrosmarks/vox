@@ -370,11 +370,6 @@ CREATE TABLE room_participant (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
---CREATE INDEX idx_conference_room_municipality ON conference_room(municipality_id);
---CREATE INDEX idx_conference_room_moderator ON conference_room(moderator_id);
---CREATE INDEX idx_room_participant_room ON room_participant(room_id);
---CREATE INDEX idx_room_participant_user ON room_participant(user_id);
-
 -- =============================================
 -- Assinaturas de projetos comunitários
 -- =============================================

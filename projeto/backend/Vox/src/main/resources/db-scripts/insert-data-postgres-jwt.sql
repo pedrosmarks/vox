@@ -71,19 +71,19 @@ INSERT INTO municipality (name, state) VALUES
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('João Ribeiro', 'cidadao1@example.com', '00000000000', '(11) 99999-0000', crypt('aa', gen_salt('bf')), 'CITIZEN', '1990-05-15', 1);
+    ('Cidadão 1', 'cidadao1@example.com', '00000000000', '(11) 99999-0000', crypt('aa', gen_salt('bf')), 'CITIZEN', '1990-05-15', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Maria Antonieta', 'moderador1@example.com', '11111111111', '(11) 98888-1111', crypt('aa', gen_salt('bf')), 'MODERATOR', '1985-10-22', 1);
+    ('Moderador 1', 'moderador1@example.com', '11111111111', '(11) 98888-1111', crypt('aa', gen_salt('bf')), 'MODERATOR', '1985-10-22', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Carlos Costa', 'administrador1@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'ADMINISTRATOR', '1978-03-08', 1);
+    ('ADM 1', 'administrador1@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'ADMINISTRATOR', '1978-03-08', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Vereador Gabriel', 'vereador1@example.com', '22222222222', '(21) 97777-3333', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1978-03-08', 1);
+    ('Vereador 1', 'vereador1@example.com', '22222222222', '(21) 97777-3333', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1978-03-08', 1);
 
 INSERT INTO category (name, description)
 VALUES
@@ -115,13 +115,14 @@ VALUES
 -- ---------------------------------------------------------------------
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, accepted_terms, accepted_privacy_policy, terms_accepted_at, municipality_id)
 VALUES
-    ('Ana Beatriz Souza',   'cidadao2@example.com',  '44444444444', '(35) 99123-4567', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1995-07-12', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Pedro Henrique Lima', 'cidadao3@example.com',  '55555555555', '(35) 99234-5678', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1988-11-30', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Juliana Martins',     'cidadao4@example.com',  '66666666666', '(35) 99345-6789', crypt('aa', gen_salt('bf')), 'CITIZEN',   '2000-02-18', TRUE, TRUE, CURRENT_TIMESTAMP, 2),
-    ('Roberto Alves',       'cidadao5@example.com',  '77777777777', '(35) 99456-7890', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1975-09-05', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Vereadora Fernanda',  'vereador2@example.com', '88888888888', '(35) 99567-8901', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1970-04-25', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Vereador Marcelo',    'vereador3@example.com', '99999999999', '(35) 99678-9012', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1968-12-10', TRUE, TRUE, CURRENT_TIMESTAMP, 2);
--- IDs resultantes: 5 = Ana, 6 = Pedro, 7 = Juliana, 8 = Roberto, 9 = Fernanda (COUNCILOR), 10 = Marcelo (COUNCILOR)
+    ('Cidadã 2',   'cidada2@example.com',  '44444444444', '(35) 99123-4567', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1995-07-12', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Cidadão 3', 'cidadao3@example.com',  '55555555555', '(35) 99234-5678', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1988-11-30', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Cidadã 4',     'cidada4@example.com',  '66666666666', '(35) 99345-6789', crypt('aa', gen_salt('bf')), 'CITIZEN',   '2000-02-18', TRUE, TRUE, CURRENT_TIMESTAMP, 2),
+    ('Cidadão 5',       'cidadao5@example.com',  '77777777777', '(35) 99456-7890', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1975-09-05', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Vereadora 2',  'vereadora2@example.com', '88888888888', '(35) 99567-8901', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1970-04-25', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Vereador 3',    'vereador3@example.com', '99999999999', '(35) 99678-9012', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1968-12-10', TRUE, TRUE, CURRENT_TIMESTAMP, 2),
+    ('Prefeitura',  'prefeitura1@example.com', '12312312303', '(35) 3473-3200', crypt('aa', gen_salt('bf')), 'MODERATOR', '1970-04-25', TRUE, TRUE, CURRENT_TIMESTAMP, 1);
+-- IDs resultantes: 5 = Cidadã 2, 6 = Cidadão 3, 7 = Cidadã 4, 8 = Cidadão 5, 9 = Vereadora 2 (COUNCILOR), 10 = Vereador 3 (COUNCILOR), 11 = Prefeitura (MODERATOR)
 
 -- ---------------------------------------------------------------------
 -- Categorias adicionais
@@ -205,9 +206,7 @@ VALUES
      'IN_VOTING', 4, TRUE, FALSE,
      NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, 'APPROVED');
--- IDs resultantes: 1..8 (PUBLIC_WORK), 9 = Lei de Incentivo à Saúde Preventiva (LAW, sem localização)
 
--- Projetos de Turismo (categoria 7 = Turismo)
 INSERT INTO project (municipality_id, category_id, type, nature, title, description, status, author_id, is_official, highlighted,
                      neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date,
                      financial_analysis, estimated_cost, approved_budget, moderation_status)
@@ -223,7 +222,64 @@ VALUES
      'IN_EXECUTION', 4, TRUE, TRUE,
      'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24500000, -45.69500000,
      '2026-02-01', '2026-10-30', NULL, 'Orçamento aprovado com apoio da secretaria de turismo.', 640000.00, 620000.00, 'APPROVED');
--- IDs resultantes: 10 = Sinalização Turística, 11 = Mirante Turístico
+
+INSERT INTO project (municipality_id, category_id, type, nature, title, description, status, author_id, is_official, highlighted,
+                     neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date,
+                     financial_analysis, estimated_cost, approved_budget, moderation_status)
+VALUES
+    (1, 1, 'CHAMBER', 'PUBLIC_WORK', 'Construção do Terminal Rodoviário Municipal',
+     'Construção de novo terminal rodoviário, com estrutura para embarque, bilheterias, sanitários, áreas de apoio e integração com a antiga estação ferroviária. Terreno de 15.039 m² e área construída de 1.326 m².',
+     'COMPLETED', 11, TRUE, TRUE,
+     'Família Andrade', 'Rua Projetada', 's/n', -22.26010000, -45.71050000,
+     NULL, '2024-12-21', '2024-12-21', 'Contrato 3739/2024.', NULL, 3898775.39, 'APPROVED'),
+
+    (1, 6, 'CHAMBER', 'PUBLIC_WORK', 'Reestruturação do Centro de Artesanato, Gastronomia e Cultura',
+     'Reestruturação do prédio da antiga rodoviária, incluindo demolição/construção de alvenarias e pintura interna e externa.',
+     'IN_EXECUTION', 11, TRUE, FALSE,
+     'Centro', 'Antiga Rodoviária', 's/n', -22.25190000, -45.70270000,
+     '2025-10-08', '2026-06-30', NULL, 'Contrato assinado em 08/10/2025, com prorrogações.', NULL, 283923.43, 'APPROVED'),
+
+    (1, 1, 'CHAMBER', 'PUBLIC_WORK', 'Requalificação da Avenida Embaixador Bilac Pinto – Fase III',
+     'Pavimentação em CBUQ, sarjetas, meio-fio, drenagem, bocas de lobo, tampões de PV e sinalização horizontal.',
+     'IN_EXECUTION', 11, TRUE, FALSE,
+     'Centro', 'Avenida Embaixador Bilac Pinto', 's/n', -22.25470000, -45.70640000,
+     NULL, NULL, NULL, 'Contrato em 2024, com 4 termos de prorrogação.', NULL, 1791000.00, 'APPROVED'),
+
+    (1, 2, 'CHAMBER', 'PUBLIC_WORK', 'Requalificação do Materno Infantil',
+     'Reforma/requalificação com demolição e construção de alvenarias, forro de gesso e pintura interna/externa do complexo Materno-Infantil.',
+     'IN_EXECUTION', 11, TRUE, FALSE,
+     'Centro', 'Complexo Materno-Infantil', 's/n', -22.25330000, -45.70510000,
+     NULL, NULL, NULL, 'Contrato em 2024, com medições e prorrogações em 2025/2026.', NULL, 179986.39, 'APPROVED'),
+
+    (1, 1, 'CHAMBER', 'PUBLIC_WORK', 'Recapeamento Av. Sebastião Reginaldo da Cunha e trechos de Juca Castelo e Dr. José Pinto Vilela',
+     'Recapeamento em CBUQ e implantação de sinalização horizontal/vertical na Av. Sebastião Reginaldo da Cunha (Santana), Rua Juca Castelo e Rua Dr. José Pinto Vilela (Maristela).',
+     'IN_EXECUTION', 11, TRUE, FALSE,
+     'Santana', 'Avenida Sebastião Reginaldo da Cunha', 's/n', -22.24720000, -45.69880000,
+     '2026-03-12', NULL, NULL, 'Contrato assinado em 12/03/2026, com prorrogações e aditivos.', NULL, NULL, 'APPROVED'),
+
+    (1, 6, 'CITIZEN', 'PUBLIC_WORK', 'Revitalização da quadra do Santana I',
+     'Revitalização total da quadra localizada na Av. Pref. Antônio Capistrano Alckimim, ao lado do ESF 07.',
+     'PUBLISHED', 4, FALSE, FALSE,
+     'Santana I', 'Avenida Pref. Antônio Capistrano Alckimim', 's/n', -22.24810000, -45.69760000,
+     NULL, NULL, NULL, 'Indicação apresentada à Prefeitura em 13/02/2025.', NULL, NULL, 'APPROVED'),
+
+    (1, 6, 'CITIZEN', 'PUBLIC_WORK', 'Revitalização da Praça Urbana Carolina de Azevedo',
+     'Melhorias de infraestrutura, conservação e urbanização da praça.',
+     'PUBLISHED', 4, FALSE, FALSE,
+     'Santana', 'Praça Carolina de Azevedo', 's/n', -22.24690000, -45.69910000,
+     NULL, NULL, NULL, 'Proposta na Câmara em 03/04/2025, execução não confirmada.', NULL, NULL, 'APPROVED'),
+
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Pavimentação da Rua Avelino Borges dos Reis',
+     'Manutenção do pavimento de bloquetes e posterior pavimentação definitiva com asfalto.',
+     'PUBLISHED', 9, FALSE, FALSE,
+     'Anchieta', 'Rua Avelino Borges dos Reis', 's/n', -22.26230000, -45.70420000,
+     NULL, NULL, NULL, 'Indicação legislativa em 16/04/2025, execução não localizada.', NULL, NULL, 'APPROVED'),
+
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Ligação da Rua Benedito Rezende Vilela com a estrada do Bom Retiro',
+     'Criação de ligação viária entre o Loteamento Residencial Bela Vista e a estrada do Bom Retiro.',
+     'PUBLISHED', 10, FALSE, FALSE,
+     'Bela Vista', 'Rua Benedito Rezende Vilela', 's/n', -22.26550000, -45.71380000,
+     NULL, NULL, NULL, 'Matéria registrada na sessão de 24/06/2025, passou pelo plenário da Câmara.', NULL, NULL, 'APPROVED');
 
 -- ---------------------------------------------------------------------
 -- Imagens dos projetos
@@ -239,7 +295,10 @@ VALUES
     (7, 'https://picsum.photos/seed/quadra/800/600'),
     (10, 'https://picsum.photos/seed/sinalizacao-turistica/800/600'),
     (11, 'https://picsum.photos/seed/mirante/800/600'),
-    (11, 'https://picsum.photos/seed/mirante-serra/800/600');
+    (11, 'https://picsum.photos/seed/mirante-serra/800/600'),
+    (12, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790378064/terminal_rodoviario_h3ek6p.jpg'),
+    (13, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790378129/reforma_rodoviaria_rbvxsj.jpg'),
+    (15, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790378945/materno1_dywob9.jpg');
 
 -- ---------------------------------------------------------------------
 -- Vereadores associados a projetos (project_councilor)
@@ -251,7 +310,13 @@ VALUES
     (3, 4),
     (5, 9),
     (6, 9),
-    (6, 10);
+    (6, 10),
+    (17, 4),
+    (18, 4),
+    (19, 9),
+    (20, 10),
+    (20, 4),
+    (20, 9);
 
 -- ---------------------------------------------------------------------
 -- Opiniões / votos em projetos (respeitando UNIQUE(project_id, user_id))
@@ -320,9 +385,7 @@ VALUES
      'Jardim Europa', 'Rua Sete de Setembro', '215', -22.23010000, -45.93010000, 'RESOLVED', 'APPROVED'),
     (1, 1, 8, 4, 'Sinalização apagada', 'Faixa de pedestres e placas de trânsito apagadas próximo à escola.',
      'Zona Escolar', 'Avenida das Palmeiras', '905', -22.25810000, -45.71210000, 'OPEN', 'PENDING');
--- IDs resultantes: 1..5
 
--- Denúncias de Turismo (categoria 7 = Turismo)
 INSERT INTO issue_report (municipality_id, category_id, author_id, councilor_id, title, description, neighborhood, street, number,
                           latitude, longitude, status, moderation_status)
 VALUES
@@ -330,7 +393,6 @@ VALUES
      'Centro', 'Praça da Matriz', '10', -22.25270000, -45.70320000, 'OPEN', 'APPROVED'),
     (1, 7, 8, 4, 'Mirante sem manutenção', 'Guarda-corpo do mirante turístico está enferrujado, oferecendo risco aos turistas.',
      'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24510000, -45.69510000, 'UNDER_REVIEW', 'APPROVED');
--- IDs resultantes: 6 = Placa turística, 7 = Mirante sem manutenção
 
 -- ---------------------------------------------------------------------
 -- Imagens das denúncias
@@ -372,7 +434,6 @@ VALUES
     ('Audiência Pública - Orçamento 2026', 'Discussão do orçamento participativo para o ano de 2026.', 2, 1, 'OPEN'),
     ('Sessão sobre Mobilidade Urbana', 'Debate sobre ciclovias e transporte público.', 2, 1, 'OPEN'),
     ('Reunião de Prestação de Contas', 'Prestação de contas do primeiro semestre.', 3, 2, 'CLOSED');
--- IDs resultantes: 1..3
 
 -- ---------------------------------------------------------------------
 -- Participantes das salas
