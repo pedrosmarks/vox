@@ -407,19 +407,24 @@ Content-Type: multipart/form-data
 |---|---|---|
 | `categoryId` | number | ✅ |
 | `type` | `CITIZEN` \| `CHAMBER` | ✅ |
+| `nature` | `LAW` \| `PUBLIC_WORK` | ✅ |
 | `title` | string | ✅ |
 | `description` | string | ✅ |
 | `neighborhood` | string | ❌ |
 | `street` | string | ❌ |
 | `number` | string | ❌ |
-| `latitude` | decimal (entre -90 e 90) | ✅ |
-| `longitude` | decimal (entre -180 e 180) | ✅ |
+| `latitude` | decimal (entre -90 e 90) | condicional |
+| `longitude` | decimal (entre -180 e 180) | condicional |
 | `startDate` | `YYYY-MM-DD` | ❌ |
 | `expectedEndDate` | `YYYY-MM-DD` | ❌ |
 | `estimatedCost` | decimal | ❌ |
 | `file` | imagem | ❌ |
 
-> `latitude` e `longitude` são **obrigatórios** — usados no mapa de zonas quentes do dashboard.
+> **Natureza do projeto (`nature`)** — reflete a distinção da administração pública brasileira:
+> - `PUBLIC_WORK` (Obra Pública): construções, reformas, intervenções físicas. **Exige `latitude` e `longitude`** (aparece no mapa de zonas quentes do dashboard). Endereço e custos são relevantes.
+> - `LAW` (Projeto de Lei): legislação, orçamento, nomes de rua. **Não tem local físico** — `latitude`/`longitude`, endereço e custos ficam opcionais/nulos e o projeto **não** aparece no mapa.
+>
+> Se `nature = PUBLIC_WORK` e faltar `latitude` ou `longitude`, a API retorna `400`.
 
 > **Limite semanal:** usuários com role `CITIZEN` podem criar no máximo **3 projetos por semana**. Ao exceder, a API retorna `400`. Os demais papéis (`COUNCILOR`, `MODERATOR`, `ADMINISTRATOR`) não têm esse limite.
 
@@ -1415,7 +1420,8 @@ Authorization: Bearer <token>
 
 ### Mapa de zonas quentes — por coordenada
 > Heatmap: agrupa issues e projetos aprovados por coordenada arredondada
-> em uma grade.
+> em uma grade. Considera apenas registros **com coordenada** — projetos de
+> natureza `LAW` (sem local físico) não entram no mapa.
 
 ```
 GET /api/admin/dashboard/mapa/coordenadas?precision=3&from=2026-08-16

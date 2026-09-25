@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.service.project;
+import br.com.fai.Vox.domain.enums.ProjectNatureEnum;
 import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
 import br.com.fai.Vox.domain.enums.NotificationTypeEnum;
 import br.com.fai.Vox.domain.enums.SubscriptionTypeEnum;
@@ -55,6 +56,16 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public int create(CreateProjectDto dto) {
         if (dto == null || dto.getTitle() == null || dto.getTitle().isEmpty()) return -1;
+
+        if (dto.getNature() == null) {
+            throw new IllegalArgumentException("Natureza do projeto é obrigatória (LAW ou PUBLIC_WORK)");
+        }
+        // Obra pública exige localização (usada no mapa de zonas quentes).
+        // Projeto de lei não tem local físico, então lat/long ficam opcionais.
+        if (dto.getNature() == ProjectNatureEnum.PUBLIC_WORK
+                && (dto.getLatitude() == null || dto.getLongitude() == null)) {
+            throw new IllegalArgumentException("Projeto de obra pública exige latitude e longitude");
+        }
 
         final int projectId = projectDao.create(dto);
         logger.log(Level.INFO, "Projeto criado. ID: " + projectId);

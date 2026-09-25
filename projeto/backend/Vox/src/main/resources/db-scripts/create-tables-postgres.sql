@@ -27,6 +27,7 @@ DROP TABLE IF EXISTS municipality CASCADE;
 
 DROP TYPE IF EXISTS user_role CASCADE;
 DROP TYPE IF EXISTS project_type CASCADE;
+DROP TYPE IF EXISTS project_nature CASCADE;
 DROP TYPE IF EXISTS project_status CASCADE;
 DROP TYPE IF EXISTS moderation_action CASCADE;
 DROP TYPE IF EXISTS moderation_status CASCADE;
@@ -44,6 +45,11 @@ CREATE TYPE user_role AS ENUM (
     'COUNCILOR',
     'MODERATOR',
     'ADMINISTRATOR'
+);
+
+CREATE TYPE project_nature AS ENUM (
+    'LAW',
+    'PUBLIC_WORK'
 );
 
 CREATE TYPE project_type AS ENUM (
@@ -218,6 +224,7 @@ CREATE TABLE project (
                          municipality_id INTEGER NOT NULL REFERENCES municipality(id) ON DELETE CASCADE,
                          category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
                          type project_type NOT NULL,
+                         nature project_nature NOT NULL,
                          title VARCHAR(255) NOT NULL,
                          description TEXT,
                          status project_status DEFAULT 'PENDING_APPROVAL',
@@ -227,8 +234,8 @@ CREATE TABLE project (
                          neighborhood VARCHAR(255),
                          street VARCHAR(255),
                          number VARCHAR(50),
-                         latitude DECIMAL(10,8) NOT NULL,
-                         longitude DECIMAL(11,8) NOT NULL,
+                         latitude DECIMAL(10,8),
+                         longitude DECIMAL(11,8),
                          start_date DATE,
                          expected_end_date DATE,
                          end_date DATE,
@@ -239,8 +246,9 @@ CREATE TABLE project (
                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                          CHECK (end_date IS NULL OR end_date >= start_date),
-                         CHECK (latitude BETWEEN -90 AND 90),
-                         CHECK (longitude BETWEEN -180 AND 180)
+                         CHECK (latitude IS NULL OR latitude BETWEEN -90 AND 90),
+                         CHECK (longitude IS NULL OR longitude BETWEEN -180 AND 180),
+                         CHECK (nature <> 'PUBLIC_WORK' OR (latitude IS NOT NULL AND longitude IS NOT NULL))
 );
 
 CREATE TABLE project_image (

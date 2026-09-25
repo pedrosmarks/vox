@@ -148,76 +148,82 @@ VALUES
 -- ---------------------------------------------------------------------
 -- Projetos (mistura de CITIZEN e CHAMBER, vários status)
 -- ---------------------------------------------------------------------
-INSERT INTO project (municipality_id, category_id, type, title, description, status, author_id, is_official, highlighted,
+INSERT INTO project (municipality_id, category_id, type, nature, title, description, status, author_id, is_official, highlighted,
                      neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date,
                      financial_analysis, estimated_cost, approved_budget, moderation_status)
 VALUES
-    (1, 1, 'CITIZEN', 'Revitalização da Praça Central',
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Revitalização da Praça Central',
      'Proposta de revitalização da praça central com novos bancos, iluminação LED e paisagismo.',
      'PUBLISHED', 1, FALSE, TRUE,
      'Centro', 'Rua Barão de Alfenas', '100', -22.25230000, -45.70280000,
      NULL, NULL, NULL, NULL, 150000.00, NULL, 'APPROVED'),
 
-    (1, 1, 'CITIZEN', 'Recapeamento da Avenida Cel. Joaquim',
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Recapeamento da Avenida Cel. Joaquim',
      'Recapeamento asfáltico da avenida principal do bairro, que apresenta muitos buracos.',
      'IN_VOTING', 5, FALSE, FALSE,
      'Vila Rica', 'Avenida Cel. Joaquim', '450', -22.25510000, -45.70910000,
      NULL, NULL, NULL, NULL, 320000.00, NULL, 'APPROVED'),
 
-    (1, 2, 'CHAMBER', 'Ampliação da UBS do Bairro Santana',
+    (1, 2, 'CHAMBER', 'PUBLIC_WORK', 'Ampliação da UBS do Bairro Santana',
      'Projeto oficial da câmara para ampliação da Unidade Básica de Saúde do bairro Santana.',
      'IN_EXECUTION', 4, TRUE, TRUE,
      'Santana', 'Rua das Flores', '77', -22.24980000, -45.69950000,
      '2026-01-15', '2026-08-30', NULL, 'Análise financeira aprovada pela comissão de orçamento.', 780000.00, 750000.00, 'APPROVED'),
 
-    (2, 3, 'CITIZEN', 'Nova Biblioteca Comunitária',
+    (2, 3, 'CITIZEN', 'PUBLIC_WORK', 'Nova Biblioteca Comunitária',
      'Construção de uma biblioteca comunitária com espaço de estudos e acesso à internet.',
      'PENDING_APPROVAL', 7, FALSE, FALSE,
      'Jardim Europa', 'Rua Sete de Setembro', '210', -22.23000000, -45.93000000,
      NULL, NULL, NULL, NULL, 240000.00, NULL, 'PENDING'),
 
-    (1, 4, 'CITIZEN', 'Programa de Arborização Urbana',
+    (1, 4, 'CITIZEN', 'PUBLIC_WORK', 'Programa de Arborização Urbana',
      'Plantio de 500 novas árvores nativas em vias e praças da cidade.',
      'SELECTED_BY_COUNCIL', 6, FALSE, TRUE,
      'Centro', 'Rua Coronel Joaquim Inácio', '150', -22.25200000, -45.70300000,
      NULL, NULL, NULL, NULL, 95000.00, NULL, 'APPROVED'),
 
-    (1, 5, 'CHAMBER', 'Instalação de Câmeras de Videomonitoramento',
+    (1, 5, 'CHAMBER', 'PUBLIC_WORK', 'Instalação de Câmeras de Videomonitoramento',
      'Projeto oficial para instalação de câmeras de segurança em pontos estratégicos da cidade.',
      'APPROVED_BY_COUNCIL', 9, TRUE, FALSE,
      'Centro', 'Praça Central', '1', -22.25200000, -45.70300000,
      '2026-03-01', '2026-12-15', NULL, 'Orçamento aprovado com contrapartida estadual.', 520000.00, 500000.00, 'APPROVED'),
 
-    (2, 6, 'CITIZEN', 'Reforma da Quadra Poliesportiva',
+    (2, 6, 'CITIZEN', 'PUBLIC_WORK', 'Reforma da Quadra Poliesportiva',
      'Reforma completa da quadra poliesportiva do bairro, incluindo cobertura e vestiários.',
      'COMPLETED', 8, FALSE, FALSE,
      'Vila Nova', 'Rua do Esporte', '30', -22.22800000, -45.92500000,
      '2025-06-01', '2025-11-30', '2025-11-20', 'Projeto concluído dentro do orçamento previsto.', 180000.00, 175000.00, 'APPROVED'),
 
-    (1, 1, 'CITIZEN', 'Ciclovia na Avenida das Palmeiras',
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Ciclovia na Avenida das Palmeiras',
      'Criação de ciclovia de 3km ligando o centro à zona escolar.',
      'REJECTED', 1, FALSE, FALSE,
      'Zona Escolar', 'Avenida das Palmeiras', '900', -22.25800000, -45.71200000,
-     NULL, NULL, NULL, NULL, 410000.00, NULL, 'REJECTED');
--- IDs resultantes: 1..8
+     NULL, NULL, NULL, NULL, 410000.00, NULL, 'REJECTED'),
+
+    (1, 2, 'CHAMBER', 'LAW', 'Lei de Incentivo à Saúde Preventiva',
+     'Projeto de lei que institui o programa municipal de campanhas de saúde preventiva e vacinação. Não envolve obra física nem endereço.',
+     'IN_VOTING', 4, TRUE, FALSE,
+     NULL, NULL, NULL, NULL, NULL,
+     NULL, NULL, NULL, NULL, NULL, NULL, 'APPROVED');
+-- IDs resultantes: 1..8 (PUBLIC_WORK), 9 = Lei de Incentivo à Saúde Preventiva (LAW, sem localização)
 
 -- Projetos de Turismo (categoria 7 = Turismo)
-INSERT INTO project (municipality_id, category_id, type, title, description, status, author_id, is_official, highlighted,
+INSERT INTO project (municipality_id, category_id, type, nature, title, description, status, author_id, is_official, highlighted,
                      neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date,
                      financial_analysis, estimated_cost, approved_budget, moderation_status)
 VALUES
-    (1, 7, 'CITIZEN', 'Sinalização Turística do Centro Histórico',
+    (1, 7, 'CITIZEN', 'PUBLIC_WORK', 'Sinalização Turística do Centro Histórico',
      'Instalação de placas de sinalização turística indicando pontos históricos e culturais do centro.',
      'PUBLISHED', 1, FALSE, TRUE,
      'Centro', 'Rua Barão de Alfenas', '200', -22.25260000, -45.70310000,
      NULL, NULL, NULL, NULL, 85000.00, NULL, 'APPROVED'),
 
-    (1, 7, 'CHAMBER', 'Mirante Turístico da Serra',
+    (1, 7, 'CHAMBER', 'PUBLIC_WORK', 'Mirante Turístico da Serra',
      'Projeto oficial da câmara para construção de um mirante com deque panorâmico e estacionamento.',
      'IN_EXECUTION', 4, TRUE, TRUE,
      'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24500000, -45.69500000,
      '2026-02-01', '2026-10-30', NULL, 'Orçamento aprovado com apoio da secretaria de turismo.', 640000.00, 620000.00, 'APPROVED');
--- IDs resultantes: 9 = Sinalização Turística, 10 = Mirante Turístico
+-- IDs resultantes: 10 = Sinalização Turística, 11 = Mirante Turístico
 
 -- ---------------------------------------------------------------------
 -- Imagens dos projetos
@@ -231,9 +237,9 @@ VALUES
     (5, 'https://picsum.photos/seed/arvores/800/600'),
     (6, 'https://picsum.photos/seed/cameras/800/600'),
     (7, 'https://picsum.photos/seed/quadra/800/600'),
-    (9, 'https://picsum.photos/seed/sinalizacao-turistica/800/600'),
-    (10, 'https://picsum.photos/seed/mirante/800/600'),
-    (10, 'https://picsum.photos/seed/mirante-serra/800/600');
+    (10, 'https://picsum.photos/seed/sinalizacao-turistica/800/600'),
+    (11, 'https://picsum.photos/seed/mirante/800/600'),
+    (11, 'https://picsum.photos/seed/mirante-serra/800/600');
 
 -- ---------------------------------------------------------------------
 -- Vereadores associados a projetos (project_councilor)
