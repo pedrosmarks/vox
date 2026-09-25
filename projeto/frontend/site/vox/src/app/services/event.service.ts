@@ -12,6 +12,12 @@ export interface CivicEvent {
   price?: number | null;
   startDate?: string | null;
   endDate?: string | null;
+  neighborhood?: string | null;
+  street?: string | null;
+  number?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  /** Legacy payload compatibility. */
   location?: string | null;
   municipalityId?: number;
   authorId?: number;

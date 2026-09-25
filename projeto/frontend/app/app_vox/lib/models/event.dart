@@ -16,6 +16,11 @@ class CivicEvent {
   final double? price;
   final DateTime? startDate;
   final DateTime? endDate;
+  final String neighborhood;
+  final String street;
+  final String number;
+  final double? latitude;
+  final double? longitude;
   final String location;
   final List<EventImage> images;
   const CivicEvent({
@@ -26,6 +31,11 @@ class CivicEvent {
     this.price,
     this.startDate,
     this.endDate,
+    this.neighborhood = '',
+    this.street = '',
+    this.number = '',
+    this.latitude,
+    this.longitude,
     required this.location,
     this.images = const [],
   });
@@ -37,12 +47,26 @@ class CivicEvent {
     price: (json['price'] as num?)?.toDouble(),
     startDate: DateTime.tryParse(json['startDate'] as String? ?? ''),
     endDate: DateTime.tryParse(json['endDate'] as String? ?? ''),
-    location: json['location'] as String? ?? '',
+    neighborhood: json['neighborhood'] as String? ?? '',
+    street: json['street'] as String? ?? '',
+    number: json['number'] as String? ?? '',
+    latitude: (json['latitude'] as num?)?.toDouble(),
+    longitude: (json['longitude'] as num?)?.toDouble(),
+    location: _formatLocation(json),
     images: (json['images'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(EventImage.fromJson)
         .toList(),
   );
+
+  static String _formatLocation(Map<String, dynamic> json) {
+    final parts = [
+      json['street'] as String?,
+      json['number'] as String?,
+      json['neighborhood'] as String?,
+    ].where((part) => part != null && part.trim().isNotEmpty).toList();
+    return parts.isEmpty ? json['location'] as String? ?? '' : parts.join(', ');
+  }
 }
 
 class EventPage {

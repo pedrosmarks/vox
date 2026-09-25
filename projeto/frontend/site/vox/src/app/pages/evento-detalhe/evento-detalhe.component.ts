@@ -8,5 +8,9 @@ export class EventoDetalheComponent implements OnInit {
   event?: CivicEvent; loading = true; error = '';
   constructor(private route: ActivatedRoute, private service: EventService, private router: Router) {}
   ngOnInit(): void { const id = Number(this.route.snapshot.paramMap.get('id')); this.service.getEvent(id).subscribe({ next: event => { this.event = event; this.loading = false; }, error: () => { this.error = 'Evento não encontrado.'; this.loading = false; } }); }
+  eventLocation(event: CivicEvent): string {
+    const address = [event.street, event.number, event.neighborhood].filter(Boolean).join(', ');
+    return address || event.location || 'Local a confirmar';
+  }
   back(): void { this.router.navigate(['/eventos']); }
 }

@@ -3,6 +3,7 @@ import '../models/event.dart';
 import '../services/auth_service.dart';
 import '../services/event_service.dart';
 import '../services/municipality_service.dart';
+import '../widgets/map_picker_field.dart';
 
 class EventosScreen extends StatefulWidget {
   const EventosScreen({super.key});
@@ -69,6 +70,11 @@ class _EventosScreenState extends State<EventosScreen> {
               price: event.price,
               startDate: event.startDate,
               endDate: event.endDate,
+              neighborhood: event.neighborhood,
+              street: event.street,
+              number: event.number,
+              latitude: event.latitude,
+              longitude: event.longitude,
               location: event.location,
               images: images,
             );
@@ -261,7 +267,11 @@ class _EventosScreenState extends State<EventosScreen> {
       text: event?.categoryId.toString() ?? '',
     );
     final price = TextEditingController(text: event?.price?.toString() ?? '');
-    final location = TextEditingController(text: event?.location ?? '');
+    final neighborhood = TextEditingController(text: event?.neighborhood ?? '');
+    final street = TextEditingController(text: event?.street ?? '');
+    final number = TextEditingController(text: event?.number ?? '');
+    double? selectedLatitude = event?.latitude;
+    double? selectedLongitude = event?.longitude;
     final start = TextEditingController(
       text: event?.startDate?.toIso8601String().substring(0, 19) ?? '',
     );
@@ -310,9 +320,43 @@ class _EventosScreenState extends State<EventosScreen> {
                       decimal: true,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Localização no mapa *'),
+                  ),
+                  const SizedBox(height: 8),
+                  MapPickerField(
+                    initialLatitude: event?.latitude,
+                    initialLongitude: event?.longitude,
+                    onLocationChanged: (point) {
+                      selectedLatitude = point.latitude;
+                      selectedLongitude = point.longitude;
+                    },
+                    onAddressChanged: (address) {
+                      if (address.neighborhood.isNotEmpty) {
+                        neighborhood.text = address.neighborhood;
+                      }
+                      if (address.street.isNotEmpty) {
+                        street.text = address.street;
+                      }
+                      if (address.number.isNotEmpty) {
+                        number.text = address.number;
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
                   TextFormField(
-                    controller: location,
-                    decoration: const InputDecoration(labelText: 'Local'),
+                    controller: neighborhood,
+                    decoration: const InputDecoration(labelText: 'Bairro'),
+                  ),
+                  TextFormField(
+                    controller: street,
+                    decoration: const InputDecoration(labelText: 'Rua'),
+                  ),
+                  TextFormField(
+                    controller: number,
+                    decoration: const InputDecoration(labelText: 'Número'),
                   ),
                   TextFormField(
                     controller: start,
@@ -339,6 +383,14 @@ class _EventosScreenState extends State<EventosScreen> {
           FilledButton(
             onPressed: () async {
               if (formKey.currentState?.validate() != true) return;
+              if (selectedLatitude == null || selectedLongitude == null) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('Selecione a localização no mapa.'),
+                  ),
+                );
+                return;
+              }
               final fields = <String, String>{
                 'title': title.text.trim(),
                 'categoryId': category.text.trim(),
@@ -346,7 +398,11 @@ class _EventosScreenState extends State<EventosScreen> {
                 'price': price.text.trim(),
                 'startDate': start.text.trim(),
                 'endDate': end.text.trim(),
-                'location': location.text.trim(),
+                'neighborhood': neighborhood.text.trim(),
+                'street': street.text.trim(),
+                'number': number.text.trim(),
+                'latitude': selectedLatitude.toString(),
+                'longitude': selectedLongitude.toString(),
               };
               try {
                 if (event == null) {
@@ -375,7 +431,9 @@ class _EventosScreenState extends State<EventosScreen> {
       description,
       category,
       price,
-      location,
+      neighborhood,
+      street,
+      number,
       start,
       end,
     ]) {

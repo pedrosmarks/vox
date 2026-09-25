@@ -68,7 +68,7 @@ class EventService {
     final streamed = await ApiClient.multipartRequest(
       'POST',
       '$_base/events',
-      fields,
+      _nonEmptyFields(fields),
     );
     final response = await http.Response.fromStream(streamed);
     ApiClient.checkResponse(response);
@@ -79,7 +79,7 @@ class EventService {
     final streamed = await ApiClient.multipartRequest(
       'PUT',
       '$_base/events/$id',
-      fields,
+      _nonEmptyFields(fields),
     );
     ApiClient.checkResponse(await http.Response.fromStream(streamed));
   }
@@ -91,4 +91,9 @@ class EventService {
     );
     ApiClient.checkResponse(response);
   }
+
+  Map<String, String> _nonEmptyFields(Map<String, String> fields) =>
+      Map.fromEntries(
+        fields.entries.where((entry) => entry.value.trim().isNotEmpty),
+      );
 }

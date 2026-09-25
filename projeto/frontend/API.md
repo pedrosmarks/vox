@@ -1776,7 +1776,11 @@ GET /api/events?municipalityId=1&minPrice=0&maxPrice=50&page=0&size=20
       "price": 30.00,
       "startDate": "2026-07-15T18:00:00",
       "endDate": "2026-07-15T23:00:00",
-      "location": "Praça Central",
+      "neighborhood": "Centro",
+      "street": "Rua das Flores",
+      "number": "123",
+      "latitude": -23.55052000,
+      "longitude": -46.63330000,
       "municipalityId": 1,
       "authorId": 5,
       "createdAt": "2026-06-01T10:00:00"
@@ -1819,7 +1823,11 @@ Content-Type: multipart/form-data
 | `price` | decimal (≥ 0) | ❌ (ausente = gratuito) |
 | `startDate` | `yyyy-MM-dd'T'HH:mm:ss` | ❌ |
 | `endDate` | `yyyy-MM-dd'T'HH:mm:ss` | ❌ |
-| `location` | texto | ❌ |
+| `neighborhood` | texto | ❌ |
+| `street` | texto | ❌ |
+| `number` | texto | ❌ |
+| `latitude` | decimal | ✅ |
+| `longitude` | decimal | ✅ |
 | `file` | imagem | ❌ (imagem inicial) |
 
 > `municipalityId` e `authorId` são preenchidos automaticamente pelo backend a partir do token.
