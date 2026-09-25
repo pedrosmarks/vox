@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/event.dart';
 import '../services/auth_service.dart';
 import '../services/event_service.dart';
@@ -109,29 +110,24 @@ class _EventosScreenState extends State<EventosScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: search,
-                    onSubmitted: (_) => load(),
-                    decoration: const InputDecoration(
-                      labelText: 'Buscar eventos',
-                      prefixIcon: Icon(Icons.search),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    setState(() => free = !free);
-                    load();
-                  },
-                  icon: Icon(
-                    free ? Icons.check_box : Icons.check_box_outline_blank,
-                  ),
-                  tooltip: 'Somente gratuitos',
-                ),
-              ],
+            TextField(
+              controller: search,
+              onSubmitted: (_) => load(),
+              decoration: const InputDecoration(
+                labelText: 'Buscar eventos',
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+            CheckboxListTile(
+              value: free,
+              onChanged: (value) {
+                setState(() => free = value ?? false);
+                load();
+              },
+              title: const Text('Somente gratuitos'),
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+              dense: true,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int?>(
@@ -279,6 +275,7 @@ class _EventosScreenState extends State<EventosScreen> {
       text: event?.endDate?.toIso8601String().substring(0, 19) ?? '',
     );
     final formKey = GlobalKey<FormState>();
+    final selectedImage = ValueNotifier<XFile?>(null);
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -318,6 +315,26 @@ class _EventosScreenState extends State<EventosScreen> {
                     decoration: const InputDecoration(labelText: 'Preço'),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ValueListenableBuilder<XFile?>(
+                    valueListenable: selectedImage,
+                    builder: (context, image, _) => OutlinedButton.icon(
+                      onPressed: () async {
+                        final picked = await ImagePicker().pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 85,
+                          maxWidth: 1920,
+                        );
+                        if (picked != null) selectedImage.value = picked;
+                      },
+                      icon: const Icon(Icons.image_outlined),
+                      label: Text(
+                        image == null
+                            ? 'Adicionar imagem (opcional)'
+                            : image.name,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -406,9 +423,13 @@ class _EventosScreenState extends State<EventosScreen> {
               };
               try {
                 if (event == null) {
-                  await service.createEvent(fields);
+                  await service.createEvent(fields, image: selectedImage.value);
                 } else {
-                  await service.updateEvent(event.id, fields);
+                  await service.updateEvent(
+                    event.id,
+                    fields,
+                    image: selectedImage.value,
+                  );
                 }
                 if (dialogContext.mounted) Navigator.pop(dialogContext, true);
               } catch (_) {
@@ -439,6 +460,7 @@ class _EventosScreenState extends State<EventosScreen> {
     ]) {
       controller.dispose();
     }
+    selectedImage.dispose();
     if (saved == true) await load();
   }
 

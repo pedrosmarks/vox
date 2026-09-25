@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import '../models/event.dart';
 import 'api_client.dart';
 
@@ -64,22 +65,28 @@ class EventService {
         .toList();
   }
 
-  Future<int?> createEvent(Map<String, String> fields) async {
+  Future<int?> createEvent(Map<String, String> fields, {XFile? image}) async {
     final streamed = await ApiClient.multipartRequest(
       'POST',
       '$_base/events',
       _nonEmptyFields(fields),
+      files: await _imageFiles(image),
     );
     final response = await http.Response.fromStream(streamed);
     ApiClient.checkResponse(response);
     return ApiClient.locationId(response);
   }
 
-  Future<void> updateEvent(int id, Map<String, String> fields) async {
+  Future<void> updateEvent(
+    int id,
+    Map<String, String> fields, {
+    XFile? image,
+  }) async {
     final streamed = await ApiClient.multipartRequest(
       'PUT',
       '$_base/events/$id',
       _nonEmptyFields(fields),
+      files: await _imageFiles(image),
     );
     ApiClient.checkResponse(await http.Response.fromStream(streamed));
   }
@@ -96,4 +103,15 @@ class EventService {
       Map.fromEntries(
         fields.entries.where((entry) => entry.value.trim().isNotEmpty),
       );
+
+  Future<List<http.MultipartFile>> _imageFiles(XFile? image) async {
+    if (image == null) return [];
+    return [
+      http.MultipartFile.fromBytes(
+        'file',
+        await image.readAsBytes(),
+        filename: image.name,
+      ),
+    ];
+  }
 }

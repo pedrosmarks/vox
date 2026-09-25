@@ -216,6 +216,7 @@ class _HomeShellState extends State<HomeShell> {
             }),
           ),
           child: NavigationBar(
+            height: mq.size.width < 600 ? 64 : null,
             selectedIndex: visibleIndex,
             onDestinationSelected: (i) {
               if (usesMoreMenu && i == visibleCount) {
