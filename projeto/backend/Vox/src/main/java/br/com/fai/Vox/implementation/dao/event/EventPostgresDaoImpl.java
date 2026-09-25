@@ -24,8 +24,9 @@ public class EventPostgresDaoImpl implements EventDao {
     @Override
     public int create(Event e) {
         final String sql = "INSERT INTO event " +
-                "(title, description, category_id, price, start_date, end_date, location, municipality_id, author_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "(title, description, category_id, price, start_date, end_date, " +
+                "neighborhood, street, number, latitude, longitude, municipality_id, author_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"})) {
             ps.setString(1, e.getTitle());
             ps.setString(2, e.getDescription());
@@ -33,9 +34,13 @@ public class EventPostgresDaoImpl implements EventDao {
             if (e.getPrice() != null) ps.setBigDecimal(4, e.getPrice()); else ps.setNull(4, Types.NUMERIC);
             setTimestamp(ps, 5, e.getStartDate());
             setTimestamp(ps, 6, e.getEndDate());
-            ps.setString(7, e.getLocation());
-            if (e.getMunicipalityId() != null) ps.setInt(8, e.getMunicipalityId()); else ps.setNull(8, Types.INTEGER);
-            if (e.getAuthorId() != null) ps.setInt(9, e.getAuthorId()); else ps.setNull(9, Types.INTEGER);
+            ps.setString(7, e.getNeighborhood());
+            ps.setString(8, e.getStreet());
+            ps.setString(9, e.getNumber());
+            if (e.getLatitude() != null) ps.setBigDecimal(10, e.getLatitude()); else ps.setNull(10, Types.NUMERIC);
+            if (e.getLongitude() != null) ps.setBigDecimal(11, e.getLongitude()); else ps.setNull(11, Types.NUMERIC);
+            if (e.getMunicipalityId() != null) ps.setInt(12, e.getMunicipalityId()); else ps.setNull(12, Types.INTEGER);
+            if (e.getAuthorId() != null) ps.setInt(13, e.getAuthorId()); else ps.setNull(13, Types.INTEGER);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 return rs.next() ? rs.getInt(1) : 0;
@@ -62,7 +67,9 @@ public class EventPostgresDaoImpl implements EventDao {
     public void update(int id, Event e) {
         final String sql = "UPDATE event SET title = ?, description = ?, " +
                 "category_id = COALESCE(?, category_id), price = ?, start_date = ?, end_date = ?, " +
-                "location = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+                "neighborhood = ?, street = ?, number = ?, " +
+                "latitude = COALESCE(?, latitude), longitude = COALESCE(?, longitude), " +
+                "updated_at = CURRENT_TIMESTAMP WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, e.getTitle());
             ps.setString(2, e.getDescription());
@@ -70,8 +77,12 @@ public class EventPostgresDaoImpl implements EventDao {
             if (e.getPrice() != null) ps.setBigDecimal(4, e.getPrice()); else ps.setNull(4, Types.NUMERIC);
             setTimestamp(ps, 5, e.getStartDate());
             setTimestamp(ps, 6, e.getEndDate());
-            ps.setString(7, e.getLocation());
-            ps.setInt(8, id);
+            ps.setString(7, e.getNeighborhood());
+            ps.setString(8, e.getStreet());
+            ps.setString(9, e.getNumber());
+            if (e.getLatitude() != null) ps.setBigDecimal(10, e.getLatitude()); else ps.setNull(10, Types.NUMERIC);
+            if (e.getLongitude() != null) ps.setBigDecimal(11, e.getLongitude()); else ps.setNull(11, Types.NUMERIC);
+            ps.setInt(12, id);
             ps.executeUpdate();
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
@@ -195,7 +206,11 @@ public class EventPostgresDaoImpl implements EventDao {
         if (startDate != null) e.setStartDate(startDate.toLocalDateTime());
         Timestamp endDate = rs.getTimestamp("end_date");
         if (endDate != null) e.setEndDate(endDate.toLocalDateTime());
-        e.setLocation(rs.getString("location"));
+        e.setNeighborhood(rs.getString("neighborhood"));
+        e.setStreet(rs.getString("street"));
+        e.setNumber(rs.getString("number"));
+        e.setLatitude(rs.getBigDecimal("latitude"));
+        e.setLongitude(rs.getBigDecimal("longitude"));
         int municipalityId = rs.getInt("municipality_id");
         if (!rs.wasNull()) e.setMunicipalityId(municipalityId);
         int authorId = rs.getInt("author_id");

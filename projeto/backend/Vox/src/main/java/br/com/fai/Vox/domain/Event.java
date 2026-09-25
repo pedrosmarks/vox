@@ -18,7 +18,11 @@ public class Event {
     private BigDecimal price;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private String location;
+    private String neighborhood;
+    private String street;
+    private String number;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
     private Integer municipalityId;
     private Integer authorId;
     private LocalDateTime createdAt;

@@ -421,49 +421,49 @@ VALUES
 -- Autores: 2 = MODERATOR, 3 = ADMINISTRATOR
 -- Datas relativas a CURRENT_DATE para manter a demo sempre com eventos futuros
 -- ---------------------------------------------------------------------
-INSERT INTO event (title, description, category_id, price, start_date, end_date, location, municipality_id, author_id)
+INSERT INTO event (title, description, category_id, price, start_date, end_date, neighborhood, street, number, latitude, longitude, municipality_id, author_id)
 VALUES
     ('Festival de Inverno',
      'Três dias de shows, feira gastronômica e apresentações culturais na praça central.',
      1, 30.00,
      CURRENT_DATE + INTERVAL '10 days' + TIME '18:00',
      CURRENT_DATE + INTERVAL '12 days' + TIME '23:00',
-     'Praça Central', 1, 2),
+     'Centro', 'Praça João Pessoa', 'S/N', -22.23015000, -45.93610000, 1, 2),
 
     ('Corrida da Cidade 10K',
      'Corrida de rua com percursos de 5K e 10K, aberta a todas as idades.',
      2, 0.00,
      CURRENT_DATE + INTERVAL '20 days' + TIME '07:00',
      CURRENT_DATE + INTERVAL '20 days' + TIME '11:00',
-     'Parque Municipal', 1, 2),
+     'Centro', 'Avenida Doutor Lisboa', '1000', -22.22780000, -45.93420000, 1, 2),
 
     ('Feira de Ciências e Tecnologia',
      'Exposição de projetos de escolas e startups locais, com palestras e oficinas.',
      3, NULL,
      CURRENT_DATE + INTERVAL '5 days' + TIME '09:00',
      CURRENT_DATE + INTERVAL '5 days' + TIME '17:00',
-     'Centro de Convenções', 9, 3),
+     'Fátima', 'Rua das Palmeiras', '250', -22.24120000, -45.92510000, 9, 3),
 
     ('Mutirão de Limpeza do Rio',
      'Ação comunitária de limpeza das margens do rio, com café da manhã para voluntários.',
      4, 0.00,
      CURRENT_DATE + INTERVAL '3 days' + TIME '08:00',
      CURRENT_DATE + INTERVAL '3 days' + TIME '12:00',
-     'Margem do Rio Sapucaí', 1, 2),
+     'São Geraldo', 'Rua Beira Rio', 'S/N', -22.23540000, -45.94080000, 1, 2),
 
     ('Hackathon Cidades Inteligentes',
      'Maratona de programação de 48h focada em soluções para gestão pública municipal.',
      5, 50.00,
      CURRENT_DATE + INTERVAL '30 days' + TIME '19:00',
      CURRENT_DATE + INTERVAL '32 days' + TIME '19:00',
-     'Hub de Inovação', 17, 3),
+     'Cidade Jardim', 'Rua da Inovação', '45', -22.22190000, -45.92870000, 17, 3),
 
     ('Sarau Cultural de Primavera',
      'Noite de poesia, música acústica e feira de artesanato local.',
      1, 15.00,
      CURRENT_DATE + INTERVAL '45 days' + TIME '20:00',
      CURRENT_DATE + INTERVAL '45 days' + TIME '23:30',
-     'Casa de Cultura', 1, 2),
+     'Centro', 'Rua Comendador José Garcia', '320', -22.22960000, -45.93770000, 1, 2),
 
     -- Eventos de Turismo (categoria 6 = Turismo em event_category)
     ('City Tour Histórico',
@@ -471,14 +471,14 @@ VALUES
      6, 0.00,
      CURRENT_DATE + INTERVAL '7 days' + TIME '09:00',
      CURRENT_DATE + INTERVAL '7 days' + TIME '12:00',
-     'Ponto de encontro: Praça da Matriz', 1, 2),
+     'Centro', 'Praça da Matriz', 'S/N', -22.22870000, -45.93650000, 1, 2),
 
     ('Festival de Turismo Rural',
      'Feira com produtores locais, gastronomia caipira e passeios pelas fazendas históricas da região.',
      6, 25.00,
      CURRENT_DATE + INTERVAL '25 days' + TIME '10:00',
      CURRENT_DATE + INTERVAL '27 days' + TIME '18:00',
-     'Parque de Exposições', 1, 3);
+     'Zona Rural', 'Estrada do Parque de Exposições', 'km 3', -22.20450000, -45.95120000, 1, 3);
 
 -- ---------------------------------------------------------------------
 -- Imagens de eventos (alguns eventos sem imagem para exercitar o filtro hasImage)

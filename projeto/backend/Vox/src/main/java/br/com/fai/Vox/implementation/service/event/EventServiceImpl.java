@@ -42,7 +42,11 @@ public class EventServiceImpl implements EventService {
         entity.setPrice(dto.getPrice());
         entity.setStartDate(dto.getStartDate());
         entity.setEndDate(dto.getEndDate());
-        entity.setLocation(dto.getLocation());
+        entity.setNeighborhood(dto.getNeighborhood());
+        entity.setStreet(dto.getStreet());
+        entity.setNumber(dto.getNumber());
+        entity.setLatitude(dto.getLatitude());
+        entity.setLongitude(dto.getLongitude());
         entity.setMunicipalityId(dto.getMunicipalityId());
         entity.setAuthorId(dto.getAuthorId());
 
@@ -93,7 +97,11 @@ public class EventServiceImpl implements EventService {
         entity.setPrice(dto.getPrice());
         entity.setStartDate(dto.getStartDate());
         entity.setEndDate(dto.getEndDate());
-        entity.setLocation(dto.getLocation());
+        entity.setNeighborhood(dto.getNeighborhood());
+        entity.setStreet(dto.getStreet());
+        entity.setNumber(dto.getNumber());
+        entity.setLatitude(dto.getLatitude());
+        entity.setLongitude(dto.getLongitude());
 
         eventDao.update(id, entity);
         logger.log(Level.INFO, "Evento atualizado. ID: " + id);

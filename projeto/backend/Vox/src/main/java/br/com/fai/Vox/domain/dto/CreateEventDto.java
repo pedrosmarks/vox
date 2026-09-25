@@ -27,7 +27,16 @@ public class CreateEventDto {
 
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private String location;
+
+    private String neighborhood;
+    private String street;
+    private String number;
+
+    @NotNull(message = "Latitude é obrigatória")
+    private BigDecimal latitude;
+
+    @NotNull(message = "Longitude é obrigatória")
+    private BigDecimal longitude;
 
     private Integer municipalityId;
     private Integer authorId;
