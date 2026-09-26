@@ -116,7 +116,7 @@ export class MapPickerComponent implements AfterViewInit, OnDestroy, OnChanges {
 
     // Se já veio com valor preenchido, usa ele
     if (this.value) {
-      this.setMarker(this.value.longitude, this.value.latitude);
+      this.setMarker(this.value.longitude, this.value.latitude, false);
       this.map.setCenter([this.value.longitude, this.value.latitude]);
       this.map.setZoom(13);
       return;
@@ -139,7 +139,7 @@ export class MapPickerComponent implements AfterViewInit, OnDestroy, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['value'] && this.map && this.value) {
-      this.setMarker(this.value.longitude, this.value.latitude);
+      this.setMarker(this.value.longitude, this.value.latitude, false);
       this.map.flyTo({ center: [this.value.longitude, this.value.latitude], zoom: 12 });
     }
   }
@@ -148,7 +148,7 @@ export class MapPickerComponent implements AfterViewInit, OnDestroy, OnChanges {
     this.map?.remove();
   }
 
-  private setMarker(lng: number, lat: number): void {
+  private setMarker(lng: number, lat: number, emitChange = true): void {
     if (this.marker) {
       this.marker.remove();
     }
@@ -162,7 +162,11 @@ export class MapPickerComponent implements AfterViewInit, OnDestroy, OnChanges {
       this.emitLocation(pos.lng, pos.lat);
     });
 
-    this.emitLocation(lng, lat);
+    if (emitChange) {
+      this.emitLocation(lng, lat);
+    } else {
+      this.selectedLocation = { latitude: lat, longitude: lng };
+    }
   }
 
   private emitLocation(lng: number, lat: number): void {
