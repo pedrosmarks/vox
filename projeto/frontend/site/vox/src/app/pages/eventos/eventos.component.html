@@ -1,6 +1,6 @@
 <app-navbar></app-navbar>
 <main class="events-page">
-  <header class="page-heading"><div><h1>Eventos</h1><p>Descubra o que está acontecendo nos municípios.</p></div><button *ngIf="isModerator" type="button" class="search-button" (click)="newEvent()">+ Novo evento</button></header>
+  <div class="page-heading"><div><h1>Eventos</h1><p>Descubra o que está acontecendo nos municípios.</p></div><button *ngIf="isModerator" type="button" class="search-button" (click)="newEvent()">+ Novo evento</button></div>
   <section class="filters" aria-label="Filtros de eventos">
     <input [(ngModel)]="search" (keyup.enter)="page = 0; load()" placeholder="Buscar eventos" aria-label="Buscar eventos" />
     <select [(ngModel)]="selectedMunicipalityId" (ngModelChange)="page = 0; load()" aria-label="Município"><option [ngValue]="null">Todos os municípios</option><option *ngFor="let municipality of municipalities" [ngValue]="municipality.id">{{ municipality.name }}{{ municipality.state ? ' - ' + municipality.state : '' }}</option></select>
@@ -18,4 +18,26 @@
   <p *ngIf="!loading && !events.length" class="state">Nenhum evento encontrado.</p>
   <nav class="pagination" *ngIf="total > size"><button type="button" (click)="previous()" [disabled]="page === 0">Anterior</button><span>Página {{ page + 1 }}</span><button type="button" (click)="next()" [disabled]="(page + 1) * size >= total">Próxima</button></nav>
 </main>
-<div class="event-modal-backdrop" *ngIf="formOpen" (click)="formOpen = false"><form class="event-form" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); saveEvent()"><header><div><span class="eyebrow">Gestão de eventos</span><h2>{{ editingId === null ? 'Novo evento' : 'Editar evento' }}</h2></div><button type="button" class="close" (click)="formOpen = false">×</button></header><label>Título *<input name="title" [(ngModel)]="form.title" required /></label><label>Categoria *<select name="categoryId" [(ngModel)]="form.categoryId" required><option value="">Selecione</option><option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option></select></label><label>Descrição<textarea name="description" [(ngModel)]="form.description" rows="4"></textarea></label><div class="form-grid"><label>Preço<input name="price" type="number" min="0" step="0.01" [(ngModel)]="form.price" /></label><label>Bairro<input name="neighborhood" [(ngModel)]="form.neighborhood" /></label><label>Rua<input name="street" [(ngModel)]="form.street" /></label><label>Número<input name="number" [(ngModel)]="form.number" /></label><label>Início<input name="startDate" type="datetime-local" [(ngModel)]="form.startDate" /></label><label>Fim<input name="endDate" type="datetime-local" [(ngModel)]="form.endDate" /></label></div><label>Localização no mapa *<app-map-picker [value]="selectedLocation" (locationChange)="onLocationChange($event)" (addressChange)="onAddressChange($event)"></app-map-picker></label><p class="form-error" *ngIf="formError">{{ formError }}</p><footer><button type="button" class="cancel" (click)="formOpen = false">Cancelar</button><button type="submit" class="search-button" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar evento' }}</button></footer></form></div>
+<div class="event-modal-backdrop" *ngIf="formOpen" (click)="formOpen = false">
+  <form class="event-form" (click)="$event.stopPropagation()" (submit)="$event.preventDefault(); saveEvent()">
+    <header>
+      <div><span class="eyebrow">Gestão de eventos</span><h2>{{ editingId === null ? 'Novo evento' : 'Editar evento' }}</h2></div>
+      <button type="button" class="close" (click)="formOpen = false">×</button>
+    </header>
+    <label>Título *<input name="title" [(ngModel)]="form.title" required /></label>
+    <label>Categoria *<select name="categoryId" [(ngModel)]="form.categoryId" required><option value="">Selecione</option><option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option></select></label>
+    <label>Descrição<textarea name="description" [(ngModel)]="form.description" rows="4"></textarea></label>
+    <div class="form-grid">
+      <label>Preço<input name="price" type="number" min="0" step="0.01" [(ngModel)]="form.price" /></label>
+      <label>Bairro<input name="neighborhood" [(ngModel)]="form.neighborhood" /></label>
+      <label>Rua<input name="street" [(ngModel)]="form.street" /></label>
+      <label>Número<input name="number" [(ngModel)]="form.number" /></label>
+      <label>Início<input name="startDate" type="datetime-local" [(ngModel)]="form.startDate" /></label>
+      <label>Fim<input name="endDate" type="datetime-local" [(ngModel)]="form.endDate" /></label>
+    </div>
+    <label>Imagem (opcional)<input name="file" type="file" accept="image/*" (change)="onFileChange($event)" /></label>
+    <label>Localização no mapa *<app-map-picker [value]="selectedLocation" (locationChange)="onLocationChange($event)" (addressChange)="onAddressChange($event)"></app-map-picker></label>
+    <p class="form-error" *ngIf="formError">{{ formError }}</p>
+    <footer><button type="button" class="cancel" (click)="formOpen = false">Cancelar</button><button type="submit" class="search-button" [disabled]="saving">{{ saving ? 'Salvando...' : 'Salvar evento' }}</button></footer>
+  </form>
+</div>

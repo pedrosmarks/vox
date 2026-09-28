@@ -18,6 +18,7 @@ export class EventosComponent implements OnInit {
   events: CivicEvent[] = []; categories: EventCategory[] = [];
   municipalities: Municipality[] = []; selectedMunicipalityId: number | null = null;
   selectedLocation: LatLng | null = null;
+  selectedFile: File | null = null;
   search = ''; categoryId = ''; free = false; loading = false; error = '';
   page = 0; size = 12; total = 0;
   isModerator = false; formOpen = false; editingId: number | null = null; saving = false; formError = '';
@@ -55,8 +56,8 @@ export class EventosComponent implements OnInit {
       this.events = this.events.map((event, index) => ({ ...event, images: images[index] }));
     });
   }
-  newEvent(): void { this.editingId = null; this.selectedLocation = null; this.form = { title: '', categoryId: '', description: '', price: '', startDate: '', endDate: '', neighborhood: '', street: '', number: '', latitude: '', longitude: '' }; this.formError = ''; this.formOpen = true; }
-  editEvent(event: CivicEvent, click: MouseEvent): void { click.stopPropagation(); this.editingId = event.id; this.selectedLocation = event.latitude != null && event.longitude != null ? { latitude: event.latitude, longitude: event.longitude } : null; this.form = { title: event.title, categoryId: String(event.categoryId), description: event.description ?? '', price: event.price?.toString() ?? '', startDate: event.startDate?.slice(0, 16) ?? '', endDate: event.endDate?.slice(0, 16) ?? '', neighborhood: event.neighborhood ?? '', street: event.street ?? '', number: event.number ?? '', latitude: event.latitude?.toString() ?? '', longitude: event.longitude?.toString() ?? '' }; this.formError = ''; this.formOpen = true; }
+  newEvent(): void { this.editingId = null; this.selectedLocation = null; this.selectedFile = null; this.form = { title: '', categoryId: '', description: '', price: '', startDate: '', endDate: '', neighborhood: '', street: '', number: '', latitude: '', longitude: '' }; this.formError = ''; this.formOpen = true; }
+  editEvent(event: CivicEvent, click: MouseEvent): void { click.stopPropagation(); this.editingId = event.id; this.selectedLocation = event.latitude != null && event.longitude != null ? { latitude: event.latitude, longitude: event.longitude } : null; this.selectedFile = null; this.form = { title: event.title, categoryId: String(event.categoryId), description: event.description ?? '', price: event.price?.toString() ?? '', startDate: event.startDate?.slice(0, 16) ?? '', endDate: event.endDate?.slice(0, 16) ?? '', neighborhood: event.neighborhood ?? '', street: event.street ?? '', number: event.number ?? '', latitude: event.latitude?.toString() ?? '', longitude: event.longitude?.toString() ?? '' }; this.formError = ''; this.formOpen = true; }
   onLocationChange(location: LatLng): void {
     this.selectedLocation = location;
     this.form.latitude = String(location.latitude);
@@ -67,11 +68,14 @@ export class EventosComponent implements OnInit {
     if (address.number) this.form.number = address.number;
     if (address.neighborhood) this.form.neighborhood = address.neighborhood;
   }
+  onFileChange(event: Event): void {
+    this.selectedFile = (event.target as HTMLInputElement).files?.[0] ?? null;
+  }
   saveEvent(): void {
     if (!this.form.title.trim() || !this.form.categoryId || !this.selectedLocation) { this.formError = 'Informe título, categoria e selecione a localização no mapa.'; return; }
     this.saving = true; this.formError = '';
     const data: Record<string, string> = { ...this.form, categoryId: this.form.categoryId, price: this.form.price, startDate: this.form.startDate ? `${this.form.startDate}:00` : '', endDate: this.form.endDate ? `${this.form.endDate}:00` : '' };
-    const request = this.editingId === null ? this.service.createEvent(data) : this.service.updateEvent(this.editingId, data);
+    const request = this.editingId === null ? this.service.createEvent(data, this.selectedFile ?? undefined) : this.service.updateEvent(this.editingId, data, this.selectedFile ?? undefined);
     request.subscribe({ next: () => { this.formOpen = false; this.saving = false; this.load(); }, error: () => { this.formError = 'Não foi possível salvar o evento.'; this.saving = false; } });
   }
   deleteEvent(event: CivicEvent, click: MouseEvent): void { click.stopPropagation(); if (!confirm(`Excluir "${event.title}"?`)) return; this.service.deleteEvent(event.id).subscribe({ next: () => this.load(), error: () => this.error = 'Não foi possível excluir o evento.' }); }
