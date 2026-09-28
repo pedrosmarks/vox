@@ -212,11 +212,20 @@ class _HomeShellState extends State<HomeShell> {
                     context,
                   ).navigationBarTheme.labelTextStyle?.resolve(states) ??
                   const TextStyle(fontSize: 11, fontWeight: FontWeight.w500);
-              return base.copyWith(overflow: TextOverflow.ellipsis);
+              return base.copyWith(
+                fontSize: 10,
+                overflow: TextOverflow.ellipsis,
+              );
+            }),
+            iconTheme: WidgetStateProperty.resolveWith((states) {
+              final base = Theme.of(
+                context,
+              ).navigationBarTheme.iconTheme?.resolve(states);
+              return (base ?? const IconThemeData()).copyWith(size: 20);
             }),
           ),
           child: NavigationBar(
-            height: mq.size.width < 600 ? 64 : null,
+            height: mq.size.width < 600 ? 56 : null,
             selectedIndex: visibleIndex,
             onDestinationSelected: (i) {
               if (usesMoreMenu && i == visibleCount) {

@@ -26,8 +26,10 @@ class _PerfilScreenState extends State<PerfilScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _isSavingProfile = false;
+  bool _isUploadingPhoto = false;
   String? _profileMessage;
   bool _profileSuccess = false;
+  bool _profilePhotoFailed = false;
   XFile? _selectedPhoto;
   Uint8List? _selectedPhotoBytes;
 
@@ -52,6 +54,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     try {
       final user = await _authService.fetchCurrentUser();
       _user = user;
+      _profilePhotoFailed = false;
       _nameController.text = user.name;
       _phoneController.text = user.phone ?? '';
     } catch (_) {
@@ -71,7 +74,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   }
 
   Future<void> _saveProfile() async {
-    if (_user == null) return;
+    if (_user == null || _isUploadingPhoto) return;
     if (_nameController.text.trim().isEmpty) {
       setState(() {
         _profileSuccess = false;
@@ -103,14 +106,44 @@ class _PerfilScreenState extends State<PerfilScreen> {
   }
 
   Future<void> _pickProfilePhoto() async {
+    if (_user == null || _isSavingProfile || _isUploadingPhoto) return;
     final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (photo == null) return;
     final bytes = await photo.readAsBytes();
-    if (mounted)
+    if (!mounted) return;
+    setState(() {
+      _selectedPhoto = photo;
+      _selectedPhotoBytes = bytes;
+      _profilePhotoFailed = false;
+      _isUploadingPhoto = true;
+      _profileSuccess = false;
+      _profileMessage = null;
+    });
+
+    try {
+      final updatedUser = await _authService.updateProfile(
+        _user!.id,
+        <String, dynamic>{},
+        profilePhoto: photo,
+      );
+      if (!mounted) return;
       setState(() {
-        _selectedPhoto = photo;
-        _selectedPhotoBytes = bytes;
+        _user = updatedUser;
+        _selectedPhoto = null;
+        _selectedPhotoBytes = null;
+        _profilePhotoFailed = false;
+        _profileSuccess = true;
+        _profileMessage = 'Foto de perfil salva com sucesso!';
       });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _profileSuccess = false;
+        _profileMessage = 'Não foi possível salvar a foto. Tente novamente.';
+      });
+    } finally {
+      if (mounted) setState(() => _isUploadingPhoto = false);
+    }
   }
 
   Future<void> _savePassword() async {
@@ -214,23 +247,48 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         radius: 36,
                         backgroundImage: _selectedPhotoBytes != null
                             ? MemoryImage(_selectedPhotoBytes!)
-                            : (_user!.profilePhotoUrl != null
-                                      ? NetworkImage(_user!.profilePhotoUrl!)
-                                      : null)
-                                  as ImageProvider?,
-                        child: Text(
-                          (_selectedPhotoBytes == null &&
-                                  _user!.profilePhotoUrl == null &&
-                                  _user!.name.isNotEmpty)
-                              ? _user!.name[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(fontSize: 28),
-                        ),
+                            : (!_profilePhotoFailed &&
+                                      _user!.profilePhotoUrl != null
+                                  ? NetworkImage(_user!.profilePhotoUrl!)
+                                  : null),
+                        onBackgroundImageError:
+                            _selectedPhotoBytes == null &&
+                                _user!.profilePhotoUrl != null
+                            ? (_, _) {
+                                if (mounted) {
+                                  setState(() => _profilePhotoFailed = true);
+                                }
+                              }
+                            : null,
+                        child:
+                            _selectedPhotoBytes == null &&
+                                (_user!.profilePhotoUrl == null ||
+                                    _profilePhotoFailed) &&
+                                _user!.name.isNotEmpty
+                            ? Text(
+                                _user!.name[0].toUpperCase(),
+                                style: const TextStyle(fontSize: 28),
+                              )
+                            : null,
                       ),
                       TextButton.icon(
-                        onPressed: _isSavingProfile ? null : _pickProfilePhoto,
-                        icon: const Icon(Icons.photo_camera_outlined),
-                        label: const Text('Escolher foto'),
+                        onPressed: _isSavingProfile || _isUploadingPhoto
+                            ? null
+                            : _pickProfilePhoto,
+                        icon: _isUploadingPhoto
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.photo_camera_outlined),
+                        label: Text(
+                          _isUploadingPhoto
+                              ? 'Salvando foto...'
+                              : 'Escolher foto',
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -271,7 +329,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   ),
                 const SizedBox(height: 12),
                 FilledButton(
-                  onPressed: _isSavingProfile ? null : _saveProfile,
+                  onPressed: _isSavingProfile || _isUploadingPhoto
+                      ? null
+                      : _saveProfile,
                   child: _isSavingProfile
                       ? const SizedBox(
                           height: 20,

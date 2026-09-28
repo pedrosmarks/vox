@@ -571,6 +571,21 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
+        SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(value: 'PUBLIC_WORK', label: Text('Obra pública')),
+            ButtonSegment(value: 'LAW', label: Text('Projeto de lei')),
+          ],
+          selected: {_nature},
+          onSelectionChanged: (selection) =>
+              setState(() => _nature = selection.first),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Obra pública: construção, reforma ou melhoria física em um local, como praça, escola ou rua. Precisa de local no mapa e aparece no dashboard.\nProjeto de lei: proposta de criação ou alteração de lei, regra, orçamento ou nome de rua. Não representa uma obra física, não precisa de endereço ou coordenadas e não aparece no mapa.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 12),
         TextField(
           controller: _titleController,
           decoration: const InputDecoration(labelText: 'Título *'),
@@ -589,23 +604,6 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
           controller: _descriptionController,
           decoration: const InputDecoration(labelText: 'Descrição *'),
           maxLines: 4,
-        ),
-        const SizedBox(height: 12),
-        SegmentedButton<String>(
-          segments: const [
-            ButtonSegment(value: 'PUBLIC_WORK', label: Text('Obra pública')),
-            ButtonSegment(value: 'LAW', label: Text('Projeto de lei')),
-          ],
-          selected: {_nature},
-          onSelectionChanged: (selection) =>
-              setState(() => _nature = selection.first),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _nature == 'PUBLIC_WORK'
-              ? 'Obras exigem localização no mapa e aparecem no dashboard.'
-              : 'Projetos de lei não exigem endereço ou coordenadas.',
-          style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 12),
         DropdownButtonFormField<String>(
