@@ -394,6 +394,97 @@ VALUES
     (1, 7, 8, 4, 'Mirante sem manutenção', 'Guarda-corpo do mirante turístico está enferrujado, oferecendo risco aos turistas.',
      'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24510000, -45.69510000, 'UNDER_REVIEW', 'APPROVED');
 
+-- Issues reais de Santa Rita do Sapucaí para popular o mapa de zonas quentes
+-- Bairros principais: Centro (~10), Santana (~6), variados (~6)
+-- IDs resultantes: 8..32
+INSERT INTO issue_report (municipality_id, category_id, author_id, councilor_id, title, description, neighborhood, street, number,
+                          latitude, longitude, status, moderation_status)
+VALUES
+    -- ===============================================================
+    -- CENTRO (10 issues) — zona mais quente do mapa
+    -- ===============================================================
+    (1, 1, 1, 4,   'Buraco na Rua Barão de Alfenas', 'Cratera no asfalto próximo à esquina com a Rua Sete, causando risco a veículos e pedestres.',
+     'Centro', 'Rua Barão de Alfenas', '120', -22.25210000, -45.70280000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 1, 5, null, 'Calçada destruída na Praça Santa Rita', 'Calçamento irregular com pedras soltas e desníveis causando quedas.',
+     'Centro', 'Praça Santa Rita', 's/n', -22.25240000, -45.70250000, 'OPEN', 'APPROVED'),
+
+    (1, 5, 6, 9,   'Iluminação apagada na Rua Sete', 'Trecho de mais de 200m sem iluminação pública há três semanas.',
+     'Centro', 'Rua Sete', '350', -22.25190000, -45.70320000, 'UNDER_REVIEW', 'APPROVED'),
+
+    (1, 1, 7, null, 'Bueiro entupido causando alagamento', 'Bueiro obstruído na Rua Coronel Inácio provoca alagamento a cada chuva.',
+     'Centro', 'Rua Coronel Joaquim Inácio', '80', -22.25200000, -45.70300000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 4, 1, 4,   'Lixo acumulado na Praça João Pessoa', 'Acúmulo de lixo e entulho nas proximidades da praça há mais de uma semana.',
+     'Centro', 'Praça João Pessoa', 's/n', -22.25220000, -45.70260000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 8, null, 'Meio-fio quebrado na Rua Teófilo Otoni', 'Meio-fio danificado ao longo de dois quarteirões representando risco a ciclistas.',
+     'Centro', 'Rua Teófilo Otoni', '45', -22.25170000, -45.70350000, 'OPEN', 'APPROVED'),
+
+    (1, 2, 5, 9,   'Falta de rampa de acessibilidade no posto de saúde', 'Entrada da UBS central sem rampa de acessibilidade para cadeirantes.',
+     'Centro', 'Rua Comendador José Garcia', '200', -22.25230000, -45.70390000, 'RESOLVED', 'APPROVED'),
+
+    (1, 5, 6, null, 'Câmera de segurança quebrada no centro', 'Câmera de videomonitoramento na esquina da Praça Santa Rita está sem funcionamento.',
+     'Centro', 'Praça Santa Rita', '1', -22.25250000, -45.70240000, 'UNDER_REVIEW', 'APPROVED'),
+
+    (1, 1, 7, 10,  'Pavimento deteriorado na Av. Embaixador Bilac Pinto', 'Trecho do asfalto completamente esburacado antes da continuidade da obra.',
+     'Centro', 'Avenida Embaixador Bilac Pinto', '300', -22.25470000, -45.70620000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 4, 1, null, 'Árvore com galhos sobre a fiação elétrica', 'Galhos comprometendo a rede elétrica na Rua Barão do Rio Branco, risco de curto.',
+     'Centro', 'Rua Barão do Rio Branco', '55', -22.25180000, -45.70420000, 'OPEN', 'APPROVED'),
+
+    -- ===============================================================
+    -- SANTANA (6 issues) — segunda zona quente
+    -- ===============================================================
+    (1, 1, 8, 4,   'Valeta aberta sem sinalização no Santana', 'Escavação para obra de drenagem aberta há semanas sem sinalização adequada.',
+     'Santana', 'Rua das Palmeiras', '130', -22.24760000, -45.69820000, 'OPEN', 'APPROVED'),
+
+    (1, 4, 5, null, 'Terreno baldio com mato alto no Santana', 'Lote abandonado com vegetação alta e presença de animais peçonhentos.',
+     'Santana', 'Rua das Acácias', '88', -22.24810000, -45.69870000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 6, 9,   'Asfalto cedendo na Av. Sebastião Reginaldo da Cunha', 'Afundamento no asfalto novo recém-aplicado após chuva forte.',
+     'Santana', 'Avenida Sebastião Reginaldo da Cunha', '560', -22.24720000, -45.69900000, 'UNDER_REVIEW', 'APPROVED'),
+
+    (1, 5, 7, null, 'Poste de iluminação tombado no Santana', 'Poste com risco de queda próximo à escola, sinalizando urgência no atendimento.',
+     'Santana', 'Rua dos Ipês', '22', -22.24850000, -45.69760000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 2, 1, 4,   'Ausência de coleta de lixo hospitalar no bairro', 'Descarte irregular de resíduos de saúde em lixeira comum no bairro.',
+     'Santana', 'Rua do Jacarandá', '67', -22.24790000, -45.69840000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 8, null, 'Calçada interrompida por obra particular', 'Construção particular bloqueou a calçada sem autorização, forçando pedestres à rua.',
+     'Santana', 'Avenida Pref. Antônio Capistrano Alckimim', '410', -22.24820000, -45.69790000, 'UNDER_REVIEW', 'APPROVED'),
+
+    -- ===============================================================
+    -- OUTROS BAIRROS — distribuição para enriquecer o mapa
+    -- ===============================================================
+    (1, 1, 5, 10,  'Ponte com estrutura comprometida', 'Ponte sobre o Córrego dos Abreus com vigas enferrujadas e piso deteriorado.',
+     'São Geraldo', 'Rua Beira Rio', 's/n', -22.23540000, -45.94060000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 4, 6, null, 'Descarte irregular de entulho no Anchieta', 'Ponto viciado de descarte de entulho e resíduos no fim da rua.',
+     'Anchieta', 'Rua Avelino Borges dos Reis', '200', -22.26230000, -45.70400000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 7, 9,   'Rua sem pavimentação na Vila Rica', 'Rua de terra com erosão profunda tornando o acesso impossível após chuvas.',
+     'Vila Rica', 'Rua do Cruzeiro', '90', -22.25540000, -45.70940000, 'OPEN', 'APPROVED'),
+
+    (1, 5, 1, null, 'Ausência de iluminação no Bela Vista', 'Trecho de 400m sem nenhuma luminária no acesso ao loteamento.',
+     'Bela Vista', 'Rua Benedito Rezende Vilela', '60', -22.26540000, -45.71350000, 'UNDER_REVIEW', 'APPROVED'),
+
+    (1, 2, 5, 10,  'Mato alto no entorno do ESF 07', 'Vegetação sem poda há meses dificultando acesso e gerando risco de cobras.',
+     'Santana I', 'Av. Pref. Antônio Capistrano Alckimim', 's/n', -22.24810000, -45.69750000, 'RESOLVED', 'APPROVED'),
+
+    (1, 3, 6, null, 'Escola com goteira e infiltração', 'Infiltração no teto da sala de informática comprometendo equipamentos.',
+     'Família Andrade', 'Rua Projetada', 's/n', -22.26000000, -45.71040000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 6, 7, 4,   'Quadra poliesportiva interditada', 'Grade da quadra caiu e o espaço está inacessível para a comunidade.',
+     'Santana I', 'Av. Pref. Antônio Capistrano Alckimim', '300', -22.24830000, -45.69760000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 8, null, 'Dreno entupido no Alto da Serra', 'Canal de drenagem bloqueado por sedimentos causando transbordamento na estrada.',
+     'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24480000, -45.69480000, 'OPEN', 'APPROVED'),
+
+    (1, 4, 1, 9,   'Rio Sapucaí com lixo nas margens', 'Acúmulo de resíduos sólidos nas margens do Rio Sapucaí próximo ao centro.',
+     'Centro', 'Margem do Rio Sapucaí', 's/n', -22.25600000, -45.70100000, 'UNDER_REVIEW', 'APPROVED');
+-- IDs resultantes: 8..32
+
 -- ---------------------------------------------------------------------
 -- Imagens das denúncias
 -- ---------------------------------------------------------------------
@@ -404,7 +495,14 @@ VALUES
     (3, 'https://picsum.photos/seed/lixo/800/600'),
     (4, 'https://picsum.photos/seed/vazamento/800/600'),
     (6, 'https://picsum.photos/seed/placa-turistica/800/600'),
-    (7, 'https://picsum.photos/seed/mirante-manutencao/800/600');
+    (7, 'https://picsum.photos/seed/mirante-manutencao/800/600'),
+    (8,  'https://picsum.photos/seed/buraco-centro/800/600'),
+    (11, 'https://picsum.photos/seed/lixo-praca/800/600'),
+    (14, 'https://picsum.photos/seed/asfalto-santana/800/600'),
+    (17, 'https://picsum.photos/seed/ponte-sao-geraldo/800/600'),
+    (19, 'https://picsum.photos/seed/rua-terra/800/600'),
+    (22, 'https://picsum.photos/seed/escola-goteira/800/600'),
+    (25, 'https://picsum.photos/seed/rio-sapucai/800/600');
 
 -- ---------------------------------------------------------------------
 -- Moderação de denúncias
