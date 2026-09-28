@@ -141,10 +141,14 @@ VALUES
 INSERT INTO user_settings (user_id, font_size, accessibility_mode)
 VALUES
     (1, 16, 'NONE'),
-    (2, 18, 'DARK'),
-    (3, 20, 'HIGH_CONTRAST'),
-    (5, 22, 'PROTANOPIA'),
-    (6, 16, 'NONE');
+    (2, 16, 'NONE'),
+    (3, 16, 'NONE'),
+    (5, 16, 'NONE'),
+    (6, 16, 'NONE'),
+    (7, 16, 'NONE'),
+    (9, 16, 'NONE'),
+    (10, 16, 'NONE'),
+    (11, 16, 'NONE');
 
 -- ---------------------------------------------------------------------
 -- Projetos (mistura de CITIZEN e CHAMBER, vários status)
