@@ -92,6 +92,20 @@
         <h3 class="section-title">Informações Básicas</h3>
 
         <div class="form-group full">
+          <label class="form-label">Natureza <span class="required">*</span></label>
+          <select class="form-select" [(ngModel)]="form.nature" required>
+            <option value="PUBLIC_WORK">Obra pública</option>
+            <option value="LAW">Projeto de lei</option>
+          </select>
+          <div class="alert alert-info" *ngIf="form.nature === 'PUBLIC_WORK'">
+            Construção, reforma ou melhoria física em um local, como uma praça, escola ou rua.
+          </div>
+          <div class="alert alert-info" *ngIf="form.nature === 'LAW'">
+            Proposta para criar ou alterar uma lei, regra, orçamento ou nome de rua. Não é uma obra física.
+          </div>
+        </div>
+
+        <div class="form-group full">
           <label class="form-label">Título <span class="required">*</span></label>
           <input type="text" class="form-input" [(ngModel)]="form.title" placeholder="Ex: Construção de Escola Municipal" />
         </div>
@@ -99,17 +113,6 @@
         <div class="form-group full">
           <label class="form-label">Descrição <span class="required">*</span></label>
           <textarea class="form-textarea" [(ngModel)]="form.description" rows="4" placeholder="Descreva o projeto..."></textarea>
-        </div>
-
-        <div class="form-group full">
-          <label class="form-label">Natureza <span class="required">*</span></label>
-          <select class="form-select" [(ngModel)]="form.nature" required>
-            <option value="PUBLIC_WORK">Obra pública</option>
-            <option value="LAW">Projeto de lei</option>
-          </select>
-          <div class="alert alert-info">
-            Obra pública exige localização no mapa e aparece no dashboard. Projeto de lei não exige endereço ou coordenadas.
-          </div>
         </div>
 
         <div class="form-row">

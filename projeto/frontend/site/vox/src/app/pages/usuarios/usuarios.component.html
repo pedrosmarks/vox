@@ -72,6 +72,37 @@
       </div>
     </div>
 
+      <div
+        *ngIf="pendingDeleteUser as user"
+        class="user-modal-overlay"
+        (click)="cancelDeleteUser()"
+      >
+        <section
+          class="user-modal user-confirm-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-user-title"
+          (click)="$event.stopPropagation()"
+        >
+          <h2 id="delete-user-title" class="section-title">
+            {{ user.role === 'ADMINISTRATOR' ? 'Excluir conta administrativa?' : 'Remover usuário?' }}
+          </h2>
+          <p *ngIf="user.role === 'ADMINISTRATOR'">
+            A conta de {{ user.name }} ({{ user.email }}) será excluída. Esta ação não pode ser desfeita.
+          </p>
+          <p *ngIf="user.role !== 'ADMINISTRATOR'">
+            {{ user.name }} ({{ user.email }}) será removido. Esta ação não pode ser desfeita.
+          </p>
+          <div *ngIf="deleteError" class="alert alert-error" role="alert">{{ deleteError }}</div>
+          <div class="form-actions user-modal-actions">
+            <button class="btn-promote" (click)="cancelDeleteUser()" [disabled]="isDeletingUser">Cancelar</button>
+            <button class="btn-reject" (click)="confirmDeleteUser()" [disabled]="isDeletingUser">
+              {{ isDeletingUser ? 'Excluindo...' : (user.role === 'ADMINISTRATOR' ? 'Excluir conta' : 'Remover usuário') }}
+            </button>
+          </div>
+        </section>
+      </div>
+
     <div *ngIf="isLoading" class="state-message">
       <div class="spinner"></div>
       <p>Carregando usuários...</p>

@@ -102,8 +102,10 @@ class _AudienciaScreenState extends State<AudienciaScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Encerrar sala'),
-        content: Text('Encerrar a sala "${sala.name}"?'),
+        title: const Text('Encerrar audiência?'),
+        content: Text(
+          'A sessão "${sala.name}" será encerrada para todos os participantes. Esta ação não pode ser desfeita.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -111,7 +113,7 @@ class _AudienciaScreenState extends State<AudienciaScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Encerrar'),
+            child: const Text('Encerrar para todos'),
           ),
         ],
       ),
