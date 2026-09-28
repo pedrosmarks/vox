@@ -2,6 +2,7 @@ class Project {
   final int id;
   final int municipalityId;
   final int categoryId;
+  final String nature;
   final String type;
   final String title;
   final String description;
@@ -14,8 +15,8 @@ class Project {
   final String neighborhood;
   final String street;
   final String number;
-  final double latitude;
-  final double longitude;
+  final double? latitude;
+  final double? longitude;
   final String startDate;
   final String expectedEndDate;
   final String? endDate;
@@ -27,6 +28,7 @@ class Project {
     required this.id,
     required this.municipalityId,
     required this.categoryId,
+    this.nature = 'PUBLIC_WORK',
     required this.type,
     required this.title,
     required this.description,
@@ -39,8 +41,8 @@ class Project {
     required this.neighborhood,
     required this.street,
     required this.number,
-    required this.latitude,
-    required this.longitude,
+    this.latitude,
+    this.longitude,
     required this.startDate,
     required this.expectedEndDate,
     this.endDate,
@@ -53,6 +55,7 @@ class Project {
     id: json['id'] as int,
     municipalityId: json['municipalityId'] as int? ?? 0,
     categoryId: json['categoryId'] as int? ?? 0,
+    nature: json['nature'] as String? ?? 'PUBLIC_WORK',
     type: json['type'] as String? ?? '',
     title: json['title'] as String? ?? '',
     description: json['description'] as String? ?? '',
@@ -65,8 +68,8 @@ class Project {
     neighborhood: json['neighborhood'] as String? ?? '',
     street: json['street'] as String? ?? '',
     number: json['number'] as String? ?? '',
-    latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
-    longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+    latitude: (json['latitude'] as num?)?.toDouble(),
+    longitude: (json['longitude'] as num?)?.toDouble(),
     startDate: json['startDate'] as String? ?? '',
     expectedEndDate: json['expectedEndDate'] as String? ?? '',
     endDate: json['endDate'] as String?,

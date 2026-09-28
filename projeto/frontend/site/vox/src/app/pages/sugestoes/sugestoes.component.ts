@@ -39,6 +39,7 @@ export class SugestoesComponent implements OnInit {
   form = {
     title: '',
     categoryId: '',
+    nature: 'PUBLIC_WORK' as 'PUBLIC_WORK' | 'LAW',
     description: '',
     file: null as File | null,
     latitude: null as number | null,
@@ -94,7 +95,7 @@ export class SugestoesComponent implements OnInit {
     this.showForm = true;
     this.submitSuccess = false;
     this.submitError = '';
-    this.form = { title: '', categoryId: '', description: '', file: null, latitude: null, longitude: null, street: '', number: '', neighborhood: '' };
+    this.form = { title: '', categoryId: '', nature: 'PUBLIC_WORK', description: '', file: null, latitude: null, longitude: null, street: '', number: '', neighborhood: '' };
   }
 
   onLocationChange(location: LatLng): void {
@@ -123,6 +124,10 @@ export class SugestoesComponent implements OnInit {
       this.submitError = 'Preencha todos os campos obrigatórios.';
       return;
     }
+    if (this.form.nature === 'PUBLIC_WORK' && (this.form.latitude == null || this.form.longitude == null)) {
+      this.submitError = 'Selecione a localização da obra no mapa.';
+      return;
+    }
 
     this.isSubmitting = true;
     this.submitError = '';
@@ -130,6 +135,7 @@ export class SugestoesComponent implements OnInit {
     const fd = new FormData();
     fd.append('municipalityId', String(this.authService.getMunicipalityId()));
     fd.append('categoryId', this.form.categoryId);
+    fd.append('nature', this.form.nature);
     fd.append('type', 'CITIZEN');
     fd.append('title', this.form.title.trim());
     fd.append('description', this.form.description.trim());
@@ -138,13 +144,13 @@ export class SugestoesComponent implements OnInit {
       fd.append('authorId', String(this.userId));
     }
     fd.append('isOfficial', 'false');
-    if (this.form.latitude !== null && this.form.longitude !== null) {
-      fd.append('latitude', String(this.form.latitude));
-      fd.append('longitude', String(this.form.longitude));
+    if (this.form.nature === 'PUBLIC_WORK') {
+      if (this.form.latitude !== null) fd.append('latitude', String(this.form.latitude));
+      if (this.form.longitude !== null) fd.append('longitude', String(this.form.longitude));
+      if (this.form.street) fd.append('street', this.form.street);
+      if (this.form.number) fd.append('number', this.form.number);
+      if (this.form.neighborhood) fd.append('neighborhood', this.form.neighborhood);
     }
-    if (this.form.street) fd.append('street', this.form.street);
-    if (this.form.number) fd.append('number', this.form.number);
-    if (this.form.neighborhood) fd.append('neighborhood', this.form.neighborhood);
     if (this.form.file) {
       fd.append('file', this.form.file);
     }

@@ -267,6 +267,10 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
       MapEntry('Descrição', p.description),
       MapEntry('Status', StatusLabels.project(p.status)),
       MapEntry('Tipo', _typeLabel(p)),
+      MapEntry(
+        'Natureza',
+        p.nature == 'LAW' ? 'Projeto de lei' : 'Obra pública',
+      ),
       MapEntry('Categoria', _categoryName.isNotEmpty ? _categoryName : '—'),
       MapEntry(
         'Autor',
@@ -511,20 +515,39 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
           const SizedBox(height: 16),
           if (_categoryName.isNotEmpty) _infoRow('Categoria', _categoryName),
           if (_authorName.isNotEmpty) _infoRow('Autor', _authorName),
-          _infoRow('Endereço', '${p.street}, ${p.number} - ${p.neighborhood}'),
+          _infoRow(
+            'Natureza',
+            p.nature == 'LAW' ? 'Projeto de lei' : 'Obra pública',
+          ),
+          if (p.nature != 'LAW' &&
+              [
+                p.street,
+                p.number,
+                p.neighborhood,
+              ].any((part) => part.isNotEmpty))
+            _infoRow(
+              'Endereço',
+              [
+                if (p.street.isNotEmpty) p.street,
+                if (p.number.isNotEmpty) p.number,
+                if (p.neighborhood.isNotEmpty) p.neighborhood,
+              ].join(', '),
+            ),
           if (p.startDate.isNotEmpty) _infoRow('Início', p.startDate),
           if (p.expectedEndDate.isNotEmpty)
             _infoRow('Previsão de término', p.expectedEndDate),
           if (p.endDate != null && p.endDate!.isNotEmpty)
             _infoRow('Concluído em', p.endDate!),
-          _infoRow(
-            'Custo estimado',
-            'R\$ ${p.estimatedCost.toStringAsFixed(2)}',
-          ),
-          _infoRow(
-            'Orçamento aprovado',
-            'R\$ ${p.approvedBudget.toStringAsFixed(2)}',
-          ),
+          if (p.estimatedCost > 0)
+            _infoRow(
+              'Custo estimado',
+              'R\$ ${p.estimatedCost.toStringAsFixed(2)}',
+            ),
+          if (p.approvedBudget > 0)
+            _infoRow(
+              'Orçamento aprovado',
+              'R\$ ${p.approvedBudget.toStringAsFixed(2)}',
+            ),
           if (_councilors.isNotEmpty)
             _infoRow(
               'Vereadores responsáveis',

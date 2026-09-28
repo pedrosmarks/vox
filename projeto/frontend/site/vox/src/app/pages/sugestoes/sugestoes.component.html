@@ -59,6 +59,17 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label">Natureza <span class="required">*</span></label>
+        <select class="form-select" [(ngModel)]="form.nature" [disabled]="isSubmitting">
+          <option value="PUBLIC_WORK">Obra pública</option>
+          <option value="LAW">Projeto de lei</option>
+        </select>
+        <p class="form-hint">
+          Obra pública exige localização no mapa e aparece no dashboard. Projeto de lei não exige endereço ou coordenadas.
+        </p>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">Imagem (opcional)</label>
         <input
           type="file"
@@ -69,16 +80,16 @@
         />
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Localização no Mapa (opcional)</label>
-        <p class="form-hint">Clique no mapa para marcar o local do projeto. O endereço será preenchido automaticamente.</p>
+      <div class="form-group" *ngIf="form.nature === 'PUBLIC_WORK'">
+        <label class="form-label">Localização no Mapa <span class="required">*</span></label>
+        <p class="form-hint">Clique no mapa para marcar o local da obra. O endereço será preenchido automaticamente.</p>
         <app-map-picker
           (locationChange)="onLocationChange($event)"
           (addressChange)="onAddressChange($event)"
         ></app-map-picker>
       </div>
 
-      <div *ngIf="form.latitude" class="address-fields">
+      <div *ngIf="form.nature === 'PUBLIC_WORK' && form.latitude" class="address-fields">
         <h3 class="address-fields-title">Endereço detectado <span class="address-edit-hint">(edite se necessário)</span></h3>
         <div class="address-row">
           <div class="form-group flex-grow">

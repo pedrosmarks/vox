@@ -7,6 +7,7 @@ export interface Project {
   id: number;
   municipalityId: number;
   categoryId: number;
+  nature: 'PUBLIC_WORK' | 'LAW';
   type: string;
   title: string;
   description: string;
@@ -16,17 +17,17 @@ export interface Project {
   updatedAt: string;
   isOfficial: boolean;
   highlighted?: boolean;
-  neighborhood: string;
-  street: string;
-  number: string;
-  latitude: number;
-  longitude: number;
+  neighborhood: string | null;
+  street: string | null;
+  number: string | null;
+  latitude: number | null;
+  longitude: number | null;
   startDate: string;
   expectedEndDate: string;
   endDate: string | null;
   financialAnalysis: string | null;
-  estimatedCost: number;
-  approvedBudget: number;
+  estimatedCost: number | null;
+  approvedBudget: number | null;
   // Comentário do moderador (ex.: motivo da rejeição). O nome do campo pode
   // variar conforme o backend, então lemos de várias chaves possíveis.
   feedback?: string | null;
