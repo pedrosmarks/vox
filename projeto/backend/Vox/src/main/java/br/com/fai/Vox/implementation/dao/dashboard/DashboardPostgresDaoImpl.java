@@ -89,11 +89,13 @@ public class DashboardPostgresDaoImpl implements DashboardDao {
                 "       SUM(CASE WHEN src = 'project' THEN 1 ELSE 0 END) AS project_count " +
                 "FROM ( " +
                 "   SELECT ROUND(latitude, ?) AS lat, ROUND(longitude, ?) AS lng, 'issue' AS src " +
-                "   FROM issue_report WHERE municipality_id = ? AND moderation_status = 'APPROVED'" +
+                "   FROM issue_report WHERE municipality_id = ? AND moderation_status = 'APPROVED' " +
+                "     AND latitude IS NOT NULL AND longitude IS NOT NULL" +
                         dateClause("created_at", dateRange) + " " +
                 "   UNION ALL " +
                 "   SELECT ROUND(latitude, ?) AS lat, ROUND(longitude, ?) AS lng, 'project' AS src " +
-                "   FROM project WHERE municipality_id = ? AND moderation_status = 'APPROVED'" +
+                "   FROM project WHERE municipality_id = ? AND moderation_status = 'APPROVED' " +
+                "     AND latitude IS NOT NULL AND longitude IS NOT NULL" +
                         dateClause("created_at", dateRange) + " " +
                 ") grid " +
                 "GROUP BY lat, lng " +

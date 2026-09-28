@@ -167,6 +167,7 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
 
   List<Category> _categories = fallbackCategories;
   int? _categoryId;
+  String _nature = 'PUBLIC_WORK';
   double? _latitude;
   double? _longitude;
   XFile? _pickedImage;
@@ -200,6 +201,10 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
       setState(() => _error = 'Preencha todos os campos obrigatórios.');
       return;
     }
+    if (_nature == 'PUBLIC_WORK' && (_latitude == null || _longitude == null)) {
+      setState(() => _error = 'Selecione a localização da obra no mapa.');
+      return;
+    }
     setState(() {
       _isSubmitting = true;
       _error = null;
@@ -211,6 +216,7 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
       final fields = <String, String>{
         'municipalityId': municipalityId.toString(),
         'categoryId': _categoryId.toString(),
+        'nature': _nature,
         'type': 'CITIZEN',
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim(),
@@ -218,14 +224,16 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
         'highlighted': 'false',
         'isOfficial': 'false',
         if (userId != null) 'authorId': userId.toString(),
-        if (_streetController.text.isNotEmpty)
+        if (_nature == 'PUBLIC_WORK' && _streetController.text.isNotEmpty)
           'street': _streetController.text.trim(),
-        if (_numberController.text.isNotEmpty)
+        if (_nature == 'PUBLIC_WORK' && _numberController.text.isNotEmpty)
           'number': _numberController.text.trim(),
-        if (_neighborhoodController.text.isNotEmpty)
+        if (_nature == 'PUBLIC_WORK' && _neighborhoodController.text.isNotEmpty)
           'neighborhood': _neighborhoodController.text.trim(),
-        if (_latitude != null) 'latitude': _latitude.toString(),
-        if (_longitude != null) 'longitude': _longitude.toString(),
+        if (_nature == 'PUBLIC_WORK' && _latitude != null)
+          'latitude': _latitude.toString(),
+        if (_nature == 'PUBLIC_WORK' && _longitude != null)
+          'longitude': _longitude.toString(),
       };
 
       final files = <http.MultipartFile>[];
@@ -290,49 +298,71 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
                   (v == null || v.trim().isEmpty) ? 'Obrigatório' : null,
             ),
             const SizedBox(height: 12),
-            MapPickerField(
-              initialLatitude: _latitude,
-              initialLongitude: _longitude,
-              onLocationChanged: (point) => setState(() {
-                _latitude = point.latitude;
-                _longitude = point.longitude;
-              }),
-              onAddressChanged: (address) => setState(() {
-                if (address.street.isNotEmpty) {
-                  _streetController.text = address.street;
-                }
-                if (address.number.isNotEmpty) {
-                  _numberController.text = address.number;
-                }
-                if (address.neighborhood.isNotEmpty) {
-                  _neighborhoodController.text = address.neighborhood;
-                }
-              }),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: _streetController,
-                    decoration: const InputDecoration(labelText: 'Rua'),
-                  ),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(
+                  value: 'PUBLIC_WORK',
+                  label: Text('Obra pública'),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextFormField(
-                    controller: _numberController,
-                    decoration: const InputDecoration(labelText: 'Número'),
-                  ),
-                ),
+                ButtonSegment(value: 'LAW', label: Text('Projeto de lei')),
               ],
+              selected: {_nature},
+              onSelectionChanged: (selection) =>
+                  setState(() => _nature = selection.first),
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _neighborhoodController,
-              decoration: const InputDecoration(labelText: 'Bairro'),
+            const SizedBox(height: 8),
+            Text(
+              _nature == 'PUBLIC_WORK'
+                  ? 'Obras exigem localização no mapa e aparecem no dashboard.'
+                  : 'Projetos de lei não exigem endereço ou coordenadas.',
+              style: Theme.of(context).textTheme.bodySmall,
             ),
+            if (_nature == 'PUBLIC_WORK') ...[
+              const SizedBox(height: 12),
+              MapPickerField(
+                initialLatitude: _latitude,
+                initialLongitude: _longitude,
+                onLocationChanged: (point) => setState(() {
+                  _latitude = point.latitude;
+                  _longitude = point.longitude;
+                }),
+                onAddressChanged: (address) => setState(() {
+                  if (address.street.isNotEmpty) {
+                    _streetController.text = address.street;
+                  }
+                  if (address.number.isNotEmpty) {
+                    _numberController.text = address.number;
+                  }
+                  if (address.neighborhood.isNotEmpty) {
+                    _neighborhoodController.text = address.neighborhood;
+                  }
+                }),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: _streetController,
+                      decoration: const InputDecoration(labelText: 'Rua'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _numberController,
+                      decoration: const InputDecoration(labelText: 'Número'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _neighborhoodController,
+                decoration: const InputDecoration(labelText: 'Bairro'),
+              ),
+            ],
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: _pickImage,

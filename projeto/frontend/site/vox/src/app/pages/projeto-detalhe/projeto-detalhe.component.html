@@ -27,6 +27,7 @@
         <span class="badge-type" [ngClass]="getTypeClass(project)">
           {{ getTypeLabel(project) }}
         </span>
+        <span class="badge-type">{{ project.nature === 'LAW' ? 'Projeto de lei' : 'Obra pública' }}</span>
         <span *ngIf="project.highlighted" class="badge-destaque">Destaque</span>
       </div>
       <div class="header-actions">
@@ -103,12 +104,12 @@
             <span class="info-value">{{ authorName || ('Usuário #' + project.authorId) }}</span>
           </div>
 
-          <div class="info-card">
+          <div class="info-card" *ngIf="project.nature !== 'LAW'">
             <span class="info-label">Bairro</span>
             <span class="info-value">{{ project.neighborhood || '—' }}</span>
           </div>
 
-          <div class="info-card" *ngIf="project.street">
+          <div class="info-card" *ngIf="project.nature !== 'LAW' && project.street">
             <span class="info-label">Endereço</span>
             <span class="info-value">{{ project.street }}<span *ngIf="project.number">, {{ project.number }}</span></span>
           </div>

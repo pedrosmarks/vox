@@ -1,4 +1,5 @@
 package br.com.fai.Vox.domain.dto;
+import br.com.fai.Vox.domain.enums.ProjectNatureEnum;
 import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
 import br.com.fai.Vox.domain.enums.ProjectTypeEnum;
 
@@ -24,6 +25,8 @@ public class CreateProjectDto {
     private Integer categoryId;
     @NotNull(message = "Tipo é obrigatório")
     private ProjectTypeEnum type;
+    @NotNull(message = "Natureza é obrigatória (LAW ou PUBLIC_WORK)")
+    private ProjectNatureEnum nature;
     @NotBlank(message = "Título é obrigatório")
     private String title;
     @NotBlank(message = "Descrição é obrigatória")
@@ -37,11 +40,9 @@ public class CreateProjectDto {
     private String neighborhood;
     private String street;
     private String number;
-    @NotNull(message = "Latitude é obrigatória")
     @DecimalMin(value = "-90.0", message = "Latitude inválida")
     @DecimalMax(value = "90.0", message = "Latitude inválida")
     private BigDecimal latitude;
-    @NotNull(message = "Longitude é obrigatória")
     @DecimalMin(value = "-180.0", message = "Longitude inválida")
     @DecimalMax(value = "180.0", message = "Longitude inválida")
     private BigDecimal longitude;

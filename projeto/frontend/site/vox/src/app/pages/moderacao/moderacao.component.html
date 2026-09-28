@@ -101,6 +101,17 @@
           <textarea class="form-textarea" [(ngModel)]="form.description" rows="4" placeholder="Descreva o projeto..."></textarea>
         </div>
 
+        <div class="form-group full">
+          <label class="form-label">Natureza <span class="required">*</span></label>
+          <select class="form-select" [(ngModel)]="form.nature" required>
+            <option value="PUBLIC_WORK">Obra pública</option>
+            <option value="LAW">Projeto de lei</option>
+          </select>
+          <div class="alert alert-info">
+            Obra pública exige localização no mapa e aparece no dashboard. Projeto de lei não exige endereço ou coordenadas.
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Categoria <span class="required">*</span></label>
@@ -127,10 +138,13 @@
 
       </div>
 
-      <div class="form-section">
+      <div class="form-section" *ngIf="form.nature === 'PUBLIC_WORK'">
         <h3 class="section-title">Localização</h3>
 
         <app-map-picker
+          [value]="selectedLocation"
+          [initialLatitude]="form.latitude ?? -15.7801"
+          [initialLongitude]="form.longitude ?? -47.9292"
           (locationChange)="onLocationChange($event)"
           (addressChange)="onAddressChange($event)"
         ></app-map-picker>

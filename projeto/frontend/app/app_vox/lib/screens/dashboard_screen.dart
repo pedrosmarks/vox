@@ -530,7 +530,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         )
-        .where((entry) => entry.count > 0)
+        .where(
+          (entry) =>
+              entry.count > 0 &&
+              entry.item['latitude'] != null &&
+              entry.item['longitude'] != null &&
+              entry.point.latitude >= -90 &&
+              entry.point.latitude <= 90 &&
+              entry.point.longitude >= -180 &&
+              entry.point.longitude <= 180,
+        )
         .toList();
     final total = points.fold<int>(0, (sum, entry) => sum + entry.count);
     final center = points.isEmpty

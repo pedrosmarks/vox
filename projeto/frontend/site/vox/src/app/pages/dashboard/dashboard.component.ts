@@ -302,6 +302,16 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     return Array.isArray(value) ? value as Array<Record<string, unknown>> : [];
   }
 
+  private hasCoordinates(item: Record<string, unknown>): boolean {
+    const latitude = item['latitude'];
+    const longitude = item['longitude'];
+    if (latitude == null || longitude == null) return false;
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng) &&
+      lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  }
+
   private hotspotGeoJson() {
     const features: Array<{
       type: 'Feature';
@@ -309,6 +319,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       properties: { category: 'issues' | 'projects'; count: number };
     }> = [];
     for (const item of this.hotspots) {
+      if (!this.hasCoordinates(item)) continue;
       const coordinates: [number, number] = [
         this.number(item['longitude']),
         this.number(item['latitude'])
@@ -394,7 +405,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map.setLayoutProperty('hotspot-heat-projects', 'visibility', projectVisibility);
     this.map.setLayoutProperty('hotspot-circles-projects', 'visibility', projectVisibility);
 
-    const visibleHotspots = this.hotspots.filter(item => this.hotspotCount(item) > 0);
+    const visibleHotspots = this.hotspots.filter(item => this.hasCoordinates(item) && this.hotspotCount(item) > 0);
     if (visibleHotspots.length === 1) {
       const item = visibleHotspots[0];
       this.map.flyTo({

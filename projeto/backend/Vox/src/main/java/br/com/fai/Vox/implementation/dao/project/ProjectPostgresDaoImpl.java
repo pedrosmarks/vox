@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.project;
+import br.com.fai.Vox.domain.enums.ProjectNatureEnum;
 import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
 import br.com.fai.Vox.domain.enums.ProjectTypeEnum;
 
@@ -26,10 +27,10 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
     @Override
     public int create(CreateProjectDto dto) {
         final String sql = "INSERT INTO project " +
-                "(municipality_id, category_id, type, title, description, status, moderation_status, author_id, highlighted, is_official, " +
+                "(municipality_id, category_id, type, nature, title, description, status, moderation_status, author_id, highlighted, is_official, " +
                 "neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date, " +
                 "financial_analysis, estimated_cost, approved_budget) " +
-                "VALUES (?, ?, CAST(? AS project_type), ?, ?, CAST(? AS project_status), CAST(? AS moderation_status), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, CAST(? AS project_type), CAST(? AS project_nature), ?, ?, CAST(? AS project_status), CAST(? AS moderation_status), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try {
             connection.setAutoCommit(false);
@@ -38,24 +39,25 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
             ps.setInt(1, dto.getMunicipalityId());
             ps.setInt(2, dto.getCategoryId());
             ps.setString(3, dto.getType().name());
-            ps.setString(4, dto.getTitle());
-            ps.setString(5, dto.getDescription());
-            ps.setString(6, dto.getStatus() != null ? dto.getStatus().name() : "PENDING_APPROVAL");
-            ps.setString(7, ModerationStatusEnum.PENDING.name());
-            ps.setInt(8, dto.getAuthorId());
-            ps.setBoolean(9, dto.getHighlighted() != null && dto.getHighlighted());
-            ps.setBoolean(10, dto.getIsOfficial() != null && dto.getIsOfficial());
-            ps.setString(11, dto.getNeighborhood());
-            ps.setString(12, dto.getStreet());
-            ps.setString(13, dto.getNumber());
-            ps.setBigDecimal(14, dto.getLatitude());
-            ps.setBigDecimal(15, dto.getLongitude());
-            ps.setObject(16, dto.getStartDate());
-            ps.setObject(17, dto.getExpectedEndDate());
-            ps.setObject(18, dto.getEndDate());
-            ps.setString(19, dto.getFinancialAnalysis());
-            ps.setBigDecimal(20, dto.getEstimatedCost());
-            ps.setBigDecimal(21, dto.getApprovedBudget());
+            ps.setString(4, dto.getNature().name());
+            ps.setString(5, dto.getTitle());
+            ps.setString(6, dto.getDescription());
+            ps.setString(7, dto.getStatus() != null ? dto.getStatus().name() : "PENDING_APPROVAL");
+            ps.setString(8, ModerationStatusEnum.PENDING.name());
+            ps.setInt(9, dto.getAuthorId());
+            ps.setBoolean(10, dto.getHighlighted() != null && dto.getHighlighted());
+            ps.setBoolean(11, dto.getIsOfficial() != null && dto.getIsOfficial());
+            ps.setString(12, dto.getNeighborhood());
+            ps.setString(13, dto.getStreet());
+            ps.setString(14, dto.getNumber());
+            ps.setBigDecimal(15, dto.getLatitude());
+            ps.setBigDecimal(16, dto.getLongitude());
+            ps.setObject(17, dto.getStartDate());
+            ps.setObject(18, dto.getExpectedEndDate());
+            ps.setObject(19, dto.getEndDate());
+            ps.setString(20, dto.getFinancialAnalysis());
+            ps.setBigDecimal(21, dto.getEstimatedCost());
+            ps.setBigDecimal(22, dto.getApprovedBudget());
 
             ps.executeUpdate();
 
@@ -136,7 +138,7 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
     @Override
     public void update(int id, Project entity) {
         final String sql = "UPDATE project SET " +
-                "municipality_id = ?, category_id = ?, type = CAST(? AS project_type), title = ?, description = ?, " +
+                "municipality_id = ?, category_id = ?, type = CAST(? AS project_type), nature = CAST(? AS project_nature), title = ?, description = ?, " +
                 "status = CAST(? AS project_status), moderation_status = CAST(? AS moderation_status), highlighted = ?, is_official = ?, " +
                 "neighborhood = ?, street = ?, number = ?, latitude = ?, longitude = ?, " +
                 "start_date = ?, expected_end_date = ?, end_date = ?, " +
@@ -149,24 +151,25 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
             ps.setInt(1, entity.getMunicipalityId());
             ps.setInt(2, entity.getCategoryId());
             ps.setString(3, entity.getType().name());
-            ps.setString(4, entity.getTitle());
-            ps.setString(5, entity.getDescription());
-            ps.setString(6, entity.getStatus().name());
-            ps.setString(7, entity.getModerationStatus() != null ? entity.getModerationStatus().name() : ModerationStatusEnum.PENDING.name());
-            ps.setBoolean(8, entity.getHighlighted() != null && entity.getHighlighted());
-            ps.setBoolean(9, entity.getIsOfficial() != null && entity.getIsOfficial());
-            ps.setString(10, entity.getNeighborhood());
-            ps.setString(11, entity.getStreet());
-            ps.setString(12, entity.getNumber());
-            ps.setBigDecimal(13, entity.getLatitude());
-            ps.setBigDecimal(14, entity.getLongitude());
-            ps.setObject(15, entity.getStartDate());
-            ps.setObject(16, entity.getExpectedEndDate());
-            ps.setObject(17, entity.getEndDate());
-            ps.setString(18, entity.getFinancialAnalysis());
-            ps.setBigDecimal(19, entity.getEstimatedCost());
-            ps.setBigDecimal(20, entity.getApprovedBudget());
-            ps.setInt(21, id);
+            ps.setString(4, entity.getNature().name());
+            ps.setString(5, entity.getTitle());
+            ps.setString(6, entity.getDescription());
+            ps.setString(7, entity.getStatus().name());
+            ps.setString(8, entity.getModerationStatus() != null ? entity.getModerationStatus().name() : ModerationStatusEnum.PENDING.name());
+            ps.setBoolean(9, entity.getHighlighted() != null && entity.getHighlighted());
+            ps.setBoolean(10, entity.getIsOfficial() != null && entity.getIsOfficial());
+            ps.setString(11, entity.getNeighborhood());
+            ps.setString(12, entity.getStreet());
+            ps.setString(13, entity.getNumber());
+            ps.setBigDecimal(14, entity.getLatitude());
+            ps.setBigDecimal(15, entity.getLongitude());
+            ps.setObject(16, entity.getStartDate());
+            ps.setObject(17, entity.getExpectedEndDate());
+            ps.setObject(18, entity.getEndDate());
+            ps.setString(19, entity.getFinancialAnalysis());
+            ps.setBigDecimal(20, entity.getEstimatedCost());
+            ps.setBigDecimal(21, entity.getApprovedBudget());
+            ps.setInt(22, id);
 
             ps.executeUpdate();
             ps.close();
@@ -276,6 +279,8 @@ public class ProjectPostgresDaoImpl implements ProjectDao {
         project.setMunicipalityId(rs.getInt("municipality_id"));
         project.setCategoryId(rs.getInt("category_id"));
         project.setType(ProjectTypeEnum.valueOf(rs.getString("type").toUpperCase()));
+        String nature = rs.getString("nature");
+        if (nature != null) project.setNature(ProjectNatureEnum.valueOf(nature.toUpperCase()));
         project.setTitle(rs.getString("title"));
         project.setDescription(rs.getString("description"));
         project.setStatus(ProjectStatusEnum.valueOf(rs.getString("status").toUpperCase()));

@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
+import br.com.fai.Vox.domain.enums.ProjectNatureEnum;
 import br.com.fai.Vox.domain.enums.ProjectStatusEnum;
 import br.com.fai.Vox.domain.enums.ProjectTypeEnum;
 
@@ -19,6 +20,7 @@ public class Project {
     private Integer municipalityId;
     private Integer categoryId;
     private ProjectTypeEnum type;
+    private ProjectNatureEnum nature;
     private String title;
     private String description;
     private ProjectStatusEnum status;

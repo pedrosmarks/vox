@@ -343,6 +343,15 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
                                                 p.type == 'OFFICIAL',
                                             _typeLabel(p),
                                           ),
+                                          Chip(
+                                            label: Text(
+                                              p.nature == 'LAW'
+                                                  ? 'Projeto de lei'
+                                                  : 'Obra pública',
+                                            ),
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                          ),
                                           VoxBadgeColors.projectStatus(
                                             p.status,
                                             StatusLabels.project(p.status),
