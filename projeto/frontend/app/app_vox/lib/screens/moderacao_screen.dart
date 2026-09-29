@@ -582,7 +582,9 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
         ),
         const SizedBox(height: 8),
         Text(
-          'Obra pública: construção, reforma ou melhoria física em um local, como praça, escola ou rua. Precisa de local no mapa e aparece no dashboard.\nProjeto de lei: proposta de criação ou alteração de lei, regra, orçamento ou nome de rua. Não representa uma obra física, não precisa de endereço ou coordenadas e não aparece no mapa.',
+          _nature == 'PUBLIC_WORK'
+              ? 'Construção, reforma ou melhoria física em um local, como uma praça, escola ou rua.'
+              : 'Proposta para criar ou alterar uma lei, regra, orçamento ou nome de rua. Não é uma obra física.',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 12),

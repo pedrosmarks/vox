@@ -22,6 +22,9 @@ export class AudienciaComponent implements OnInit {
   showCreateForm = false;
   creating = false;
   novaSala = { name: '', description: '' };
+  pendingCloseSala: Sala | null = null;
+  isClosingSala = false;
+  closeSalaError = '';
 
   constructor(
     private authService: AuthService,
@@ -88,10 +91,31 @@ export class AudienciaComponent implements OnInit {
 
   encerrarSala(sala: Sala, event: Event): void {
     event.stopPropagation();
-    if (!confirm(`Encerrar a sala "${sala.name}" para todos os participantes?`)) return;
+    this.pendingCloseSala = sala;
+    this.closeSalaError = '';
+  }
+
+  cancelarEncerramento(): void {
+    if (this.isClosingSala) return;
+    this.pendingCloseSala = null;
+    this.closeSalaError = '';
+  }
+
+  confirmarEncerramento(): void {
+    const sala = this.pendingCloseSala;
+    if (!sala || this.isClosingSala) return;
+    this.isClosingSala = true;
+    this.closeSalaError = '';
     this.salaService.encerrarSala(sala.id).subscribe({
-      next: () => this.load(),
-      error: () => (this.error = 'Não foi possível encerrar a sala.')
+      next: () => {
+        this.isClosingSala = false;
+        this.pendingCloseSala = null;
+        this.load();
+      },
+      error: () => {
+        this.isClosingSala = false;
+        this.closeSalaError = 'Não foi possível encerrar a audiência. Tente novamente.';
+      }
     });
   }
 

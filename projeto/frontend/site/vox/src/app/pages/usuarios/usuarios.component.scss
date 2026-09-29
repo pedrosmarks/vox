@@ -22,6 +22,11 @@
   box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
 }
 
+.user-confirm-modal { width: min(440px, 100%); }
+.user-confirm-modal p { color: #4b5563; line-height: 1.5; }
+.user-confirm-modal .user-modal-actions { justify-content: flex-end; gap: 0.75rem; }
+.user-confirm-modal .user-modal-actions button { margin: 0 !important; }
+
 .user-modal .form-actions {
   margin-top: 0.5rem;
 }
@@ -39,6 +44,8 @@
   border-color: #2a2a2a;
   color: #e6e8ec;
 }
+
+:host-context(html[data-a11y='DARK']) .user-confirm-modal p { color: #b8bec8; }
 
 :host-context(html[data-a11y='DARK']) .user-modal .form-input {
   background-color: #0a0a0a !important;

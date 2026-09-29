@@ -26,6 +26,9 @@ export class UsuariosComponent implements OnInit {
   editingId: number | null = null;
   isSubmitting = false;
   submitError = '';
+  pendingDeleteUser: UserProfile | null = null;
+  isDeletingUser = false;
+  deleteError = '';
 
   form = {
     name: '',
@@ -160,10 +163,31 @@ export class UsuariosComponent implements OnInit {
   }
 
   deleteUser(user: UserProfile): void {
-    if (!confirm(`Remover ${user.name}? Esta ação não pode ser desfeita.`)) return;
+    this.pendingDeleteUser = user;
+    this.deleteError = '';
+  }
+
+  cancelDeleteUser(): void {
+    if (this.isDeletingUser) return;
+    this.pendingDeleteUser = null;
+    this.deleteError = '';
+  }
+
+  confirmDeleteUser(): void {
+    const user = this.pendingDeleteUser;
+    if (!user || this.isDeletingUser) return;
+    this.isDeletingUser = true;
+    this.deleteError = '';
     this.authService.deleteUser(user.id).subscribe({
-      next: () => { this.users = this.users.filter(u => u.id !== user.id); },
-      error: () => { this.loadError = 'Erro ao remover usuário.'; }
+      next: () => {
+        this.users = this.users.filter(u => u.id !== user.id);
+        this.isDeletingUser = false;
+        this.pendingDeleteUser = null;
+      },
+      error: () => {
+        this.isDeletingUser = false;
+        this.deleteError = 'Não foi possível excluir a conta. Tente novamente.';
+      }
     });
   }
 

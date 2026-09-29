@@ -87,4 +87,29 @@
     </div>
   </div>
 
+  <div
+    *ngIf="pendingCloseSala as sala"
+    class="confirm-modal-overlay"
+    (click)="cancelarEncerramento()"
+  >
+    <section
+      class="confirm-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="close-hearing-title"
+      (click)="$event.stopPropagation()"
+    >
+      <span class="material-symbols-rounded confirm-modal-icon" aria-hidden="true">warning</span>
+      <h2 id="close-hearing-title">Encerrar audiência?</h2>
+      <p>A sessão “{{ sala.name }}” será encerrada para todos os participantes. Esta ação não pode ser desfeita.</p>
+      <div *ngIf="closeSalaError" class="error-banner" role="alert">{{ closeSalaError }}</div>
+      <div class="confirm-modal-actions">
+        <button class="btn-confirm-cancel" (click)="cancelarEncerramento()" [disabled]="isClosingSala">Cancelar</button>
+        <button class="btn-confirm-danger" (click)="confirmarEncerramento()" [disabled]="isClosingSala">
+          {{ isClosingSala ? 'Encerrando...' : 'Encerrar para todos' }}
+        </button>
+      </div>
+    </section>
+  </div>
+
 </main>
