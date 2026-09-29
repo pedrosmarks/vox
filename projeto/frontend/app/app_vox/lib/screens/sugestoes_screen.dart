@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../models/project.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/project_service.dart';
 import 'projeto_detalhe_screen.dart';
@@ -246,8 +247,11 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
       await _projectService.createProject(fields, files: files);
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } catch (_) {
-      setState(() => _error = 'Erro ao enviar sugestão. Tente novamente.');
+    } catch (error) {
+      final message = error is ApiException && error.message.trim().isNotEmpty
+          ? error.message
+          : 'Erro ao enviar sugestão. Tente novamente.';
+      setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

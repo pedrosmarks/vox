@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -5,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// espelhando o comportamento do interceptor Angular (auth.interceptor.ts).
 class ApiClient {
   // Rodando via Chrome/web local: aponta para o backend em localhost.
-  static const String baseUrl = 'http://10.208.212.94:8080';
+  static const String baseUrl = 'http://192.168.10.53:8080';
   static const String _tokenKey = 'token';
 
   static String? resolveMediaUrl(Object? value) {
@@ -53,8 +54,21 @@ class ApiClient {
 
   static void checkResponse(http.Response response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      String? serverMessage;
+      try {
+        final payload = jsonDecode(response.body);
+        if (payload is Map) {
+          final message = payload['message'];
+          if (message is String && message.trim().isNotEmpty) {
+            serverMessage = message;
+          }
+        }
+      } on FormatException {
+        // Mantém o corpo original abaixo quando a resposta não é JSON.
+      }
       throw ApiException(
-        'Erro na requisição (${response.statusCode}): ${response.body}',
+        serverMessage ??
+            'Erro na requisição (${response.statusCode}): ${response.body}',
         statusCode: response.statusCode,
       );
     }

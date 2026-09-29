@@ -167,7 +167,10 @@ export class SugestoesComponent implements OnInit {
         if (err.status === 403) {
           this.submitError = 'Sem permissão para criar projetos.';
         } else {
-          this.submitError = 'Erro ao enviar sugestão. Tente novamente.';
+          const message = err.error?.message;
+          this.submitError = typeof message === 'string' && message.trim()
+            ? message
+            : 'Erro ao enviar sugestão. Tente novamente.';
         }
       }
     });

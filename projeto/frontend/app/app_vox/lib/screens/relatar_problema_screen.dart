@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/issue.dart';
 import '../models/project.dart';
 import '../models/user_profile.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/issue_service.dart';
 import '../services/project_service.dart';
@@ -253,8 +254,11 @@ class _ProblemaFormScreenState extends State<_ProblemaFormScreen> {
       await _issueService.createIssue(fields, files: files);
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } catch (_) {
-      setState(() => _error = 'Erro ao enviar ocorrência. Tente novamente.');
+    } catch (error) {
+      final message = error is ApiException && error.message.trim().isNotEmpty
+          ? error.message
+          : 'Erro ao enviar ocorrência. Tente novamente.';
+      setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

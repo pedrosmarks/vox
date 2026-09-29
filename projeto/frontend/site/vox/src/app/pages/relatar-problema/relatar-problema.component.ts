@@ -170,7 +170,10 @@ export class RelatarProblemaComponent implements OnInit {
         if (err.status === 403) {
           this.submitError = 'Sem permissão para relatar problemas.';
         } else {
-          this.submitError = 'Erro ao enviar ocorrência. Tente novamente.';
+          const message = err.error?.message;
+          this.submitError = typeof message === 'string' && message.trim()
+            ? message
+            : 'Erro ao enviar ocorrência. Tente novamente.';
         }
       }
     });
