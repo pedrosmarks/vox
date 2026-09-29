@@ -538,18 +538,6 @@ VALUES
     ('Reunião de Prestação de Contas', 'Prestação de contas do primeiro semestre.', 3, 2, 'CLOSED');
 
 -- ---------------------------------------------------------------------
--- Participantes das salas
--- ---------------------------------------------------------------------
-INSERT INTO room_participant (room_id, user_id, status, can_publish_audio, can_publish_video, decided_at)
-VALUES
-    (1, 1, 'APPROVED', TRUE,  FALSE, CURRENT_TIMESTAMP),
-    (1, 5, 'APPROVED', FALSE, FALSE, CURRENT_TIMESTAMP),
-    (1, 6, 'PENDING',  FALSE, FALSE, NULL),
-    (2, 1, 'APPROVED', TRUE,  TRUE,  CURRENT_TIMESTAMP),
-    (2, 8, 'REJECTED', FALSE, FALSE, CURRENT_TIMESTAMP),
-    (3, 7, 'APPROVED', TRUE,  FALSE, CURRENT_TIMESTAMP);
-
--- ---------------------------------------------------------------------
 -- Assinaturas de acompanhamento (subscription)
 -- ---------------------------------------------------------------------
 INSERT INTO subscription (user_id, type, project_id, issue_id, category_id, councilor_id)
