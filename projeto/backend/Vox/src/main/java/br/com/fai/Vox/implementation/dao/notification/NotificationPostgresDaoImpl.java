@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.notification;
+import br.com.fai.Vox.domain.enums.NotificationTypeEnum;
 
 import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.port.dao.notification.NotificationDao;
@@ -139,7 +140,7 @@ public class NotificationPostgresDaoImpl implements NotificationDao {
         entity.setUserId(rs.getInt("user_id"));
         entity.setTitle(rs.getString("title"));
         entity.setMessage(rs.getString("message"));
-        entity.setType(Notification.NotificationType.valueOf(rs.getString("type").toUpperCase()));
+        entity.setType(NotificationTypeEnum.valueOf(rs.getString("type").toUpperCase()));
         entity.setRead(rs.getBoolean("read"));
         Timestamp readAt = rs.getTimestamp("read_at");
         if (readAt != null) entity.setReadAt(readAt.toLocalDateTime());

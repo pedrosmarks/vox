@@ -130,7 +130,13 @@ export class ProblemaDetalheComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate([this.isModerator ? '/moderacao' : '/problemas']);
+    const returnUrl = window.history.state?.['returnUrl'];
+    const destination = this.isModerator
+      ? '/moderacao'
+      : returnUrl === '/relatar-problema'
+      ? '/relatar-problema'
+      : '/problemas';
+    this.router.navigate([destination]);
   }
 
   /** Vereador adota/desvincula a ocorrência. */
@@ -140,10 +146,10 @@ export class ProblemaDetalheComponent implements OnInit {
     if (this.isOwnedByOther) return;
     this.linking = true;
     const linking = !this.isMine;
-    // Associar usa o endpoint dedicado; desassociar cai no update JSON.
+    // Associar e desassociar usam endpoints dedicados.
     const request$ = linking
       ? this.issueService.associate(this.issue.id)
-      : this.issueService.unassignCouncilor(this.issue);
+      : this.issueService.unassignCouncilor(this.issue.id);
     request$.subscribe({
       next: () => {
         if (this.issue) this.issue.councilorId = linking ? this.myId : null;

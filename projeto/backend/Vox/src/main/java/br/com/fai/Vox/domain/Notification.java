@@ -5,6 +5,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import br.com.fai.Vox.domain.enums.NotificationTypeEnum;
+
 @Getter
 @Setter
 public class Notification {
@@ -13,21 +15,10 @@ public class Notification {
     private Integer userId;
     private String title;
     private String message;
-    private NotificationType type;
+    private NotificationTypeEnum type;
     private Boolean read;
     private LocalDateTime readAt;
     private LocalDateTime createdAt;
-
-    public enum NotificationType {
-        PROJECT_CREATED,
-        PROJECT_UPDATED,
-        PROJECT_STATUS_CHANGED,
-        ISSUE_CREATED,
-        ISSUE_UPDATED,
-        ISSUE_STATUS_CHANGED,
-        PROJECT_TAGGED,
-        ISSUE_TAGGED
-    }
 
     public Notification() {}
 }

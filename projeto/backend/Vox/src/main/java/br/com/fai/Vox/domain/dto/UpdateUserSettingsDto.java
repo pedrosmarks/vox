@@ -1,4 +1,5 @@
 package br.com.fai.Vox.domain.dto;
+import br.com.fai.Vox.domain.enums.AccessibilityModeEnum;
 
 import br.com.fai.Vox.domain.UserSettings;
 import jakarta.validation.constraints.Max;
@@ -17,7 +18,7 @@ public class UpdateUserSettingsDto {
     private Integer fontSize;
 
     @NotNull(message = "O modo de acessibilidade é obrigatório")
-    private UserSettings.AccessibilityMode accessibilityMode;
+    private AccessibilityModeEnum accessibilityMode;
 
     public UpdateUserSettingsDto() {}
 }

@@ -22,6 +22,13 @@ class DashboardService {
         extra: {'granularidade': 'month'},
       ),
       _entry('neighborhoods', 'mapa/bairros', from, to),
+      _entry(
+        'hotspots',
+        'mapa/coordenadas',
+        from,
+        to,
+        extra: {'precision': '3'},
+      ),
       _entry('projectLifecycle', 'projetos/ciclo-vida', from, to),
     ]);
     return Map<String, dynamic>.fromEntries(results);

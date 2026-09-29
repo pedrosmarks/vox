@@ -19,6 +19,8 @@ import { ProblemaDetalheModeracaoComponent } from './pages/problema-detalhe-mode
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { LogsComponent } from './pages/logs/logs.component';
 import { UsuariosComponent } from './pages/usuarios/usuarios.component';
+import { EventosComponent } from './pages/eventos/eventos.component';
+import { EventoDetalheComponent } from './pages/evento-detalhe/evento-detalhe.component';
 import { roleGuard } from './role.guard';
 
 export const routes: Routes = [
@@ -28,6 +30,8 @@ export const routes: Routes = [
   { path: 'recuperar-senha', component: RecuperarSenhaComponent },
   { path: 'projetos', component: ProjetosComponent },
   { path: 'projetos/:id', component: ProjetoDetalheComponent },
+  { path: 'eventos', component: EventosComponent, canActivate: [roleGuard], data: { roles: ['CITIZEN', 'MODERATOR'] } },
+  { path: 'eventos/:id', component: EventoDetalheComponent, canActivate: [roleGuard], data: { roles: ['CITIZEN', 'MODERATOR'] } },
   { path: 'sugestoes', component: SugestoesComponent },
   { path: 'relatar-problema', component: RelatarProblemaComponent },
   { path: 'problemas', component: ProblemasComponent },

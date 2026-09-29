@@ -76,6 +76,7 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
   final _approvedBudgetController = TextEditingController();
 
   int? _categoryId;
+  String _nature = 'PUBLIC_WORK';
   String _type = 'CHAMBER';
   String _status = 'PUBLISHED';
   bool _highlighted = false;
@@ -170,6 +171,7 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
       _titleController.text = p.title;
       _descriptionController.text = p.description;
       _categoryId = p.categoryId;
+      _nature = p.nature;
       _type = 'CHAMBER';
       _status = 'PUBLISHED';
       _highlighted = false;
@@ -212,6 +214,7 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
     _titleController.clear();
     _descriptionController.clear();
     _categoryId = null;
+    _nature = 'PUBLIC_WORK';
     _type = 'CHAMBER';
     _status = 'PUBLISHED';
     _highlighted = false;
@@ -234,12 +237,14 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
         _descriptionController.text.trim().isEmpty ||
         _categoryId == null ||
         _startDateController.text.trim().isEmpty ||
-        _expectedEndDateController.text.trim().isEmpty ||
-        _latitude == null ||
-        _longitude == null) {
+        _expectedEndDateController.text.trim().isEmpty) {
+      setState(() => _submitError = 'Preencha os campos obrigatórios.');
+      return;
+    }
+    if (_nature == 'PUBLIC_WORK' && (_latitude == null || _longitude == null)) {
       setState(
         () => _submitError =
-            'Preencha os campos obrigatórios e selecione a localização no mapa.',
+            'Selecione a localização da obra no mapa para informar latitude e longitude.',
       );
       return;
     }
@@ -263,15 +268,11 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
         'municipalityId': municipalityId.toString(),
         'authorId': userId.toString(),
         'categoryId': _categoryId.toString(),
+        'nature': _nature,
         'type': _type,
         'status': _editingProjectId == null ? 'PUBLISHED' : _status,
         'highlighted': _highlighted.toString(),
         'isOfficial': 'true',
-        'neighborhood': _neighborhoodController.text.trim(),
-        'street': _streetController.text.trim(),
-        'number': _numberController.text.trim(),
-        'latitude': _latitude?.toString() ?? '',
-        'longitude': _longitude?.toString() ?? '',
         'startDate': _apiDate(_startDateController.text),
         'expectedEndDate': _apiDate(_expectedEndDateController.text),
         if (_endDateController.text.trim().isNotEmpty)
@@ -283,6 +284,19 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
         if (_approvedBudgetController.text.trim().isNotEmpty)
           'approvedBudget': _approvedBudgetController.text.trim(),
       };
+      if (_nature == 'PUBLIC_WORK') {
+        if (_neighborhoodController.text.trim().isNotEmpty) {
+          fields['neighborhood'] = _neighborhoodController.text.trim();
+        }
+        if (_streetController.text.trim().isNotEmpty) {
+          fields['street'] = _streetController.text.trim();
+        }
+        if (_numberController.text.trim().isNotEmpty) {
+          fields['number'] = _numberController.text.trim();
+        }
+        if (_latitude != null) fields['latitude'] = _latitude.toString();
+        if (_longitude != null) fields['longitude'] = _longitude.toString();
+      }
 
       final files = <http.MultipartFile>[];
       if (_pickedImage != null) {
@@ -557,6 +571,23 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
+        SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(value: 'PUBLIC_WORK', label: Text('Obra pública')),
+            ButtonSegment(value: 'LAW', label: Text('Projeto de lei')),
+          ],
+          selected: {_nature},
+          onSelectionChanged: (selection) =>
+              setState(() => _nature = selection.first),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _nature == 'PUBLIC_WORK'
+              ? 'Construção, reforma ou melhoria física em um local, como uma praça, escola ou rua.'
+              : 'Proposta para criar ou alterar uma lei, regra, orçamento ou nome de rua. Não é uma obra física.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 12),
         TextField(
           controller: _titleController,
           decoration: const InputDecoration(labelText: 'Título *'),
@@ -604,50 +635,52 @@ class _ModeracaoScreenState extends State<ModeracaoScreen>
               .toList(),
           onChanged: (v) => setState(() => _status = v ?? _status),
         ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: TextField(
-                controller: _streetController,
-                decoration: const InputDecoration(labelText: 'Rua'),
+        if (_nature == 'PUBLIC_WORK') ...[
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: _streetController,
+                  decoration: const InputDecoration(labelText: 'Rua'),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextField(
-                controller: _numberController,
-                decoration: const InputDecoration(labelText: 'Número'),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _numberController,
+                  decoration: const InputDecoration(labelText: 'Número'),
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _neighborhoodController,
-          decoration: const InputDecoration(labelText: 'Bairro'),
-        ),
-        const SizedBox(height: 12),
-        MapPickerField(
-          initialLatitude: _latitude,
-          initialLongitude: _longitude,
-          onLocationChanged: (point) => setState(() {
-            _latitude = point.latitude;
-            _longitude = point.longitude;
-          }),
-          onAddressChanged: (address) => setState(() {
-            if (address.street.isNotEmpty) {
-              _streetController.text = address.street;
-            }
-            if (address.number.isNotEmpty) {
-              _numberController.text = address.number;
-            }
-            if (address.neighborhood.isNotEmpty) {
-              _neighborhoodController.text = address.neighborhood;
-            }
-          }),
-        ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _neighborhoodController,
+            decoration: const InputDecoration(labelText: 'Bairro'),
+          ),
+          const SizedBox(height: 12),
+          MapPickerField(
+            initialLatitude: _latitude,
+            initialLongitude: _longitude,
+            onLocationChanged: (point) => setState(() {
+              _latitude = point.latitude;
+              _longitude = point.longitude;
+            }),
+            onAddressChanged: (address) => setState(() {
+              if (address.street.isNotEmpty) {
+                _streetController.text = address.street;
+              }
+              if (address.number.isNotEmpty) {
+                _numberController.text = address.number;
+              }
+              if (address.neighborhood.isNotEmpty) {
+                _neighborhoodController.text = address.neighborhood;
+              }
+            }),
+          ),
+        ],
         const SizedBox(height: 12),
         Row(
           children: [

@@ -27,8 +27,6 @@ public class ModerationRestController {
         this.authHelper = authHelper;
     }
 
-    // --- PROJETOS ---
-
     @GetMapping("/projects/pending")
     public ResponseEntity<?> findPendingProjects(HttpServletRequest request,
                                                   @RequestParam(required = false) Integer page,
@@ -66,8 +64,6 @@ public class ModerationRestController {
         projectModerationService.updateStatus(id, data.getStatus(), moderatorId, data.getNote());
         return ResponseEntity.noContent().build();
     }
-
-    // --- OCORRÊNCIAS ---
 
     @GetMapping("/issues/pending")
     public ResponseEntity<?> findPendingIssues(HttpServletRequest request,

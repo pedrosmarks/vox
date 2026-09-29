@@ -1,4 +1,6 @@
 package br.com.fai.Vox.port.dao.roomparticipant;
+import br.com.fai.Vox.domain.enums.ParticipantStatusEnum;
+import br.com.fai.Vox.domain.enums.SpeechRequestStatusEnum;
 
 import br.com.fai.Vox.domain.RoomParticipant;
 
@@ -12,11 +14,11 @@ public interface RoomParticipantDao {
 
     List<RoomParticipant> findByRoomId(int roomId);
 
-    void updateStatus(int id, RoomParticipant.ParticipantStatus status);
+    void updateStatus(int id, ParticipantStatusEnum status);
 
     List<RoomParticipant> findPendingSpeechRequests(int roomId);
 
-    void updateSpeechRequestStatus(int id, RoomParticipant.SpeechRequestStatus status);
+    void updateSpeechRequestStatus(int id, SpeechRequestStatusEnum status);
 
     void updatePermissions(int id, boolean canPublishAudio, boolean canPublishVideo);
 }

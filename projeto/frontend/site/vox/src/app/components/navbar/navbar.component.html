@@ -41,6 +41,8 @@
         class="nav-link"
       >Projetos em votação</a>
 
+      <a *ngIf="isCitizen || isModerator" routerLink="/eventos" routerLinkActive="active" class="nav-link">Eventos</a>
+
       <!-- CIDADÃO -->
       <a
         *ngIf="isCitizen"

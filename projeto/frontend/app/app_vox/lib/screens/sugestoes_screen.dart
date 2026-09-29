@@ -1,10 +1,11 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../models/project.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/project_service.dart';
+import 'projeto_detalhe_screen.dart';
 import '../theme/vox_app_bar.dart';
 import '../theme/vox_badges.dart';
 import '../theme/vox_colors.dart';
@@ -24,7 +25,7 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
   final _projectService = ProjectService();
 
   List<Project> _mine = [];
-  final Map<int, String> _rejectionNotes = {};
+  int? _hoveredSuggestionId;
   bool _isLoading = true;
   String? _error;
 
@@ -45,22 +46,10 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
       _mine = userId != null
           ? projects.where((p) => p.authorId == userId).toList()
           : projects;
-      unawaited(_loadRejectionNotes());
     } catch (_) {
       _error = 'Erro ao carregar suas sugestões.';
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  /// Busca no histórico o motivo da rejeição de cada sugestão rejeitada.
-  Future<void> _loadRejectionNotes() async {
-    for (final p in _mine) {
-      if (p.status != 'REJECTED' && p.status != 'CANCELLED') continue;
-      final note = await _projectService.getRejectionNote(p.id);
-      if (note.isNotEmpty && mounted) {
-        setState(() => _rejectionNotes[p.id] = note);
-      }
     }
   }
 
@@ -73,12 +62,20 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isHighContrast =
+        colorScheme.primary.toARGB32() == const Color(0xFFFFFF00).toARGB32();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: const VoxAppBar(title: 'Sugestões de projetos'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openForm,
-        backgroundColor: VoxColors.purple,
-        foregroundColor: Colors.white,
+        backgroundColor: isHighContrast
+            ? colorScheme.primary
+            : isDark
+            ? colorScheme.primary
+            : VoxColors.purple,
+        foregroundColor: isHighContrast ? colorScheme.onPrimary : Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Nova sugestão'),
       ),
@@ -104,15 +101,27 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
                       itemCount: _mine.length,
                       itemBuilder: (context, index) {
                         final p = _mine[index];
-                        final isRejected =
-                            p.status == 'REJECTED' || p.status == 'CANCELLED';
-                        final note = _rejectionNotes[p.id] ?? '';
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ListTile(
+                        final isHovered = _hoveredSuggestionId == p.id;
+                        return MouseRegion(
+                          onEnter: (_) =>
+                              setState(() => _hoveredSuggestionId = p.id),
+                          onExit: (_) =>
+                              setState(() => _hoveredSuggestionId = null),
+                          child: AnimatedSlide(
+                            offset: isHovered
+                                ? const Offset(0, -0.015)
+                                : Offset.zero,
+                            duration: const Duration(milliseconds: 150),
+                            child: Card(
+                              elevation: isHovered ? 5 : 1,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        ProjetoDetalheScreen(projectId: p.id),
+                                  ),
+                                ),
                                 title: Text(
                                   p.title,
                                   style: const TextStyle(
@@ -129,52 +138,7 @@ class _SugestoesScreenState extends State<SugestoesScreen> {
                                   StatusLabels.project(p.status),
                                 ),
                               ),
-                              if (isRejected)
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    12,
-                                    0,
-                                    12,
-                                    12,
-                                  ),
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFEF2F2),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: const Border(
-                                        left: BorderSide(
-                                          color: Color(0xFFDC2626),
-                                          width: 4,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          '💬 Motivo da rejeição',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFFB91C1C),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          note.isNotEmpty
-                                              ? note
-                                              : 'A moderação não informou um comentário.',
-                                          style: const TextStyle(
-                                            color: Color(0xFF7F1D1D),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
+                            ),
                           ),
                         );
                       },
@@ -204,6 +168,7 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
 
   List<Category> _categories = fallbackCategories;
   int? _categoryId;
+  String _nature = 'PUBLIC_WORK';
   double? _latitude;
   double? _longitude;
   XFile? _pickedImage;
@@ -237,6 +202,10 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
       setState(() => _error = 'Preencha todos os campos obrigatórios.');
       return;
     }
+    if (_nature == 'PUBLIC_WORK' && (_latitude == null || _longitude == null)) {
+      setState(() => _error = 'Selecione a localização da obra no mapa.');
+      return;
+    }
     setState(() {
       _isSubmitting = true;
       _error = null;
@@ -248,6 +217,7 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
       final fields = <String, String>{
         'municipalityId': municipalityId.toString(),
         'categoryId': _categoryId.toString(),
+        'nature': _nature,
         'type': 'CITIZEN',
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim(),
@@ -255,14 +225,16 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
         'highlighted': 'false',
         'isOfficial': 'false',
         if (userId != null) 'authorId': userId.toString(),
-        if (_streetController.text.isNotEmpty)
+        if (_nature == 'PUBLIC_WORK' && _streetController.text.isNotEmpty)
           'street': _streetController.text.trim(),
-        if (_numberController.text.isNotEmpty)
+        if (_nature == 'PUBLIC_WORK' && _numberController.text.isNotEmpty)
           'number': _numberController.text.trim(),
-        if (_neighborhoodController.text.isNotEmpty)
+        if (_nature == 'PUBLIC_WORK' && _neighborhoodController.text.isNotEmpty)
           'neighborhood': _neighborhoodController.text.trim(),
-        if (_latitude != null) 'latitude': _latitude.toString(),
-        if (_longitude != null) 'longitude': _longitude.toString(),
+        if (_nature == 'PUBLIC_WORK' && _latitude != null)
+          'latitude': _latitude.toString(),
+        if (_nature == 'PUBLIC_WORK' && _longitude != null)
+          'longitude': _longitude.toString(),
       };
 
       final files = <http.MultipartFile>[];
@@ -275,8 +247,11 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
       await _projectService.createProject(fields, files: files);
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } catch (_) {
-      setState(() => _error = 'Erro ao enviar sugestão. Tente novamente.');
+    } catch (error) {
+      final message = error is ApiException && error.message.trim().isNotEmpty
+          ? error.message
+          : 'Erro ao enviar sugestão. Tente novamente.';
+      setState(() => _error = message);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -301,6 +276,26 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(
+                  value: 'PUBLIC_WORK',
+                  label: Text('Obra pública'),
+                ),
+                ButtonSegment(value: 'LAW', label: Text('Projeto de lei')),
+              ],
+              selected: {_nature},
+              onSelectionChanged: (selection) =>
+                  setState(() => _nature = selection.first),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _nature == 'PUBLIC_WORK'
+                  ? 'Construção, reforma ou melhoria física em um local, como uma praça, escola ou rua.'
+                  : 'Proposta para criar ou alterar uma lei, regra, orçamento ou nome de rua. Não é uma obra física.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Título *'),
@@ -327,49 +322,52 @@ class _SugestaoFormScreenState extends State<_SugestaoFormScreen> {
                   (v == null || v.trim().isEmpty) ? 'Obrigatório' : null,
             ),
             const SizedBox(height: 12),
-            MapPickerField(
-              initialLatitude: _latitude,
-              initialLongitude: _longitude,
-              onLocationChanged: (point) => setState(() {
-                _latitude = point.latitude;
-                _longitude = point.longitude;
-              }),
-              onAddressChanged: (address) => setState(() {
-                if (address.street.isNotEmpty) {
-                  _streetController.text = address.street;
-                }
-                if (address.number.isNotEmpty) {
-                  _numberController.text = address.number;
-                }
-                if (address.neighborhood.isNotEmpty) {
-                  _neighborhoodController.text = address.neighborhood;
-                }
-              }),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: _streetController,
-                    decoration: const InputDecoration(labelText: 'Rua'),
+            if (_nature == 'PUBLIC_WORK') ...[
+              const SizedBox(height: 12),
+              MapPickerField(
+                initialLatitude: _latitude,
+                initialLongitude: _longitude,
+                onLocationChanged: (point) => setState(() {
+                  _latitude = point.latitude;
+                  _longitude = point.longitude;
+                }),
+                onAddressChanged: (address) => setState(() {
+                  if (address.street.isNotEmpty) {
+                    _streetController.text = address.street;
+                  }
+                  if (address.number.isNotEmpty) {
+                    _numberController.text = address.number;
+                  }
+                  if (address.neighborhood.isNotEmpty) {
+                    _neighborhoodController.text = address.neighborhood;
+                  }
+                }),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: _streetController,
+                      decoration: const InputDecoration(labelText: 'Rua'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextFormField(
-                    controller: _numberController,
-                    decoration: const InputDecoration(labelText: 'Número'),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _numberController,
+                      decoration: const InputDecoration(labelText: 'Número'),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _neighborhoodController,
-              decoration: const InputDecoration(labelText: 'Bairro'),
-            ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _neighborhoodController,
+                decoration: const InputDecoration(labelText: 'Bairro'),
+              ),
+            ],
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: _pickImage,

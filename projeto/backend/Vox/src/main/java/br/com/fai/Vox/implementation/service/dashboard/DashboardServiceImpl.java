@@ -21,12 +21,10 @@ import java.util.Set;
 @Service
 public class DashboardServiceImpl implements DashboardService {
 
-    /** Precisão padrão do arredondamento das coordenadas (~1km por célula). */
     private static final int DEFAULT_PRECISION = 3;
     private static final int MIN_PRECISION = 0;
     private static final int MAX_PRECISION = 6;
 
-    /** Granularidades válidas para séries temporais (usadas no date_trunc do SQL). */
     private static final Set<String> ALLOWED_GRANULARITIES = Set.of("day", "week", "month");
     private static final String DEFAULT_GRANULARITY = "day";
 
@@ -96,12 +94,6 @@ public class DashboardServiceImpl implements DashboardService {
         return dashboardDao.getProjectLifecycle(municipalityId, buildDateRange(from, to));
     }
 
-    /**
-     * Normaliza e valida a granularidade contra uma whitelist. Isso é obrigatório
-     * porque o valor é usado diretamente no {@code date_trunc} do SQL (não é
-     * parametrizável via bind), então qualquer valor fora da whitelist é rejeitado
-     * para evitar injeção.
-     */
     private String normalizeGranularity(String granularity) {
         if (granularity == null || granularity.isBlank()) {
             return DEFAULT_GRANULARITY;
@@ -113,10 +105,6 @@ public class DashboardServiceImpl implements DashboardService {
         return normalized;
     }
 
-    /**
-     * Constrói o filtro de datas. Quando {@code to} não é informado, assume a
-     * data de hoje como limite superior (buscar "da data selecionada até hoje").
-     */
     private DateRangeFilter buildDateRange(LocalDate from, LocalDate to) {
         if (from == null && to == null) {
             return DateRangeFilter.unbounded();

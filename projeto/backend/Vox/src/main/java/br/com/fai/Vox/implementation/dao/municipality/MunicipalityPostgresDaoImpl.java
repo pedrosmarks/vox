@@ -65,11 +65,11 @@ public class MunicipalityPostgresDaoImpl implements MunicipalityDao {
 
     private Municipality mapResultSetToMunicipalityModel(ResultSet rs) throws SQLException {
         Municipality municipality = new Municipality();
-        
+
         municipality.setId(rs.getInt("id"));
         municipality.setName(rs.getString("name"));
         municipality.setState(rs.getString("state"));
-        
+
         return municipality;
     }
 

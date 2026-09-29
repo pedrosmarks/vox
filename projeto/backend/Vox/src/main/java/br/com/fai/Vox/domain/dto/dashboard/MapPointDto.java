@@ -5,11 +5,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-/**
- * Ponto do mapa de zonas quentes agregado por coordenada.
- * As coordenadas são arredondadas (quantizadas em uma grade) no SQL para
- * agrupar registros próximos e formar clusters de intensidade.
- */
 @Getter
 @Setter
 public class MapPointDto {

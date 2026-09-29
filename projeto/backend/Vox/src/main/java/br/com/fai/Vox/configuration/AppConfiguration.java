@@ -140,8 +140,6 @@ public class AppConfiguration {
         return new EmailServiceImpl(mailSender, mailFrom);
     }
 
-    // --- Existing DAOs ---
-
     @Bean
     public UserDao getUserFakeDao(final Connection connection) {
         return new UserPostgresDaoImpl(connection);
@@ -181,8 +179,6 @@ public class AppConfiguration {
     public ProjectCouncilorDao getProjectCouncilorDao(final Connection connection) {
         return new ProjectCouncilorPostgresDaoImpl(connection);
     }
-
-    // --- New DAOs ---
 
     @Bean
     public IssueReportDao getIssueReportDao(final Connection connection) {
@@ -268,8 +264,6 @@ public class AppConfiguration {
     public EventImageDao getEventImageDao(final Connection connection) {
         return new EventImagePostgresDaoImpl(connection);
     }
-
-    // --- Authentication ---
 
     @Bean
     @Profile("basic")

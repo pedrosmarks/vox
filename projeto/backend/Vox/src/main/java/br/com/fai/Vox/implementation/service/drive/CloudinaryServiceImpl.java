@@ -28,7 +28,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     public String uploadFile(MultipartFile file, String fileName) throws IOException {
         Map<?, ?> uploadResult = cloudinary.uploader().upload(
                 file.getBytes(),
-                ObjectUtils.asMap("public_id", fileName, "overwrite", true, "folder", "vox")
+                ObjectUtils.asMap("public_id", fileName, "overwrite", true, "folder", "vox", "upload_preset", "vox_images")
         );
         return (String) uploadResult.get("secure_url");
     }

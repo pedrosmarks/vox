@@ -228,11 +228,20 @@ class _UsuariosScreenState extends State<UsuariosScreen>
   }
 
   Future<void> _deleteUser(UserProfile user) async {
+    final isAdministrator = user.role == 'ADMINISTRATOR';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remover usuário'),
-        content: Text('Remover ${user.name}? Esta ação não pode ser desfeita.'),
+        title: Text(
+          isAdministrator
+              ? 'Excluir conta administrativa?'
+              : 'Remover usuário?',
+        ),
+        content: Text(
+          isAdministrator
+              ? 'A conta de ${user.name} (${user.email}) será excluída. Esta ação não pode ser desfeita.'
+              : 'Remover ${user.name} (${user.email})? Esta ação não pode ser desfeita.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -240,7 +249,7 @@ class _UsuariosScreenState extends State<UsuariosScreen>
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Remover'),
+            child: Text(isAdministrator ? 'Excluir conta' : 'Remover usuário'),
           ),
         ],
       ),

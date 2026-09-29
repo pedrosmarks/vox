@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.service.projectopinion;
+import br.com.fai.Vox.domain.enums.OpinionTypeEnum;
 
 import br.com.fai.Vox.domain.ProjectOpinion;
 import br.com.fai.Vox.domain.dto.ProjectOpinionStatsDto;
@@ -19,7 +20,7 @@ public class ProjectOpinionServiceImpl implements ProjectOpinionService {
     }
 
     @Override
-    public void submitOpinion(int projectId, int userId, ProjectOpinion.OpinionType opinion) {
+    public void submitOpinion(int projectId, int userId, OpinionTypeEnum opinion) {
         if (projectId <= 0 || userId <= 0 || opinion == null) return;
 
         ProjectOpinion entity = new ProjectOpinion();

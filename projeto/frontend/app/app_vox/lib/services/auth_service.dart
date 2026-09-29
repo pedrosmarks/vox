@@ -12,6 +12,39 @@ class AuthService {
   static const String _userIdKey = 'userId';
   static const String _municipalityIdKey = 'municipalityId';
 
+  http.MediaType _profilePhotoContentType(XFile photo) {
+    final mimeType = photo.mimeType;
+    if (mimeType != null && mimeType.toLowerCase().startsWith('image/')) {
+      return http.MediaType.parse(mimeType);
+    }
+
+    final extension = photo.name.toLowerCase().split('.').last;
+    const mimeTypes = {
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'gif': 'image/gif',
+      'webp': 'image/webp',
+      'heic': 'image/heic',
+      'heif': 'image/heif',
+      'bmp': 'image/bmp',
+      'avif': 'image/avif',
+    };
+    final fallback = mimeTypes[extension];
+    return fallback != null
+        ? http.MediaType.parse(fallback)
+        : http.MediaType('application', 'octet-stream');
+  }
+
+  UserProfile _userProfileFromJson(Map<String, dynamic> json) {
+    final photoUrl =
+        json['profilePhotoUrl'] ?? json['profilePhoto'] ?? json['photoUrl'];
+    return UserProfile.fromJson({
+      ...json,
+      'profilePhotoUrl': ApiClient.resolveMediaUrl(photoUrl),
+    });
+  }
+
   Future<String> login(String email, String password) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/authenticate'),
@@ -62,6 +95,7 @@ class AuthService {
           'file',
           await profilePhoto.readAsBytes(),
           filename: profilePhoto.name,
+          contentType: _profilePhotoContentType(profilePhoto),
         ),
       );
     }
@@ -91,7 +125,7 @@ class AuthService {
       headers: await ApiClient.authHeaders(),
     );
     ApiClient.checkResponse(response);
-    final user = UserProfile.fromJson(
+    final user = _userProfileFromJson(
       jsonDecode(response.body) as Map<String, dynamic>,
     );
     final prefs = await SharedPreferences.getInstance();
@@ -112,6 +146,7 @@ class AuthService {
           'file',
           await profilePhoto.readAsBytes(),
           filename: profilePhoto.name,
+          contentType: _profilePhotoContentType(profilePhoto),
         ),
       );
     }
@@ -126,7 +161,7 @@ class AuthService {
       return fetchCurrentUser();
     }
     ApiClient.checkResponse(response);
-    return UserProfile.fromJson(
+    return _userProfileFromJson(
       jsonDecode(response.body) as Map<String, dynamic>,
     );
   }

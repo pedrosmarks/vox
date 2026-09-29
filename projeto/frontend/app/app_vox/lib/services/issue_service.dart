@@ -175,33 +175,9 @@ class IssueService {
     ApiClient.checkResponse(response);
   }
 
-  /// Atualiza a ocorrência enviando o objeto completo (JSON), conforme API.md.
-  Future<void> updateIssueJson(IssueReport issue, {int? councilorId}) async {
-    final response = await http.put(
-      Uri.parse('${ApiClient.baseUrl}/api/issues/${issue.id}'),
-      headers: await ApiClient.authHeaders(),
-      body: jsonEncode({
-        'id': issue.id,
-        'title': issue.title,
-        'description': issue.description,
-        'municipalityId': issue.municipalityId,
-        'categoryId': issue.categoryId,
-        'status': issue.status,
-        'authorId': issue.authorId,
-        'councilorId': councilorId,
-        'neighborhood': issue.neighborhood,
-        'street': issue.street,
-        'number': issue.number,
-        'latitude': issue.latitude,
-        'longitude': issue.longitude,
-      }),
-    );
-    ApiClient.checkResponse(response);
-  }
-
-  /// Vincula/atribui a ocorrência a um vereador (ou remove com null).
+  /// Vincula/atribui a ocorrência a um vereador por PUT multipart.
   Future<void> assignCouncilor(IssueReport issue, int? councilorId) =>
-      updateIssueJson(issue, councilorId: councilorId);
+      updateIssue(issue.id, _issueFields(issue, councilorId: councilorId));
 
   /// Vereador logado se associa à ocorrência (endpoint dedicado que deriva
   /// o vereador do token).
@@ -213,9 +189,29 @@ class IssueService {
     ApiClient.checkResponse(response);
   }
 
-  /// Remove o vínculo do vereador com a ocorrência.
-  Future<void> unassignCouncilor(IssueReport issue) =>
-      updateIssueJson(issue, councilorId: null);
+  /// Vereador logado remove o próprio vínculo com a ocorrência.
+  Future<void> unassignCouncilor(int issueId) async {
+    final response = await http.post(
+      Uri.parse('${ApiClient.baseUrl}/api/issues/$issueId/desassociar'),
+      headers: await ApiClient.authHeaders(),
+    );
+    ApiClient.checkResponse(response);
+  }
+
+  Map<String, String> _issueFields(IssueReport issue, {int? councilorId}) => {
+    'municipalityId': issue.municipalityId.toString(),
+    'categoryId': issue.categoryId.toString(),
+    'councilorId': councilorId?.toString() ?? '',
+    'title': issue.title,
+    'description': issue.description,
+    'status': issue.status,
+    'authorId': issue.authorId.toString(),
+    'neighborhood': issue.neighborhood,
+    'street': issue.street,
+    'number': issue.number,
+    'latitude': issue.latitude.toString(),
+    'longitude': issue.longitude.toString(),
+  };
 
   /// Atualiza apenas o status via endpoint de moderação.
   Future<void> updateIssueStatus(int id, String status, {String? note}) async {

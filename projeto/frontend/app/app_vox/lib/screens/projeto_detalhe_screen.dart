@@ -47,6 +47,9 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
   bool _signed = false;
   bool _isSigning = false;
   int _signatureCount = 0;
+  bool _supported = false;
+  bool _isSupporting = false;
+  int _approvalCount = 0;
   List<UserSummary> _councilors = [];
   bool _isExporting = false;
 
@@ -73,6 +76,7 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
         _loadCategory(project.categoryId),
         _loadAuthor(project.authorId),
         _loadSignatureState(project.id),
+        _loadSupportState(project.id),
         _loadRejectionNote(project),
         if (_isCouncilor || _isModerator) _loadCouncilors(project.id),
       ]);
@@ -126,6 +130,20 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     }
   }
 
+  Future<void> _loadSupportState(int projectId) async {
+    try {
+      _approvalCount = await _projectService.getApprovalCount(projectId);
+    } catch (_) {
+      _approvalCount = 0;
+    }
+    if (!_isCitizen) return;
+    try {
+      _supported = await _projectService.getMyOpinion(projectId) == 'APPROVE';
+    } catch (_) {
+      _supported = false;
+    }
+  }
+
   Future<void> _loadRejectionNote(Project project) async {
     if (project.status != 'REJECTED' && project.status != 'CANCELLED') {
       _rejectionNote = '';
@@ -171,6 +189,42 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     }
   }
 
+  Future<void> _toggleSupport() async {
+    if (_project == null || _isSupporting) return;
+    final wasSupported = _supported;
+    setState(() {
+      _isSupporting = true;
+      _supported = !wasSupported;
+      _approvalCount = (_approvalCount + (wasSupported ? -1 : 1)).clamp(
+        0,
+        1 << 31,
+      );
+    });
+    try {
+      await _projectService.setOpinion(
+        _project!.id,
+        wasSupported ? 'NEUTRAL' : 'APPROVE',
+      );
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _supported = wasSupported;
+          _approvalCount = (_approvalCount + (wasSupported ? 1 : -1)).clamp(
+            0,
+            1 << 31,
+          );
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível atualizar seu apoio.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSupporting = false);
+    }
+  }
+
   void _promoteToOfficial() {
     if (_project == null) return;
     Navigator.of(context).push(
@@ -213,6 +267,10 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
       MapEntry('Descrição', p.description),
       MapEntry('Status', StatusLabels.project(p.status)),
       MapEntry('Tipo', _typeLabel(p)),
+      MapEntry(
+        'Natureza',
+        p.nature == 'LAW' ? 'Projeto de lei' : 'Obra pública',
+      ),
       MapEntry('Categoria', _categoryName.isNotEmpty ? _categoryName : '—'),
       MapEntry(
         'Autor',
@@ -457,20 +515,39 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
           const SizedBox(height: 16),
           if (_categoryName.isNotEmpty) _infoRow('Categoria', _categoryName),
           if (_authorName.isNotEmpty) _infoRow('Autor', _authorName),
-          _infoRow('Endereço', '${p.street}, ${p.number} - ${p.neighborhood}'),
+          _infoRow(
+            'Natureza',
+            p.nature == 'LAW' ? 'Projeto de lei' : 'Obra pública',
+          ),
+          if (p.nature != 'LAW' &&
+              [
+                p.street,
+                p.number,
+                p.neighborhood,
+              ].any((part) => part.isNotEmpty))
+            _infoRow(
+              'Endereço',
+              [
+                if (p.street.isNotEmpty) p.street,
+                if (p.number.isNotEmpty) p.number,
+                if (p.neighborhood.isNotEmpty) p.neighborhood,
+              ].join(', '),
+            ),
           if (p.startDate.isNotEmpty) _infoRow('Início', p.startDate),
           if (p.expectedEndDate.isNotEmpty)
             _infoRow('Previsão de término', p.expectedEndDate),
           if (p.endDate != null && p.endDate!.isNotEmpty)
             _infoRow('Concluído em', p.endDate!),
-          _infoRow(
-            'Custo estimado',
-            'R\$ ${p.estimatedCost.toStringAsFixed(2)}',
-          ),
-          _infoRow(
-            'Orçamento aprovado',
-            'R\$ ${p.approvedBudget.toStringAsFixed(2)}',
-          ),
+          if (p.estimatedCost > 0)
+            _infoRow(
+              'Custo estimado',
+              'R\$ ${p.estimatedCost.toStringAsFixed(2)}',
+            ),
+          if (p.approvedBudget > 0)
+            _infoRow(
+              'Orçamento aprovado',
+              'R\$ ${p.approvedBudget.toStringAsFixed(2)}',
+            ),
           if (_councilors.isNotEmpty)
             _infoRow(
               'Vereadores responsáveis',
@@ -520,10 +597,27 @@ class _ProjetoDetalheScreenState extends State<ProjetoDetalheScreen> {
     // Vereador: apenas visualização de projetos (sem adotar/assinar).
     if (_isCitizen) {
       final countSuffix = _signatureCount > 0 ? ' ($_signatureCount)' : '';
-      return OutlinedButton.icon(
-        onPressed: _isSigning ? null : _toggleSign,
-        icon: Icon(_signed ? Icons.check_circle : Icons.edit_outlined),
-        label: Text((_signed ? 'Assinado' : 'Assinar') + countSuffix),
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          _supported
+              ? FilledButton.icon(
+                  onPressed: _isSupporting ? null : _toggleSupport,
+                  icon: const Icon(Icons.thumb_up),
+                  label: Text('Apoiado ($_approvalCount)'),
+                )
+              : OutlinedButton.icon(
+                  onPressed: _isSupporting ? null : _toggleSupport,
+                  icon: const Icon(Icons.thumb_up_outlined),
+                  label: Text('Apoiar ($_approvalCount)'),
+                ),
+          OutlinedButton.icon(
+            onPressed: _isSigning ? null : _toggleSign,
+            icon: Icon(_signed ? Icons.check_circle : Icons.edit_outlined),
+            label: Text((_signed ? 'Assinado' : 'Assinar') + countSuffix),
+          ),
+        ],
       );
     }
     return const SizedBox.shrink();

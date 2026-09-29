@@ -6,27 +6,18 @@ import lombok.Setter;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Engajamento cidadão: mostra o que a população mais apoia, opina e acompanha.
- * Escopado por município e pelo intervalo de datas (sobre {@code created_at}).
- */
 @Getter
 @Setter
 public class EngagementDto {
 
-    /** Projetos com mais assinaturas de apoio (project_signature). */
     private List<RankedProjectDto> topSignedProjects;
 
-    /** Projetos com mais opiniões registradas (project_opinion). */
     private List<RankedProjectDto> topOpinedProjects;
 
-    /** Distribuição global de opiniões por tipo (APPROVE, NEUTRAL). */
     private Map<String, Long> opinionDistribution;
 
-    /** Ocorrências mais acompanhadas (subscription do tipo ISSUE). */
     private List<RankedIssueDto> topFollowedIssues;
 
-    /** Usuários mais ativos (por volume de projetos + issues criados). */
     private List<ActiveUserDto> topActiveUsers;
 
     public EngagementDto() {}

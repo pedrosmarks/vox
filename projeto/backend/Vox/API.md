@@ -407,19 +407,24 @@ Content-Type: multipart/form-data
 |---|---|---|
 | `categoryId` | number | ✅ |
 | `type` | `CITIZEN` \| `CHAMBER` | ✅ |
+| `nature` | `LAW` \| `PUBLIC_WORK` | ✅ |
 | `title` | string | ✅ |
 | `description` | string | ✅ |
 | `neighborhood` | string | ❌ |
 | `street` | string | ❌ |
 | `number` | string | ❌ |
-| `latitude` | decimal (entre -90 e 90) | ✅ |
-| `longitude` | decimal (entre -180 e 180) | ✅ |
+| `latitude` | decimal (entre -90 e 90) | condicional |
+| `longitude` | decimal (entre -180 e 180) | condicional |
 | `startDate` | `YYYY-MM-DD` | ❌ |
 | `expectedEndDate` | `YYYY-MM-DD` | ❌ |
 | `estimatedCost` | decimal | ❌ |
 | `file` | imagem | ❌ |
 
-> `latitude` e `longitude` são **obrigatórios** — usados no mapa de zonas quentes do dashboard.
+> **Natureza do projeto (`nature`)** — reflete a distinção da administração pública brasileira:
+> - `PUBLIC_WORK` (Obra Pública): construções, reformas, intervenções físicas. **Exige `latitude` e `longitude`** (aparece no mapa de zonas quentes do dashboard). Endereço e custos são relevantes.
+> - `LAW` (Projeto de Lei): legislação, orçamento, nomes de rua. **Não tem local físico** — `latitude`/`longitude`, endereço e custos ficam opcionais/nulos e o projeto **não** aparece no mapa.
+>
+> Se `nature = PUBLIC_WORK` e faltar `latitude` ou `longitude`, a API retorna `400`.
 
 > **Limite semanal:** usuários com role `CITIZEN` podem criar no máximo **3 projetos por semana**. Ao exceder, a API retorna `400`. Os demais papéis (`COUNCILOR`, `MODERATOR`, `ADMINISTRATOR`) não têm esse limite.
 
@@ -688,6 +693,21 @@ Authorization: Bearer <token>
 
 Se a ocorrência já possuir vereador, não existir ou pertencer a outro município,
 a API retorna `400`.
+
+---
+
+### Desassociar ocorrência do vereador autenticado
+> 🔒 Acesso exclusivo para usuários com role `COUNCILOR`. O vereador só pode
+> desassociar ocorrências do próprio município que estejam associadas a **ele mesmo**.
+
+```
+POST /api/issues/{id}/desassociar
+Authorization: Bearer <token>
+```
+**Resposta `204`**
+
+Se a ocorrência não existir, pertencer a outro município ou não estiver associada
+ao vereador autenticado, a API retorna `400`.
 
 ---
 
@@ -1400,7 +1420,8 @@ Authorization: Bearer <token>
 
 ### Mapa de zonas quentes — por coordenada
 > Heatmap: agrupa issues e projetos aprovados por coordenada arredondada
-> em uma grade.
+> em uma grade. Considera apenas registros **com coordenada** — projetos de
+> natureza `LAW` (sem local físico) não entram no mapa.
 
 ```
 GET /api/admin/dashboard/mapa/coordenadas?precision=3&from=2026-08-16
@@ -1761,7 +1782,11 @@ GET /api/events?municipalityId=1&minPrice=0&maxPrice=50&page=0&size=20
       "price": 30.00,
       "startDate": "2026-07-15T18:00:00",
       "endDate": "2026-07-15T23:00:00",
-      "location": "Praça Central",
+      "neighborhood": "Centro",
+      "street": "Rua das Flores",
+      "number": "123",
+      "latitude": -23.55052000,
+      "longitude": -46.63330000,
       "municipalityId": 1,
       "authorId": 5,
       "createdAt": "2026-06-01T10:00:00"
@@ -1804,7 +1829,11 @@ Content-Type: multipart/form-data
 | `price` | decimal (≥ 0) | ❌ (ausente = gratuito) |
 | `startDate` | `yyyy-MM-dd'T'HH:mm:ss` | ❌ |
 | `endDate` | `yyyy-MM-dd'T'HH:mm:ss` | ❌ |
-| `location` | texto | ❌ |
+| `neighborhood` | texto | ❌ |
+| `street` | texto | ❌ |
+| `number` | texto | ❌ |
+| `latitude` | decimal | ✅ |
+| `longitude` | decimal | ✅ |
 | `file` | imagem | ❌ (imagem inicial) |
 
 > `municipalityId` e `authorId` são preenchidos automaticamente pelo backend a partir do token.

@@ -25,6 +25,20 @@
       <h2 class="form-title">Nova Sugestão</h2>
 
       <div class="form-group">
+        <label class="form-label">Natureza <span class="required">*</span></label>
+        <select class="form-select" [(ngModel)]="form.nature" [disabled]="isSubmitting">
+          <option value="PUBLIC_WORK">Obra pública</option>
+          <option value="LAW">Projeto de lei</option>
+        </select>
+        <p class="form-hint" *ngIf="form.nature === 'PUBLIC_WORK'">
+          Construção, reforma ou melhoria física em um local, como uma praça, escola ou rua.
+        </p>
+        <p class="form-hint" *ngIf="form.nature === 'LAW'">
+          Proposta para criar ou alterar uma lei, regra, orçamento ou nome de rua. Não é uma obra física.
+        </p>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">Título do Projeto <span class="required">*</span></label>
         <input
           type="text"
@@ -69,16 +83,16 @@
         />
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Localização no Mapa (opcional)</label>
-        <p class="form-hint">Clique no mapa para marcar o local do projeto. O endereço será preenchido automaticamente.</p>
+      <div class="form-group" *ngIf="form.nature === 'PUBLIC_WORK'">
+        <label class="form-label">Localização no Mapa <span class="required">*</span></label>
+        <p class="form-hint">Clique no mapa para marcar o local da obra. O endereço será preenchido automaticamente.</p>
         <app-map-picker
           (locationChange)="onLocationChange($event)"
           (addressChange)="onAddressChange($event)"
         ></app-map-picker>
       </div>
 
-      <div *ngIf="form.latitude" class="address-fields">
+      <div *ngIf="form.nature === 'PUBLIC_WORK' && form.latitude" class="address-fields">
         <h3 class="address-fields-title">Endereço detectado <span class="address-edit-hint">(edite se necessário)</span></h3>
         <div class="address-row">
           <div class="form-group flex-grow">
@@ -127,24 +141,22 @@
       </div>
 
       <ul *ngIf="!isLoadingSuggestions && mySuggestions.length > 0" class="suggestions-list">
-        <li *ngFor="let s of mySuggestions" class="suggestion-item">
-          <div class="suggestion-row">
-            <div class="suggestion-meta">
-              <span class="suggestion-title">{{ s.title }}</span>
-              <span class="suggestion-date">{{ formatDate(s.startDate) }}</span>
+        <li *ngFor="let s of mySuggestions">
+          <a
+            class="suggestion-item"
+            [routerLink]="['/projetos', s.id]"
+            [state]="{ returnUrl: '/sugestoes' }"
+          >
+            <div class="suggestion-row">
+              <div class="suggestion-meta">
+                <span class="suggestion-title">{{ s.title }}</span>
+                <span class="suggestion-date">{{ formatDate(s.startDate) }}</span>
+              </div>
+              <span class="badge-status" [ngClass]="getStatusClass(s.status)">
+                {{ getStatusLabel(s.status) }}
+              </span>
             </div>
-            <span class="badge-status" [ngClass]="getStatusClass(s.status)">
-              {{ getStatusLabel(s.status) }}
-            </span>
-          </div>
-
-          <!-- Motivo da rejeição, visível ao cidadão -->
-          <div *ngIf="isRejected(s)" class="rejection-comment">
-            <span class="rejection-comment-title">💬 Motivo da rejeição</span>
-            <p class="rejection-comment-text">
-              {{ moderatorComment(s) || 'A moderação não informou um comentário.' }}
-            </p>
-          </div>
+          </a>
         </li>
       </ul>
     </div>

@@ -71,19 +71,19 @@ INSERT INTO municipality (name, state) VALUES
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('João Ribeiro', 'cidadao1@example.com', '00000000000', '(11) 99999-0000', crypt('aa', gen_salt('bf')), 'CITIZEN', '1990-05-15', 1);
+    ('Cidadão 1', 'cidadao1@example.com', '00000000000', '(11) 99999-0000', crypt('aa', gen_salt('bf')), 'CITIZEN', '1990-05-15', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Maria Antonieta', 'moderador1@example.com', '11111111111', '(11) 98888-1111', crypt('aa', gen_salt('bf')), 'MODERATOR', '1985-10-22', 1);
+    ('Moderador 1', 'moderador1@example.com', '11111111111', '(11) 98888-1111', crypt('aa', gen_salt('bf')), 'MODERATOR', '1985-10-22', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Carlos Costa', 'administrador1@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'ADMINISTRATOR', '1978-03-08', 1);
+    ('ADM 1', 'administrador1@example.com', '33333333333', '(21) 97777-2222', crypt('aa', gen_salt('bf')), 'ADMINISTRATOR', '1978-03-08', 1);
 
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, municipality_id)
 VALUES
-    ('Vereador Gabriel', 'vereador1@example.com', '22222222222', '(21) 97777-3333', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1978-03-08', 1);
+    ('Vereador 1', 'vereador1@example.com', '22222222222', '(21) 97777-3333', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1978-03-08', 1);
 
 INSERT INTO category (name, description)
 VALUES
@@ -115,13 +115,14 @@ VALUES
 -- ---------------------------------------------------------------------
 INSERT INTO user_model (name, email, cpf, phone, password, role, birth_date, accepted_terms, accepted_privacy_policy, terms_accepted_at, municipality_id)
 VALUES
-    ('Ana Beatriz Souza',   'cidadao2@example.com',  '44444444444', '(35) 99123-4567', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1995-07-12', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Pedro Henrique Lima', 'cidadao3@example.com',  '55555555555', '(35) 99234-5678', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1988-11-30', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Juliana Martins',     'cidadao4@example.com',  '66666666666', '(35) 99345-6789', crypt('aa', gen_salt('bf')), 'CITIZEN',   '2000-02-18', TRUE, TRUE, CURRENT_TIMESTAMP, 2),
-    ('Roberto Alves',       'cidadao5@example.com',  '77777777777', '(35) 99456-7890', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1975-09-05', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Vereadora Fernanda',  'vereador2@example.com', '88888888888', '(35) 99567-8901', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1970-04-25', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
-    ('Vereador Marcelo',    'vereador3@example.com', '99999999999', '(35) 99678-9012', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1968-12-10', TRUE, TRUE, CURRENT_TIMESTAMP, 2);
--- IDs resultantes: 5 = Ana, 6 = Pedro, 7 = Juliana, 8 = Roberto, 9 = Fernanda (COUNCILOR), 10 = Marcelo (COUNCILOR)
+    ('Cidadã 2',   'cidada2@example.com',  '44444444444', '(35) 99123-4567', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1995-07-12', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Cidadão 3', 'cidadao3@example.com',  '55555555555', '(35) 99234-5678', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1988-11-30', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Cidadã 4',     'cidada4@example.com',  '66666666666', '(35) 99345-6789', crypt('aa', gen_salt('bf')), 'CITIZEN',   '2000-02-18', TRUE, TRUE, CURRENT_TIMESTAMP, 2),
+    ('Cidadão 5',       'cidadao5@example.com',  '77777777777', '(35) 99456-7890', crypt('aa', gen_salt('bf')), 'CITIZEN',   '1975-09-05', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Vereadora 2',  'vereadora2@example.com', '88888888888', '(35) 99567-8901', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1970-04-25', TRUE, TRUE, CURRENT_TIMESTAMP, 1),
+    ('Vereador 3',    'vereador3@example.com', '99999999999', '(35) 99678-9012', crypt('aa', gen_salt('bf')), 'COUNCILOR', '1968-12-10', TRUE, TRUE, CURRENT_TIMESTAMP, 2),
+    ('Prefeitura',  'prefeitura1@example.com', '12312312303', '(35) 3473-3200', crypt('aa', gen_salt('bf')), 'MODERATOR', '1970-04-25', TRUE, TRUE, CURRENT_TIMESTAMP, 1);
+-- IDs resultantes: 5 = Cidadã 2, 6 = Cidadão 3, 7 = Cidadã 4, 8 = Cidadão 5, 9 = Vereadora 2 (COUNCILOR), 10 = Vereador 3 (COUNCILOR), 11 = Prefeitura (MODERATOR)
 
 -- ---------------------------------------------------------------------
 -- Categorias adicionais
@@ -140,84 +141,149 @@ VALUES
 INSERT INTO user_settings (user_id, font_size, accessibility_mode)
 VALUES
     (1, 16, 'NONE'),
-    (2, 18, 'DARK'),
-    (3, 20, 'HIGH_CONTRAST'),
-    (5, 22, 'PROTANOPIA'),
-    (6, 16, 'NONE');
+    (2, 16, 'NONE'),
+    (3, 16, 'NONE'),
+    (5, 16, 'NONE'),
+    (6, 16, 'NONE'),
+    (7, 16, 'NONE'),
+    (9, 16, 'NONE'),
+    (10, 16, 'NONE'),
+    (11, 16, 'NONE');
 
 -- ---------------------------------------------------------------------
 -- Projetos (mistura de CITIZEN e CHAMBER, vários status)
 -- ---------------------------------------------------------------------
-INSERT INTO project (municipality_id, category_id, type, title, description, status, author_id, is_official, highlighted,
+INSERT INTO project (municipality_id, category_id, type, nature, title, description, status, author_id, is_official, highlighted,
                      neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date,
                      financial_analysis, estimated_cost, approved_budget, moderation_status)
 VALUES
-    (1, 1, 'CITIZEN', 'Revitalização da Praça Central',
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Revitalização da Praça Central',
      'Proposta de revitalização da praça central com novos bancos, iluminação LED e paisagismo.',
      'PUBLISHED', 1, FALSE, TRUE,
      'Centro', 'Rua Barão de Alfenas', '100', -22.25230000, -45.70280000,
      NULL, NULL, NULL, NULL, 150000.00, NULL, 'APPROVED'),
 
-    (1, 1, 'CITIZEN', 'Recapeamento da Avenida Cel. Joaquim',
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Recapeamento da Avenida Cel. Joaquim',
      'Recapeamento asfáltico da avenida principal do bairro, que apresenta muitos buracos.',
      'IN_VOTING', 5, FALSE, FALSE,
      'Vila Rica', 'Avenida Cel. Joaquim', '450', -22.25510000, -45.70910000,
      NULL, NULL, NULL, NULL, 320000.00, NULL, 'APPROVED'),
 
-    (1, 2, 'CHAMBER', 'Ampliação da UBS do Bairro Santana',
+    (1, 2, 'CHAMBER', 'PUBLIC_WORK', 'Ampliação da UBS do Bairro Santana',
      'Projeto oficial da câmara para ampliação da Unidade Básica de Saúde do bairro Santana.',
      'IN_EXECUTION', 4, TRUE, TRUE,
      'Santana', 'Rua das Flores', '77', -22.24980000, -45.69950000,
      '2026-01-15', '2026-08-30', NULL, 'Análise financeira aprovada pela comissão de orçamento.', 780000.00, 750000.00, 'APPROVED'),
 
-    (2, 3, 'CITIZEN', 'Nova Biblioteca Comunitária',
+    (2, 3, 'CITIZEN', 'PUBLIC_WORK', 'Nova Biblioteca Comunitária',
      'Construção de uma biblioteca comunitária com espaço de estudos e acesso à internet.',
      'PENDING_APPROVAL', 7, FALSE, FALSE,
      'Jardim Europa', 'Rua Sete de Setembro', '210', -22.23000000, -45.93000000,
      NULL, NULL, NULL, NULL, 240000.00, NULL, 'PENDING'),
 
-    (1, 4, 'CITIZEN', 'Programa de Arborização Urbana',
+    (1, 4, 'CITIZEN', 'PUBLIC_WORK', 'Programa de Arborização Urbana',
      'Plantio de 500 novas árvores nativas em vias e praças da cidade.',
      'SELECTED_BY_COUNCIL', 6, FALSE, TRUE,
      'Centro', 'Rua Coronel Joaquim Inácio', '150', -22.25200000, -45.70300000,
      NULL, NULL, NULL, NULL, 95000.00, NULL, 'APPROVED'),
 
-    (1, 5, 'CHAMBER', 'Instalação de Câmeras de Videomonitoramento',
+    (1, 5, 'CHAMBER', 'PUBLIC_WORK', 'Instalação de Câmeras de Videomonitoramento',
      'Projeto oficial para instalação de câmeras de segurança em pontos estratégicos da cidade.',
      'APPROVED_BY_COUNCIL', 9, TRUE, FALSE,
      'Centro', 'Praça Central', '1', -22.25200000, -45.70300000,
      '2026-03-01', '2026-12-15', NULL, 'Orçamento aprovado com contrapartida estadual.', 520000.00, 500000.00, 'APPROVED'),
 
-    (2, 6, 'CITIZEN', 'Reforma da Quadra Poliesportiva',
+    (2, 6, 'CITIZEN', 'PUBLIC_WORK', 'Reforma da Quadra Poliesportiva',
      'Reforma completa da quadra poliesportiva do bairro, incluindo cobertura e vestiários.',
      'COMPLETED', 8, FALSE, FALSE,
      'Vila Nova', 'Rua do Esporte', '30', -22.22800000, -45.92500000,
      '2025-06-01', '2025-11-30', '2025-11-20', 'Projeto concluído dentro do orçamento previsto.', 180000.00, 175000.00, 'APPROVED'),
 
-    (1, 1, 'CITIZEN', 'Ciclovia na Avenida das Palmeiras',
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Ciclovia na Avenida das Palmeiras',
      'Criação de ciclovia de 3km ligando o centro à zona escolar.',
      'REJECTED', 1, FALSE, FALSE,
      'Zona Escolar', 'Avenida das Palmeiras', '900', -22.25800000, -45.71200000,
-     NULL, NULL, NULL, NULL, 410000.00, NULL, 'REJECTED');
--- IDs resultantes: 1..8
+     NULL, NULL, NULL, NULL, 410000.00, NULL, 'REJECTED'),
 
--- Projetos de Turismo (categoria 7 = Turismo)
-INSERT INTO project (municipality_id, category_id, type, title, description, status, author_id, is_official, highlighted,
+    (1, 2, 'CHAMBER', 'LAW', 'Lei de Incentivo à Saúde Preventiva',
+     'Projeto de lei que institui o programa municipal de campanhas de saúde preventiva e vacinação. Não envolve obra física nem endereço.',
+     'IN_VOTING', 4, TRUE, FALSE,
+     NULL, NULL, NULL, NULL, NULL,
+     NULL, NULL, NULL, NULL, NULL, NULL, 'APPROVED');
+
+INSERT INTO project (municipality_id, category_id, type, nature, title, description, status, author_id, is_official, highlighted,
                      neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date,
                      financial_analysis, estimated_cost, approved_budget, moderation_status)
 VALUES
-    (1, 7, 'CITIZEN', 'Sinalização Turística do Centro Histórico',
+    (1, 7, 'CITIZEN', 'PUBLIC_WORK', 'Sinalização Turística do Centro Histórico',
      'Instalação de placas de sinalização turística indicando pontos históricos e culturais do centro.',
      'PUBLISHED', 1, FALSE, TRUE,
      'Centro', 'Rua Barão de Alfenas', '200', -22.25260000, -45.70310000,
      NULL, NULL, NULL, NULL, 85000.00, NULL, 'APPROVED'),
 
-    (1, 7, 'CHAMBER', 'Mirante Turístico da Serra',
+    (1, 7, 'CHAMBER', 'PUBLIC_WORK', 'Mirante Turístico da Serra',
      'Projeto oficial da câmara para construção de um mirante com deque panorâmico e estacionamento.',
      'IN_EXECUTION', 4, TRUE, TRUE,
      'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24500000, -45.69500000,
      '2026-02-01', '2026-10-30', NULL, 'Orçamento aprovado com apoio da secretaria de turismo.', 640000.00, 620000.00, 'APPROVED');
--- IDs resultantes: 9 = Sinalização Turística, 10 = Mirante Turístico
+
+INSERT INTO project (municipality_id, category_id, type, nature, title, description, status, author_id, is_official, highlighted,
+                     neighborhood, street, number, latitude, longitude, start_date, expected_end_date, end_date,
+                     financial_analysis, estimated_cost, approved_budget, moderation_status)
+VALUES
+    (1, 1, 'CHAMBER', 'PUBLIC_WORK', 'Construção do Terminal Rodoviário Municipal',
+     'Construção de novo terminal rodoviário, com estrutura para embarque, bilheterias, sanitários, áreas de apoio e integração com a antiga estação ferroviária. Terreno de 15.039 m² e área construída de 1.326 m².',
+     'COMPLETED', 11, TRUE, TRUE,
+     'Família Andrade', 'Rua Projetada', 's/n', -22.26010000, -45.71050000,
+     NULL, '2024-12-21', '2024-12-21', 'Contrato 3739/2024.', NULL, 3898775.39, 'APPROVED'),
+
+    (1, 6, 'CHAMBER', 'PUBLIC_WORK', 'Reestruturação do Centro de Artesanato, Gastronomia e Cultura',
+     'Reestruturação do prédio da antiga rodoviária, incluindo demolição/construção de alvenarias e pintura interna e externa.',
+     'IN_EXECUTION', 11, TRUE, FALSE,
+     'Centro', 'Antiga Rodoviária', 's/n', -22.25190000, -45.70270000,
+     '2025-10-08', '2026-06-30', NULL, 'Contrato assinado em 08/10/2025, com prorrogações.', NULL, 283923.43, 'APPROVED'),
+
+    (1, 1, 'CHAMBER', 'PUBLIC_WORK', 'Requalificação da Avenida Embaixador Bilac Pinto – Fase III',
+     'Pavimentação em CBUQ, sarjetas, meio-fio, drenagem, bocas de lobo, tampões de PV e sinalização horizontal.',
+     'IN_EXECUTION', 11, TRUE, FALSE,
+     'Centro', 'Avenida Embaixador Bilac Pinto', 's/n', -22.25470000, -45.70640000,
+     NULL, NULL, NULL, 'Contrato em 2024, com 4 termos de prorrogação.', NULL, 1791000.00, 'APPROVED'),
+
+    (1, 2, 'CHAMBER', 'PUBLIC_WORK', 'Requalificação do Materno Infantil',
+     'Reforma/requalificação com demolição e construção de alvenarias, forro de gesso e pintura interna/externa do complexo Materno-Infantil.',
+     'IN_EXECUTION', 11, TRUE, FALSE,
+     'Centro', 'Complexo Materno-Infantil', 's/n', -22.25330000, -45.70510000,
+     NULL, NULL, NULL, 'Contrato em 2024, com medições e prorrogações em 2025/2026.', NULL, 179986.39, 'APPROVED'),
+
+    (1, 1, 'CHAMBER', 'PUBLIC_WORK', 'Recapeamento Av. Sebastião Reginaldo da Cunha e trechos de Juca Castelo e Dr. José Pinto Vilela',
+     'Recapeamento em CBUQ e implantação de sinalização horizontal/vertical na Av. Sebastião Reginaldo da Cunha (Santana), Rua Juca Castelo e Rua Dr. José Pinto Vilela (Maristela).',
+     'IN_EXECUTION', 11, TRUE, FALSE,
+     'Santana', 'Avenida Sebastião Reginaldo da Cunha', 's/n', -22.24720000, -45.69880000,
+     '2026-03-12', NULL, NULL, 'Contrato assinado em 12/03/2026, com prorrogações e aditivos.', NULL, NULL, 'APPROVED'),
+
+    (1, 6, 'CITIZEN', 'PUBLIC_WORK', 'Revitalização da quadra do Santana I',
+     'Revitalização total da quadra localizada na Av. Pref. Antônio Capistrano Alckimim, ao lado do ESF 07.',
+     'PUBLISHED', 4, FALSE, FALSE,
+     'Santana I', 'Avenida Pref. Antônio Capistrano Alckimim', 's/n', -22.24810000, -45.69760000,
+     NULL, NULL, NULL, 'Indicação apresentada à Prefeitura em 13/02/2025.', NULL, NULL, 'APPROVED'),
+
+    (1, 6, 'CITIZEN', 'PUBLIC_WORK', 'Revitalização da Praça Urbana Carolina de Azevedo',
+     'Melhorias de infraestrutura, conservação e urbanização da praça.',
+     'PUBLISHED', 4, FALSE, FALSE,
+     'Santana', 'Praça Carolina de Azevedo', 's/n', -22.24690000, -45.69910000,
+     NULL, NULL, NULL, 'Proposta na Câmara em 03/04/2025, execução não confirmada.', NULL, NULL, 'APPROVED'),
+
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Pavimentação da Rua Avelino Borges dos Reis',
+     'Manutenção do pavimento de bloquetes e posterior pavimentação definitiva com asfalto.',
+     'PUBLISHED', 9, FALSE, FALSE,
+     'Anchieta', 'Rua Avelino Borges dos Reis', 's/n', -22.26230000, -45.70420000,
+     NULL, NULL, NULL, 'Indicação legislativa em 16/04/2025, execução não localizada.', NULL, NULL, 'APPROVED'),
+
+    (1, 1, 'CITIZEN', 'PUBLIC_WORK', 'Ligação da Rua Benedito Rezende Vilela com a estrada do Bom Retiro',
+     'Criação de ligação viária entre o Loteamento Residencial Bela Vista e a estrada do Bom Retiro.',
+     'PUBLISHED', 10, FALSE, FALSE,
+     'Bela Vista', 'Rua Benedito Rezende Vilela', 's/n', -22.26550000, -45.71380000,
+     NULL, NULL, NULL, 'Matéria registrada na sessão de 24/06/2025, passou pelo plenário da Câmara.', NULL, NULL, 'APPROVED');
 
 -- ---------------------------------------------------------------------
 -- Imagens dos projetos
@@ -231,9 +297,12 @@ VALUES
     (5, 'https://picsum.photos/seed/arvores/800/600'),
     (6, 'https://picsum.photos/seed/cameras/800/600'),
     (7, 'https://picsum.photos/seed/quadra/800/600'),
-    (9, 'https://picsum.photos/seed/sinalizacao-turistica/800/600'),
-    (10, 'https://picsum.photos/seed/mirante/800/600'),
-    (10, 'https://picsum.photos/seed/mirante-serra/800/600');
+    (10, 'https://picsum.photos/seed/sinalizacao-turistica/800/600'),
+    (11, 'https://picsum.photos/seed/mirante/800/600'),
+    (11, 'https://picsum.photos/seed/mirante-serra/800/600'),
+    (12, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790378064/terminal_rodoviario_h3ek6p.jpg'),
+    (13, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790378129/reforma_rodoviaria_rbvxsj.jpg'),
+    (15, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790378945/materno1_dywob9.jpg');
 
 -- ---------------------------------------------------------------------
 -- Vereadores associados a projetos (project_councilor)
@@ -245,7 +314,13 @@ VALUES
     (3, 4),
     (5, 9),
     (6, 9),
-    (6, 10);
+    (6, 10),
+    (17, 4),
+    (18, 4),
+    (19, 9),
+    (20, 10),
+    (20, 4),
+    (20, 9);
 
 -- ---------------------------------------------------------------------
 -- Opiniões / votos em projetos (respeitando UNIQUE(project_id, user_id))
@@ -314,9 +389,7 @@ VALUES
      'Jardim Europa', 'Rua Sete de Setembro', '215', -22.23010000, -45.93010000, 'RESOLVED', 'APPROVED'),
     (1, 1, 8, 4, 'Sinalização apagada', 'Faixa de pedestres e placas de trânsito apagadas próximo à escola.',
      'Zona Escolar', 'Avenida das Palmeiras', '905', -22.25810000, -45.71210000, 'OPEN', 'PENDING');
--- IDs resultantes: 1..5
 
--- Denúncias de Turismo (categoria 7 = Turismo)
 INSERT INTO issue_report (municipality_id, category_id, author_id, councilor_id, title, description, neighborhood, street, number,
                           latitude, longitude, status, moderation_status)
 VALUES
@@ -324,7 +397,97 @@ VALUES
      'Centro', 'Praça da Matriz', '10', -22.25270000, -45.70320000, 'OPEN', 'APPROVED'),
     (1, 7, 8, 4, 'Mirante sem manutenção', 'Guarda-corpo do mirante turístico está enferrujado, oferecendo risco aos turistas.',
      'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24510000, -45.69510000, 'UNDER_REVIEW', 'APPROVED');
--- IDs resultantes: 6 = Placa turística, 7 = Mirante sem manutenção
+
+-- Issues reais de Santa Rita do Sapucaí para popular o mapa de zonas quentes
+-- Bairros principais: Centro (~10), Santana (~6), variados (~6)
+-- IDs resultantes: 8..32
+INSERT INTO issue_report (municipality_id, category_id, author_id, councilor_id, title, description, neighborhood, street, number,
+                          latitude, longitude, status, moderation_status)
+VALUES
+    -- ===============================================================
+    -- CENTRO (10 issues) — zona mais quente do mapa
+    -- ===============================================================
+    (1, 1, 1, 4,   'Buraco na Rua Barão de Alfenas', 'Cratera no asfalto próximo à esquina com a Rua Sete, causando risco a veículos e pedestres.',
+     'Centro', 'Rua Barão de Alfenas', '120', -22.25210000, -45.70280000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 1, 5, null, 'Calçada destruída na Praça Santa Rita', 'Calçamento irregular com pedras soltas e desníveis causando quedas.',
+     'Centro', 'Praça Santa Rita', 's/n', -22.25240000, -45.70250000, 'OPEN', 'APPROVED'),
+
+    (1, 5, 6, 9,   'Iluminação apagada na Rua Sete', 'Trecho de mais de 200m sem iluminação pública há três semanas.',
+     'Centro', 'Rua Sete', '350', -22.25190000, -45.70320000, 'UNDER_REVIEW', 'APPROVED'),
+
+    (1, 1, 7, null, 'Bueiro entupido causando alagamento', 'Bueiro obstruído na Rua Coronel Inácio provoca alagamento a cada chuva.',
+     'Centro', 'Rua Coronel Joaquim Inácio', '80', -22.25200000, -45.70300000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 4, 1, 4,   'Lixo acumulado na Praça João Pessoa', 'Acúmulo de lixo e entulho nas proximidades da praça há mais de uma semana.',
+     'Centro', 'Praça João Pessoa', 's/n', -22.25220000, -45.70260000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 8, null, 'Meio-fio quebrado na Rua Teófilo Otoni', 'Meio-fio danificado ao longo de dois quarteirões representando risco a ciclistas.',
+     'Centro', 'Rua Teófilo Otoni', '45', -22.25170000, -45.70350000, 'OPEN', 'APPROVED'),
+
+    (1, 2, 5, 9,   'Falta de rampa de acessibilidade no posto de saúde', 'Entrada da UBS central sem rampa de acessibilidade para cadeirantes.',
+     'Centro', 'Rua Comendador José Garcia', '200', -22.25230000, -45.70390000, 'RESOLVED', 'APPROVED'),
+
+    (1, 5, 6, null, 'Câmera de segurança quebrada no centro', 'Câmera de videomonitoramento na esquina da Praça Santa Rita está sem funcionamento.',
+     'Centro', 'Praça Santa Rita', '1', -22.25250000, -45.70240000, 'UNDER_REVIEW', 'APPROVED'),
+
+    (1, 1, 7, 10,  'Pavimento deteriorado na Av. Embaixador Bilac Pinto', 'Trecho do asfalto completamente esburacado antes da continuidade da obra.',
+     'Centro', 'Avenida Embaixador Bilac Pinto', '300', -22.25470000, -45.70620000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 4, 1, null, 'Árvore com galhos sobre a fiação elétrica', 'Galhos comprometendo a rede elétrica na Rua Barão do Rio Branco, risco de curto.',
+     'Centro', 'Rua Barão do Rio Branco', '55', -22.25180000, -45.70420000, 'OPEN', 'APPROVED'),
+
+    -- ===============================================================
+    -- SANTANA (6 issues) — segunda zona quente
+    -- ===============================================================
+    (1, 1, 8, 4,   'Valeta aberta sem sinalização no Santana', 'Escavação para obra de drenagem aberta há semanas sem sinalização adequada.',
+     'Santana', 'Rua das Palmeiras', '130', -22.24760000, -45.69820000, 'OPEN', 'APPROVED'),
+
+    (1, 4, 5, null, 'Terreno baldio com mato alto no Santana', 'Lote abandonado com vegetação alta e presença de animais peçonhentos.',
+     'Santana', 'Rua das Acácias', '88', -22.24810000, -45.69870000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 6, 9,   'Asfalto cedendo na Av. Sebastião Reginaldo da Cunha', 'Afundamento no asfalto novo recém-aplicado após chuva forte.',
+     'Santana', 'Avenida Sebastião Reginaldo da Cunha', '560', -22.24720000, -45.69900000, 'UNDER_REVIEW', 'APPROVED'),
+
+    (1, 5, 7, null, 'Poste de iluminação tombado no Santana', 'Poste com risco de queda próximo à escola, sinalizando urgência no atendimento.',
+     'Santana', 'Rua dos Ipês', '22', -22.24850000, -45.69760000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 2, 1, 4,   'Ausência de coleta de lixo hospitalar no bairro', 'Descarte irregular de resíduos de saúde em lixeira comum no bairro.',
+     'Santana', 'Rua do Jacarandá', '67', -22.24790000, -45.69840000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 8, null, 'Calçada interrompida por obra particular', 'Construção particular bloqueou a calçada sem autorização, forçando pedestres à rua.',
+     'Santana', 'Avenida Pref. Antônio Capistrano Alckimim', '410', -22.24820000, -45.69790000, 'UNDER_REVIEW', 'APPROVED'),
+
+    -- ===============================================================
+    -- OUTROS BAIRROS — distribuição para enriquecer o mapa
+    -- ===============================================================
+    (1, 1, 5, 10,  'Ponte com estrutura comprometida', 'Ponte sobre o Córrego dos Abreus com vigas enferrujadas e piso deteriorado.',
+     'São Geraldo', 'Rua Beira Rio', 's/n', -22.23540000, -45.94060000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 4, 6, null, 'Descarte irregular de entulho no Anchieta', 'Ponto viciado de descarte de entulho e resíduos no fim da rua.',
+     'Anchieta', 'Rua Avelino Borges dos Reis', '200', -22.26230000, -45.70400000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 7, 9,   'Rua sem pavimentação na Vila Rica', 'Rua de terra com erosão profunda tornando o acesso impossível após chuvas.',
+     'Vila Rica', 'Rua do Cruzeiro', '90', -22.25540000, -45.70940000, 'OPEN', 'APPROVED'),
+
+    (1, 5, 1, null, 'Ausência de iluminação no Bela Vista', 'Trecho de 400m sem nenhuma luminária no acesso ao loteamento.',
+     'Bela Vista', 'Rua Benedito Rezende Vilela', '60', -22.26540000, -45.71350000, 'UNDER_REVIEW', 'APPROVED'),
+
+    (1, 2, 5, 10,  'Mato alto no entorno do ESF 07', 'Vegetação sem poda há meses dificultando acesso e gerando risco de cobras.',
+     'Santana I', 'Av. Pref. Antônio Capistrano Alckimim', 's/n', -22.24810000, -45.69750000, 'RESOLVED', 'APPROVED'),
+
+    (1, 3, 6, null, 'Escola com goteira e infiltração', 'Infiltração no teto da sala de informática comprometendo equipamentos.',
+     'Família Andrade', 'Rua Projetada', 's/n', -22.26000000, -45.71040000, 'IN_PROGRESS', 'APPROVED'),
+
+    (1, 6, 7, 4,   'Quadra poliesportiva interditada', 'Grade da quadra caiu e o espaço está inacessível para a comunidade.',
+     'Santana I', 'Av. Pref. Antônio Capistrano Alckimim', '300', -22.24830000, -45.69760000, 'OPEN', 'APPROVED'),
+
+    (1, 1, 8, null, 'Dreno entupido no Alto da Serra', 'Canal de drenagem bloqueado por sedimentos causando transbordamento na estrada.',
+     'Alto da Serra', 'Estrada do Mirante', 's/n', -22.24480000, -45.69480000, 'OPEN', 'APPROVED'),
+
+    (1, 4, 1, 9,   'Rio Sapucaí com lixo nas margens', 'Acúmulo de resíduos sólidos nas margens do Rio Sapucaí próximo ao centro.',
+     'Centro', 'Margem do Rio Sapucaí', 's/n', -22.25600000, -45.70100000, 'UNDER_REVIEW', 'APPROVED');
+-- IDs resultantes: 8..32
 
 -- ---------------------------------------------------------------------
 -- Imagens das denúncias
@@ -336,7 +499,14 @@ VALUES
     (3, 'https://picsum.photos/seed/lixo/800/600'),
     (4, 'https://picsum.photos/seed/vazamento/800/600'),
     (6, 'https://picsum.photos/seed/placa-turistica/800/600'),
-    (7, 'https://picsum.photos/seed/mirante-manutencao/800/600');
+    (7, 'https://picsum.photos/seed/mirante-manutencao/800/600'),
+    (8,  'https://picsum.photos/seed/buraco-centro/800/600'),
+    (11, 'https://picsum.photos/seed/lixo-praca/800/600'),
+    (14, 'https://picsum.photos/seed/asfalto-santana/800/600'),
+    (17, 'https://picsum.photos/seed/ponte-sao-geraldo/800/600'),
+    (19, 'https://picsum.photos/seed/rua-terra/800/600'),
+    (22, 'https://picsum.photos/seed/escola-goteira/800/600'),
+    (25, 'https://picsum.photos/seed/rio-sapucai/800/600');
 
 -- ---------------------------------------------------------------------
 -- Moderação de denúncias
@@ -366,19 +536,6 @@ VALUES
     ('Audiência Pública - Orçamento 2026', 'Discussão do orçamento participativo para o ano de 2026.', 2, 1, 'OPEN'),
     ('Sessão sobre Mobilidade Urbana', 'Debate sobre ciclovias e transporte público.', 2, 1, 'OPEN'),
     ('Reunião de Prestação de Contas', 'Prestação de contas do primeiro semestre.', 3, 2, 'CLOSED');
--- IDs resultantes: 1..3
-
--- ---------------------------------------------------------------------
--- Participantes das salas
--- ---------------------------------------------------------------------
-INSERT INTO room_participant (room_id, user_id, status, can_publish_audio, can_publish_video, decided_at)
-VALUES
-    (1, 1, 'APPROVED', TRUE,  FALSE, CURRENT_TIMESTAMP),
-    (1, 5, 'APPROVED', FALSE, FALSE, CURRENT_TIMESTAMP),
-    (1, 6, 'PENDING',  FALSE, FALSE, NULL),
-    (2, 1, 'APPROVED', TRUE,  TRUE,  CURRENT_TIMESTAMP),
-    (2, 8, 'REJECTED', FALSE, FALSE, CURRENT_TIMESTAMP),
-    (3, 7, 'APPROVED', TRUE,  FALSE, CURRENT_TIMESTAMP);
 
 -- ---------------------------------------------------------------------
 -- Assinaturas de acompanhamento (subscription)
@@ -421,49 +578,49 @@ VALUES
 -- Autores: 2 = MODERATOR, 3 = ADMINISTRATOR
 -- Datas relativas a CURRENT_DATE para manter a demo sempre com eventos futuros
 -- ---------------------------------------------------------------------
-INSERT INTO event (title, description, category_id, price, start_date, end_date, location, municipality_id, author_id)
+INSERT INTO event (title, description, category_id, price, start_date, end_date, neighborhood, street, number, latitude, longitude, municipality_id, author_id)
 VALUES
     ('Festival de Inverno',
      'Três dias de shows, feira gastronômica e apresentações culturais na praça central.',
      1, 30.00,
      CURRENT_DATE + INTERVAL '10 days' + TIME '18:00',
      CURRENT_DATE + INTERVAL '12 days' + TIME '23:00',
-     'Praça Central', 1, 2),
+     'Centro', 'Praça João Pessoa', 'S/N', -22.23015000, -45.93610000, 1, 2),
 
     ('Corrida da Cidade 10K',
      'Corrida de rua com percursos de 5K e 10K, aberta a todas as idades.',
      2, 0.00,
      CURRENT_DATE + INTERVAL '20 days' + TIME '07:00',
      CURRENT_DATE + INTERVAL '20 days' + TIME '11:00',
-     'Parque Municipal', 1, 2),
+     'Centro', 'Avenida Doutor Lisboa', '1000', -22.22780000, -45.93420000, 1, 2),
 
     ('Feira de Ciências e Tecnologia',
      'Exposição de projetos de escolas e startups locais, com palestras e oficinas.',
      3, NULL,
      CURRENT_DATE + INTERVAL '5 days' + TIME '09:00',
      CURRENT_DATE + INTERVAL '5 days' + TIME '17:00',
-     'Centro de Convenções', 9, 3),
+     'Fátima', 'Rua das Palmeiras', '250', -22.24120000, -45.92510000, 9, 3),
 
     ('Mutirão de Limpeza do Rio',
      'Ação comunitária de limpeza das margens do rio, com café da manhã para voluntários.',
      4, 0.00,
      CURRENT_DATE + INTERVAL '3 days' + TIME '08:00',
      CURRENT_DATE + INTERVAL '3 days' + TIME '12:00',
-     'Margem do Rio Sapucaí', 1, 2),
+     'São Geraldo', 'Rua Beira Rio', 'S/N', -22.23540000, -45.94080000, 1, 2),
 
     ('Hackathon Cidades Inteligentes',
      'Maratona de programação de 48h focada em soluções para gestão pública municipal.',
      5, 50.00,
      CURRENT_DATE + INTERVAL '30 days' + TIME '19:00',
      CURRENT_DATE + INTERVAL '32 days' + TIME '19:00',
-     'Hub de Inovação', 17, 3),
+     'Cidade Jardim', 'Rua da Inovação', '45', -22.22190000, -45.92870000, 17, 3),
 
     ('Sarau Cultural de Primavera',
      'Noite de poesia, música acústica e feira de artesanato local.',
      1, 15.00,
      CURRENT_DATE + INTERVAL '45 days' + TIME '20:00',
      CURRENT_DATE + INTERVAL '45 days' + TIME '23:30',
-     'Casa de Cultura', 1, 2),
+     'Centro', 'Rua Comendador José Garcia', '320', -22.22960000, -45.93770000, 1, 2),
 
     -- Eventos de Turismo (categoria 6 = Turismo em event_category)
     ('City Tour Histórico',
@@ -471,14 +628,63 @@ VALUES
      6, 0.00,
      CURRENT_DATE + INTERVAL '7 days' + TIME '09:00',
      CURRENT_DATE + INTERVAL '7 days' + TIME '12:00',
-     'Ponto de encontro: Praça da Matriz', 1, 2),
+     'Centro', 'Praça da Matriz', 'S/N', -22.22870000, -45.93650000, 1, 2),
 
     ('Festival de Turismo Rural',
      'Feira com produtores locais, gastronomia caipira e passeios pelas fazendas históricas da região.',
      6, 25.00,
      CURRENT_DATE + INTERVAL '25 days' + TIME '10:00',
      CURRENT_DATE + INTERVAL '27 days' + TIME '18:00',
-     'Parque de Exposições', 1, 3);
+     'Zona Rural', 'Estrada do Parque de Exposições', 'km 3', -22.20450000, -45.95120000, 1, 3),
+
+    -- Eventos reais de Santa Rita do Sapucaí (município 1)
+    ('Carnaval Oficial da Cidade',
+     'A maior festa carnavalesca do Sul de Minas Gerais. Reúne programação municipal com blocos de rua no Centro de Eventos.',
+     1, 0.00,
+     TIMESTAMP '2026-02-13 00:00', TIMESTAMP '2026-02-17 23:59',
+     'Santa Rita do Sapucaí', 'R. Sete', '245', -22.25200000, -45.70300000, 1, 3),
+
+    ('Bloco do Urso',
+     'O grandioso evento privado de escala nacional Bloco do Urso, que conta com atrações de peso como Alok, Ivete Sangalo e Léo Santana em uma arena open bar.',
+     1, 500.00,
+     TIMESTAMP '2026-02-13 00:00', TIMESTAMP '2026-02-17 23:59',
+     'Cidade do Urso', 'Cidade do Urso', 'S/N', -22.25600000, -45.71000000, 1, 3),
+
+    ('Fest Rock Sul de Minas (14ª Edição)',
+     'Tradicional encontro de rock da cidade com apresentações de bandas regionais e tributos oficiais, contando com praça de alimentação e área de convivência.',
+     1, 0.00,
+     TIMESTAMP '2026-05-16 16:00', TIMESTAMP '2026-05-17 00:00',
+     'Santa Rita do Sapucaí', 'R. Sete', '245', -22.25200000, -45.70300000, 1, 3),
+
+    ('Festa da Padroeira Santa Rita de Cássia',
+     'Uma das celebrações religiosas e culturais mais tradicionais da região. Além do tríduo e procissões, conta com grandiosa praça de alimentação e grandes shows nacionais (como Paralamas do Sucesso, Edson & Hudson, Katinguelê) organizados pela Prefeitura.',
+     1, 0.00,
+     TIMESTAMP '2026-05-13 00:00', TIMESTAMP '2026-05-24 23:59',
+     'Centro', 'Praça Santa Rita', '113', -22.25230000, -45.70260000, 1, 3),
+
+    ('Feirão Folclórico 2026',
+     'Evento multicultural focado nas tradições locais, apresentações sertanejas (Bruna Viola, Felipe & Falcão), Encontro de Carros Antigos e Show de Calouros.',
+     1, 0.00,
+     TIMESTAMP '2026-08-14 00:00', TIMESTAMP '2026-08-17 23:59',
+     'Santa Rita do Sapucaí', 'R. Sete', '245', -22.25200000, -45.70300000, 1, 3),
+
+    ('Eros Prado - Stand-up "A Quinta Série Venceu"',
+     'Apresentação de comédia solo com o humorista Eros Prado, reunindo piadas, interações com a plateia e personagens cômicos.',
+     1, 50.00,
+     TIMESTAMP '2026-09-26 20:00', TIMESTAMP '2026-09-26 21:30',
+     'Centro', 'Praça Santa Rita', 'S/N', -22.25230000, -45.70260000, 1, 3),
+
+    ('HackTown 2026',
+     'Considerado o maior festival de inovação, tecnologia, criatividade e música do Brasil. Reúne centenas de palestras simultâneas, workshops, shows e atrações distribuídas por toda a cidade em um formato similar ao SXSW americano.',
+     5, 500.00,
+     TIMESTAMP '2026-10-01 00:00', TIMESTAMP '2026-10-04 23:59',
+     'Centro', 'Inatel, FAI, ETE e múltiplos pontos urbanos', 'S/N', -22.25730000, -45.70590000, 1, 3),
+
+    ('FAITEC 2026 (37ª Feira de Tecnologia e Empreendedorismo da FAI)',
+     'Exposição anual de projetos tecnológicos, soluções digitais, protótipos de software e planos de negócios inovadores da FAI. O evento atrai investidores, empresas parceiras do ecossistema do Vale da Eletrônica e visitantes de toda a região.',
+     5, 0.00,
+     TIMESTAMP '2026-09-30 00:00', TIMESTAMP '2026-10-02 23:59',
+     'Centro', 'Av. Sinhá Moreira', '161-221', -22.25400000, -45.70450000, 1, 3);
 
 -- ---------------------------------------------------------------------
 -- Imagens de eventos (alguns eventos sem imagem para exercitar o filtro hasImage)
@@ -491,4 +697,12 @@ VALUES
     (3, 'https://picsum.photos/seed/feira-ciencias/800/600'),
     (5, 'https://picsum.photos/seed/hackathon/800/600'),
     (7, 'https://picsum.photos/seed/city-tour/800/600'),
-    (8, 'https://picsum.photos/seed/turismo-rural/800/600');
+    (8, 'https://picsum.photos/seed/turismo-rural/800/600'),
+    (9,  'https://res.cloudinary.com/dohegns1y/image/upload/v1790347338/carnaval_ejyg9a.jpg'),
+    (10, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347330/bloco_do_urso_q9zvmv.avif'),
+    (11, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347515/festa_rock_rxppbv.png'),
+    (12, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347800/IMG_20260925_114907.jpg_yjzvmh.jpg'),
+    (13, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347935/feirao_vrpec6.jpg'),
+    (14, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790347980/eros_gvcc17.jpg'),
+    (15, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790348139/hacktown_jvt9do.jpg'),
+    (16, 'https://res.cloudinary.com/dohegns1y/image/upload/v1790348207/faitec_vla23f.jpg');

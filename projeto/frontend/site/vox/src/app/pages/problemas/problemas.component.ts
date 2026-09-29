@@ -129,10 +129,10 @@ export class ProblemasComponent implements OnInit {
 
     this.linkingId = i.id;
     const linking = !this.isMine(i);
-    // Associar usa o endpoint dedicado; desassociar cai no update JSON.
+    // Associar e desassociar usam endpoints dedicados.
     const request$ = linking
       ? this.issueService.associate(i.id)
-      : this.issueService.unassignCouncilor(i);
+      : this.issueService.unassignCouncilor(i.id);
     request$.subscribe({
       next: () => {
         i.councilorId = linking ? this.myId : null;

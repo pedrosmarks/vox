@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.service.notification;
+import br.com.fai.Vox.domain.enums.NotificationTypeEnum;
 
 import br.com.fai.Vox.domain.Notification;
 import br.com.fai.Vox.port.dao.notification.NotificationDao;
@@ -21,7 +22,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void send(int userId, String title, String message, Notification.NotificationType type) {
+    public void send(int userId, String title, String message, NotificationTypeEnum type) {
         if (userId <= 0 || title == null || title.isEmpty()) return;
         Notification entity = new Notification();
         entity.setUserId(userId);

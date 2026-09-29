@@ -59,18 +59,12 @@ public class UserServiceImpl implements UserService {
             return -1;
         }
 
-        // Foto de perfil é opcional: só faz upload quando um arquivo é enviado.
         String photoUrl = uploadProfilePhoto(dto.getFile(), entity.getEmail());
         entity.setProfilePhotoUrl(photoUrl);
 
         return userDao.create(entity);
     }
 
-    /**
-     * Faz o upload da foto de perfil quando um arquivo válido é informado.
-     *
-     * @return a URL pública da imagem, ou {@code null} quando não há arquivo
-     */
     private String uploadProfilePhoto(MultipartFile file, String ownerKey) {
         if (file == null || file.isEmpty()) return null;
         try {
@@ -110,11 +104,8 @@ public class UserServiceImpl implements UserService {
         UserModel current = findByid(id);
         if (current == null) return;
 
-        // O ID da URL define o usuário atualizado; o body não precisa informá-lo.
         entity.setId(id);
 
-        // Update parcial: campos ausentes no body mantêm o valor atual do banco,
-        // evitando sobrescrever com null (municipality_id é NOT NULL).
         if (entity.getName() == null) entity.setName(current.getName());
         if (entity.getCpf() == null) entity.setCpf(current.getCpf());
         if (entity.getEmail() == null) entity.setEmail(current.getEmail());
@@ -132,8 +123,6 @@ public class UserServiceImpl implements UserService {
     public void update(int id, UserModel entity, MultipartFile file) {
         if (id <= 0 || entity == null) return;
 
-        // Só substitui a foto quando um novo arquivo é enviado; caso contrário,
-        // deixa profilePhotoUrl null para que o update parcial preserve a atual.
         if (file != null && !file.isEmpty()) {
             String ownerKey = entity.getEmail() != null ? entity.getEmail() : String.valueOf(id);
             entity.setProfilePhotoUrl(uploadProfilePhoto(file, ownerKey));
@@ -159,8 +148,6 @@ public class UserServiceImpl implements UserService {
             return false;
         }
 
-        // O DAO já faz o hash da senha via crypt(?, gen_salt('bf')),
-        // então passamos a senha em texto puro para evitar hash duplo.
         userDao.updatePassword(id, newPassword);
         return true;
     }
@@ -177,7 +164,6 @@ public class UserServiceImpl implements UserService {
 
         UserModel user = userDao.findByEmail(email);
         if (user == null) {
-            // Não revelar se o e-mail existe — retorna true mesmo assim
             logger.log(Level.INFO, "Forgot password solicitado para e-mail não encontrado: " + email);
             return true;
         }
@@ -191,7 +177,6 @@ public class UserServiceImpl implements UserService {
             logger.log(Level.INFO, "E-mail de reset enviado para userId: " + user.getId());
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Erro ao enviar e-mail de reset para userId: " + user.getId(), e);
-            // Token já foi salvo — o usuário pode tentar novamente
         }
 
         return true;
@@ -206,8 +191,6 @@ public class UserServiceImpl implements UserService {
         Integer userId = passwordResetTokenDao.findUserIdByToken(token);
         if (userId == null) return false;
 
-        // O DAO já faz o hash da senha via crypt(?, gen_salt('bf')),
-        // então passamos a senha em texto puro para evitar hash duplo.
         userDao.updatePassword(userId, newPassword);
         passwordResetTokenDao.markAsUsed(token);
 

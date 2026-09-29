@@ -1,4 +1,5 @@
 package br.com.fai.Vox.controller;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.EventCategory;
 import br.com.fai.Vox.domain.UserModel;
@@ -13,10 +14,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
-/**
- * CRUD de categorias de evento. Leitura pública; escrita restrita a
- * MODERATOR/ADMINISTRATOR.
- */
 @RestController
 @RequestMapping("/api/event-categories")
 public class EventCategoryRestController {
@@ -71,8 +68,8 @@ public class EventCategoryRestController {
 
     private void requireModeratorOrAdmin(HttpServletRequest request) {
         UserModel user = userService.findByid(authHelper.getUserId(request));
-        if (user == null || (user.getRole() != UserModel.UserRole.MODERATOR
-                && user.getRole() != UserModel.UserRole.ADMINISTRATOR)) {
+        if (user == null || (user.getRole() != UserRoleEnum.MODERATOR
+                && user.getRole() != UserRoleEnum.ADMINISTRATOR)) {
             throw new SecurityException("Acesso negado: apenas moderadores ou administradores");
         }
     }

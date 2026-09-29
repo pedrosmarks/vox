@@ -58,12 +58,14 @@ export class ModeracaoComponent implements OnInit {
   submitSuccess = false;
   submitError = '';
   selectedFile: File | null = null;
+  selectedLocation: LatLng | null = null;
 
   form = {
     title: '',
     description: '',
     municipalityId: 0,
     categoryId: '',
+    nature: 'PUBLIC_WORK' as 'PUBLIC_WORK' | 'LAW',
     type: 'CHAMBER',
     status: 'PUBLISHED',
     isOfficial: true,
@@ -235,6 +237,7 @@ export class ModeracaoComponent implements OnInit {
       title:           project.title,
       description:     project.description,
       categoryId:      project.categoryId ? String(project.categoryId) : '',
+      nature:          project.nature || 'PUBLIC_WORK',
       type:            'CHAMBER',
       status:          'PUBLISHED',
       isOfficial:      true,
@@ -250,6 +253,9 @@ export class ModeracaoComponent implements OnInit {
       estimatedCost:   null,
       approvedBudget:  null
     };
+    this.selectedLocation = this.form.latitude != null && this.form.longitude != null
+      ? { latitude: this.form.latitude, longitude: this.form.longitude }
+      : null;
     this.selectedFile = null;
     this.activeTab = 'novo';
   }
@@ -264,8 +270,10 @@ export class ModeracaoComponent implements OnInit {
   }
 
   onLocationChange(location: LatLng): void {
+    if (this.form.latitude === location.latitude && this.form.longitude === location.longitude) return;
     this.form.latitude = location.latitude;
     this.form.longitude = location.longitude;
+    this.selectedLocation = location;
   }
 
   onAddressChange(address: AddressResult): void {
@@ -282,6 +290,10 @@ export class ModeracaoComponent implements OnInit {
   onSubmit(): void {
     if (!this.form.title.trim() || !this.form.description.trim() || !this.form.categoryId || !this.form.startDate || !this.form.expectedEndDate) {
       this.submitError = 'Preencha todos os campos obrigatórios.';
+      return;
+    }
+    if (this.form.nature === 'PUBLIC_WORK' && (this.form.latitude == null || this.form.longitude == null)) {
+      this.submitError = 'Selecione a localização da obra no mapa.';
       return;
     }
 
@@ -301,20 +313,23 @@ export class ModeracaoComponent implements OnInit {
     fd.append('municipalityId', String(this.form.municipalityId));
     fd.append('authorId', String(userId));
     fd.append('categoryId', String(this.form.categoryId));
+    fd.append('nature', this.form.nature);
     fd.append('type', this.form.type);
     fd.append('status', this.form.status);
     fd.append('isOfficial', 'true');
-    fd.append('neighborhood', this.form.neighborhood);
-    fd.append('street', this.form.street);
-    fd.append('number', this.form.number);
+    if (this.form.nature === 'PUBLIC_WORK') {
+      if (this.form.neighborhood.trim()) fd.append('neighborhood', this.form.neighborhood.trim());
+      if (this.form.street.trim()) fd.append('street', this.form.street.trim());
+      if (this.form.number.trim()) fd.append('number', this.form.number.trim());
+      if (this.form.latitude != null) fd.append('latitude', String(this.form.latitude));
+      if (this.form.longitude != null) fd.append('longitude', String(this.form.longitude));
+    }
     fd.append('startDate', this.form.startDate);
     fd.append('expectedEndDate', this.form.expectedEndDate);
     if (this.form.endDate) fd.append('endDate', this.form.endDate);
     if (this.form.financialAnalysis) fd.append('financialAnalysis', this.form.financialAnalysis);
     if (this.form.estimatedCost != null) fd.append('estimatedCost', String(this.form.estimatedCost));
     if (this.form.approvedBudget != null) fd.append('approvedBudget', String(this.form.approvedBudget));
-    if (this.form.latitude != null) fd.append('latitude', String(this.form.latitude));
-    if (this.form.longitude != null) fd.append('longitude', String(this.form.longitude));
     if (this.selectedFile) fd.append('file', this.selectedFile);
 
     if (this.editingProjectId !== null) {
@@ -351,13 +366,14 @@ export class ModeracaoComponent implements OnInit {
     this.form = {
       title: '', description: '',
       municipalityId: this.authService.getMunicipalityId(),
-      categoryId: '', type: 'CHAMBER', status: 'PUBLISHED',
+      categoryId: '', nature: 'PUBLIC_WORK', type: 'CHAMBER', status: 'PUBLISHED',
       isOfficial: true,
       neighborhood: '', street: '', number: '',
       latitude: null, longitude: null,
       startDate: '', expectedEndDate: '', endDate: '',
       financialAnalysis: '', estimatedCost: null, approvedBudget: null
     };
+    this.selectedLocation = null;
     this.selectedFile = null;
   }
 

@@ -5,6 +5,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import br.com.fai.Vox.domain.enums.AccessibilityModeEnum;
+
 @Getter
 @Setter
 public class UserSettings {
@@ -12,23 +14,9 @@ public class UserSettings {
     private Integer id;
     private Integer userId;
     private Integer fontSize;
-    private AccessibilityMode accessibilityMode;
+    private AccessibilityModeEnum accessibilityMode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    /**
-     * Modos de acessibilidade disponíveis.
-     * Regra: apenas um modo pode estar ativo por vez.
-     * Quando qualquer modo estiver ativo, somente o fontSize pode ser alterado junto.
-     */
-    public enum AccessibilityMode {
-        NONE,
-        DARK,
-        HIGH_CONTRAST,
-        PROTANOPIA,
-        DEUTERANOPIA,
-        TRITANOPIA
-    }
 
     public UserSettings() {}
 }

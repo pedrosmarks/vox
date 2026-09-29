@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { ProjectService, Project, Category, latestRejectionNote } from '../../services/project.service';
-import { of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { ProjectService, Project, Category } from '../../services/project.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { MapPickerComponent, LatLng, AddressResult } from '../../components/map-picker/map-picker.component';
 import { projectStatusLabel, statusClass } from '../../utils/status-labels';
@@ -23,7 +21,7 @@ const FALLBACK_CATEGORIES: Category[] = [
 @Component({
   selector: 'app-sugestoes',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, MapPickerComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, MapPickerComponent, RouterLink],
   templateUrl: './sugestoes.component.html',
   styleUrls: ['./sugestoes.component.scss']
 })
@@ -37,12 +35,11 @@ export class SugestoesComponent implements OnInit {
 
   mySuggestions: Project[] = [];
   categories: Category[] = [];
-  /** Comentário de rejeição por projeto (id → note), lido do histórico. */
-  rejectionNotes: Map<number, string> = new Map();
 
   form = {
     title: '',
     categoryId: '',
+    nature: 'PUBLIC_WORK' as 'PUBLIC_WORK' | 'LAW',
     description: '',
     file: null as File | null,
     latitude: null as number | null,
@@ -86,7 +83,6 @@ export class SugestoesComponent implements OnInit {
           ? projects.filter(p => p.authorId === this.userId)
           : projects;
         this.isLoadingSuggestions = false;
-        this.loadRejectionNotes();
       },
       error: () => {
         this.loadError = 'Erro ao carregar suas sugestões.';
@@ -99,7 +95,7 @@ export class SugestoesComponent implements OnInit {
     this.showForm = true;
     this.submitSuccess = false;
     this.submitError = '';
-    this.form = { title: '', categoryId: '', description: '', file: null, latitude: null, longitude: null, street: '', number: '', neighborhood: '' };
+    this.form = { title: '', categoryId: '', nature: 'PUBLIC_WORK', description: '', file: null, latitude: null, longitude: null, street: '', number: '', neighborhood: '' };
   }
 
   onLocationChange(location: LatLng): void {
@@ -128,6 +124,10 @@ export class SugestoesComponent implements OnInit {
       this.submitError = 'Preencha todos os campos obrigatórios.';
       return;
     }
+    if (this.form.nature === 'PUBLIC_WORK' && (this.form.latitude == null || this.form.longitude == null)) {
+      this.submitError = 'Selecione a localização da obra no mapa.';
+      return;
+    }
 
     this.isSubmitting = true;
     this.submitError = '';
@@ -135,6 +135,7 @@ export class SugestoesComponent implements OnInit {
     const fd = new FormData();
     fd.append('municipalityId', String(this.authService.getMunicipalityId()));
     fd.append('categoryId', this.form.categoryId);
+    fd.append('nature', this.form.nature);
     fd.append('type', 'CITIZEN');
     fd.append('title', this.form.title.trim());
     fd.append('description', this.form.description.trim());
@@ -143,13 +144,13 @@ export class SugestoesComponent implements OnInit {
       fd.append('authorId', String(this.userId));
     }
     fd.append('isOfficial', 'false');
-    if (this.form.latitude !== null && this.form.longitude !== null) {
-      fd.append('latitude', String(this.form.latitude));
-      fd.append('longitude', String(this.form.longitude));
+    if (this.form.nature === 'PUBLIC_WORK') {
+      if (this.form.latitude !== null) fd.append('latitude', String(this.form.latitude));
+      if (this.form.longitude !== null) fd.append('longitude', String(this.form.longitude));
+      if (this.form.street) fd.append('street', this.form.street);
+      if (this.form.number) fd.append('number', this.form.number);
+      if (this.form.neighborhood) fd.append('neighborhood', this.form.neighborhood);
     }
-    if (this.form.street) fd.append('street', this.form.street);
-    if (this.form.number) fd.append('number', this.form.number);
-    if (this.form.neighborhood) fd.append('neighborhood', this.form.neighborhood);
     if (this.form.file) {
       fd.append('file', this.form.file);
     }
@@ -166,7 +167,10 @@ export class SugestoesComponent implements OnInit {
         if (err.status === 403) {
           this.submitError = 'Sem permissão para criar projetos.';
         } else {
-          this.submitError = 'Erro ao enviar sugestão. Tente novamente.';
+          const message = err.error?.message;
+          this.submitError = typeof message === 'string' && message.trim()
+            ? message
+            : 'Erro ao enviar sugestão. Tente novamente.';
         }
       }
     });
@@ -178,31 +182,6 @@ export class SugestoesComponent implements OnInit {
 
   getStatusClass(status: string): string {
     return statusClass(status);
-  }
-
-  /** True quando a sugestão foi rejeitada/cancelada. */
-  isRejected(p: Project): boolean {
-    return p.status === 'REJECTED' || p.status === 'CANCELLED';
-  }
-
-  /** Comentário do moderador (lido do histórico do projeto). */
-  moderatorComment(p: Project): string {
-    return this.rejectionNotes.get(p.id) ?? '';
-  }
-
-  /** Busca no histórico o motivo da rejeição de cada sugestão rejeitada. */
-  private loadRejectionNotes(): void {
-    this.mySuggestions
-      .filter(p => this.isRejected(p))
-      .forEach(p => {
-        this.projectService
-          .getProjectHistory(p.id)
-          .pipe(catchError(() => of([])))
-          .subscribe(history => {
-            const note = latestRejectionNote(history);
-            if (note) this.rejectionNotes.set(p.id, note);
-          });
-      });
   }
 
   formatDate(dateStr: string): string {

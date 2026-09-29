@@ -84,7 +84,7 @@ class _ProblemasScreenState extends State<ProblemasScreen> {
     setState(() => _linkingId = issue.id);
     try {
       if (_isMine(issue)) {
-        await _issueService.unassignCouncilor(issue);
+        await _issueService.unassignCouncilor(issue.id);
       } else {
         await _issueService.associate(issue.id);
       }

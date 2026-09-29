@@ -1,4 +1,5 @@
 package br.com.fai.Vox.domain.dto;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.UserModel;
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class AuthenticatedUserDto {
     private String cpf;
     private String phone;
     private LocalDate birthDate;
-    private UserModel.UserRole role;
+    private UserRoleEnum role;
     private Integer municipalityId;
     private Boolean acceptedTerms;
     private Boolean acceptedPrivacyPolicy;

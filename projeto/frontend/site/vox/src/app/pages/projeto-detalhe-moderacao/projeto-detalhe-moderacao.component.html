@@ -19,9 +19,10 @@
 
     <div class="facts">
       <div><span>Autor</span><strong>#{{ project.authorId }}</strong></div>
-      <div><span>Bairro</span><strong>{{ project.neighborhood || '—' }}</strong></div>
-      <div><span>Orçamento estimado</span><strong>{{ project.estimatedCost | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></div>
-      <div><span>Endereço</span><strong>{{ project.street || '—' }} {{ project.number }}</strong></div>
+      <div><span>Natureza</span><strong>{{ project.nature === 'LAW' ? 'Projeto de lei' : 'Obra pública' }}</strong></div>
+      <div *ngIf="project.nature !== 'LAW' && project.neighborhood"><span>Bairro</span><strong>{{ project.neighborhood }}</strong></div>
+      <div *ngIf="project.estimatedCost"><span>Orçamento estimado</span><strong>{{ project.estimatedCost | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></div>
+      <div *ngIf="project.nature !== 'LAW' && (project.street || project.number)"><span>Endereço</span><strong>{{ project.street || '' }} {{ project.number || '' }}</strong></div>
       <div><span>Datas</span><strong>{{ project.startDate | date:'dd/MM/yyyy' }} até {{ project.expectedEndDate | date:'dd/MM/yyyy' }}</strong></div>
     </div>
 

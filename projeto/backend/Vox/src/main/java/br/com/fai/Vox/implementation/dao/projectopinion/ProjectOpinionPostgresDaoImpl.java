@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.projectopinion;
+import br.com.fai.Vox.domain.enums.OpinionTypeEnum;
 
 import br.com.fai.Vox.domain.ProjectOpinion;
 import br.com.fai.Vox.port.dao.projectopinion.ProjectOpinionDao;
@@ -115,7 +116,7 @@ public class ProjectOpinionPostgresDaoImpl implements ProjectOpinionDao {
         o.setId(rs.getInt("id"));
         o.setProjectId(rs.getInt("project_id"));
         o.setUserId(rs.getInt("user_id"));
-        o.setOpinion(ProjectOpinion.OpinionType.valueOf(rs.getString("opinion")));
+        o.setOpinion(OpinionTypeEnum.valueOf(rs.getString("opinion")));
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) o.setCreatedAt(createdAt.toLocalDateTime());

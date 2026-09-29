@@ -60,6 +60,7 @@
           <span class="badge-type" [ngClass]="getTypeClass(project)">
             {{ getTypeLabel(project) }}
           </span>
+          <span class="badge-type">{{ project.nature === 'LAW' ? 'Projeto de lei' : 'Obra pública' }}</span>
         </div>
 
         <h2 class="card-title">{{ project.title }}</h2>
@@ -70,7 +71,7 @@
         </p>
 
         <div class="card-footer">
-          <span class="card-meta">{{ project.neighborhood }}</span>
+          <span *ngIf="project.nature !== 'LAW' && project.neighborhood" class="card-meta">{{ project.neighborhood }}</span>
           <span class="card-meta">{{ project.startDate | date:'dd/MM/yyyy' }}</span>
 
           <button

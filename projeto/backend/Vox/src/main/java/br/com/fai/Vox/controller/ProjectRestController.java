@@ -56,8 +56,6 @@ public class ProjectRestController {
         this.authHelper = authHelper;
     }
 
-    // --- CRUD ---
-
     @GetMapping
     public ResponseEntity<?> findAll(HttpServletRequest request,
                                      @RequestParam(required = false) Integer page,
@@ -115,29 +113,16 @@ public class ProjectRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping()
-    public ResponseEntity<List<Project>> getEntities() {
-        List<Project> entities = projectService.findAll();
-
-        return ResponseEntity.ok(entities);
-    }
-
-    // --- MEUS PROJETOS ---
-
     @GetMapping("/my")
     public ResponseEntity<List<Project>> findMy(HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         return ResponseEntity.ok(projectService.findByAuthorId(userId));
     }
 
-    // --- HISTÓRICO DE STATUS ---
-
     @GetMapping("/{id}/history")
     public ResponseEntity<List<ProjectStatusHistory>> getHistory(@PathVariable final int id) {
         return ResponseEntity.ok(projectStatusHistoryService.findByProjectId(id));
     }
-
-    // --- IMAGENS ---
 
     @PostMapping(value = "/{id}/image", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> addImage(@PathVariable final int id,
@@ -166,8 +151,6 @@ public class ProjectRestController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- OPINIÕES ---
-
     @PostMapping("/{id}/opinion")
     public ResponseEntity<Void> submitOpinion(@PathVariable final int id,
                                                @Valid @RequestBody final ProjectOpinionDto data,
@@ -195,8 +178,6 @@ public class ProjectRestController {
         return opinion == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(opinion);
     }
 
-    // --- VEREADORES ---
-
     @PostMapping("/{projectId}/councilor/{councilorId}")
     public ResponseEntity<Void> addCouncilor(@PathVariable final int projectId,
                                               @PathVariable final int councilorId) {
@@ -211,12 +192,6 @@ public class ProjectRestController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * DELETE /api/project/{projectId}/councilor/me
-     * O próprio vereador autenticado se desvincula do projeto.
-     * O vereador é identificado pelo token (não por parâmetro), evitando que
-     * um usuário desvincule outro.
-     */
     @DeleteMapping("/{projectId}/councilor/me")
     public ResponseEntity<Void> unlinkSelf(@PathVariable final int projectId,
                                            HttpServletRequest request) {
@@ -233,8 +208,6 @@ public class ProjectRestController {
     public ResponseEntity<List<ProjectCouncilor>> getCouncilors(@PathVariable final int projectId) {
         return ResponseEntity.ok(projectCouncilorService.findByProjectId(projectId));
     }
-
-    // --- ASSINATURAS (apenas projetos comunitários) ---
 
     @PostMapping("/{id}/signature")
     public ResponseEntity<Void> sign(@PathVariable final int id, HttpServletRequest request) {

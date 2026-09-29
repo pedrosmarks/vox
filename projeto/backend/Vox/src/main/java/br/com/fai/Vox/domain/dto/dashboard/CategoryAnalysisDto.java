@@ -6,11 +6,6 @@ import lombok.Setter;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Análise por categoria: ranking de categorias com mais issues/projetos e
- * cruzamento categoria × status. Ajuda a direcionar política pública ("onde
- * o município mais precisa agir"). Escopado por município e intervalo de datas.
- */
 @Getter
 @Setter
 public class CategoryAnalysisDto {
@@ -32,13 +27,10 @@ public class CategoryAnalysisDto {
         private long projectCount;
         private long total;
 
-        /** Contagem de issues por status na categoria (issue_status -> total). */
         private Map<String, Long> issuesByStatus;
 
-        /** Contagem de projetos por status na categoria (project_status -> total). */
         private Map<String, Long> projectsByStatus;
 
-        /** Issues abertas (status OPEN) na categoria — proxy de "onde agir". */
         private long openIssues;
 
         public CategoryStatDto() {}

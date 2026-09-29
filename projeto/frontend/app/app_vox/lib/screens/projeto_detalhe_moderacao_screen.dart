@@ -148,19 +148,32 @@ class _ProjetoDetalheModeracaoScreenState
         _fact(context, 'Autor', '#${project.authorId}'),
         _fact(
           context,
-          'Bairro',
-          project.neighborhood.isEmpty ? '—' : project.neighborhood,
+          'Natureza',
+          project.nature == 'LAW' ? 'Projeto de lei' : 'Obra pública',
         ),
-        _fact(
-          context,
-          'Custo estimado',
-          'R\$ ${project.estimatedCost.toStringAsFixed(2)}',
-        ),
-        _fact(
-          context,
-          'Endereço',
-          '${project.street}, ${project.number} - ${project.neighborhood}',
-        ),
+        if (project.nature != 'LAW' && project.neighborhood.isNotEmpty)
+          _fact(context, 'Bairro', project.neighborhood),
+        if (project.estimatedCost > 0)
+          _fact(
+            context,
+            'Custo estimado',
+            'R\$ ${project.estimatedCost.toStringAsFixed(2)}',
+          ),
+        if (project.nature != 'LAW' &&
+            [
+              project.street,
+              project.number,
+              project.neighborhood,
+            ].any((part) => part.isNotEmpty))
+          _fact(
+            context,
+            'Endereço',
+            [
+              if (project.street.isNotEmpty) project.street,
+              if (project.number.isNotEmpty) project.number,
+              if (project.neighborhood.isNotEmpty) project.neighborhood,
+            ].join(', '),
+          ),
         _fact(
           context,
           'Período',

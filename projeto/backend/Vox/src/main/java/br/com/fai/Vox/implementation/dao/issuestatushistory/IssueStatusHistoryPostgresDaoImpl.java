@@ -1,4 +1,5 @@
 package br.com.fai.Vox.implementation.dao.issuestatushistory;
+import br.com.fai.Vox.domain.enums.IssueStatusEnum;
 
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.IssueStatusHistory;
@@ -61,8 +62,8 @@ public class IssueStatusHistoryPostgresDaoImpl implements IssueStatusHistoryDao 
         entity.setId(rs.getInt("id"));
         entity.setIssueId(rs.getInt("issue_id"));
         String prev = rs.getString("previous_status");
-        if (prev != null) entity.setPreviousStatus(IssueReport.IssueStatus.valueOf(prev.toUpperCase()));
-        entity.setNewStatus(IssueReport.IssueStatus.valueOf(rs.getString("new_status").toUpperCase()));
+        if (prev != null) entity.setPreviousStatus(IssueStatusEnum.valueOf(prev.toUpperCase()));
+        entity.setNewStatus(IssueStatusEnum.valueOf(rs.getString("new_status").toUpperCase()));
         entity.setChangedBy(rs.getInt("changed_by"));
         entity.setNote(rs.getString("note"));
         Timestamp createdAt = rs.getTimestamp("created_at");

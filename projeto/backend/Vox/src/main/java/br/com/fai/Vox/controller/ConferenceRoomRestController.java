@@ -1,4 +1,5 @@
 package br.com.fai.Vox.controller;
+import br.com.fai.Vox.domain.enums.UserRoleEnum;
 
 import br.com.fai.Vox.domain.ConferenceRoom;
 import br.com.fai.Vox.domain.RoomParticipant;
@@ -33,19 +34,13 @@ public class ConferenceRoomRestController {
         this.authHelper = authHelper;
     }
 
-    // --- CRUD de salas ---
-
-    /**
-     * POST /api/salas
-     * Apenas MODERADOR ou ADMINISTRATOR pode criar salas.
-     */
     @PostMapping
     public ResponseEntity<Void> create(@Valid @RequestBody final CreateConferenceRoomDto data,
                                        HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
         int municipalityId = authHelper.getMunicipalityId(request);
 
-        requireRole(userId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(userId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
 
         final int id = conferenceRoomService.create(data, userId, municipalityId);
 
@@ -57,29 +52,18 @@ public class ConferenceRoomRestController {
         return ResponseEntity.created(uri).build();
     }
 
-    /**
-     * GET /api/salas
-     * Qualquer usuário autenticado pode listar salas do seu município.
-     */
     @GetMapping
     public ResponseEntity<List<ConferenceRoom>> findAll(HttpServletRequest request) {
         int municipalityId = authHelper.getMunicipalityId(request);
         return ResponseEntity.ok(conferenceRoomService.findByMunicipalityId(municipalityId));
     }
 
-    /**
-     * GET /api/salas/{id}
-     */
     @GetMapping("/{id}")
     public ResponseEntity<ConferenceRoom> findById(@PathVariable final int id) {
         ConferenceRoom room = conferenceRoomService.findById(id);
         return ResponseEntity.ok(room);
     }
 
-    /**
-     * DELETE /api/salas/{id}
-     * Apenas o moderador da sala ou ADMINISTRATOR pode encerrar.
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable final int id,
                                        HttpServletRequest request) {
@@ -88,12 +72,6 @@ public class ConferenceRoomRestController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- Solicitações de entrada ---
-
-    /**
-     * POST /api/salas/{id}/solicitacoes-entrada
-     * Cidadão solicita entrada na sala.
-     */
     @PostMapping("/{id}/solicitacoes-entrada")
     public ResponseEntity<Void> requestEntry(@PathVariable final int id,
                                              HttpServletRequest request) {
@@ -102,45 +80,33 @@ public class ConferenceRoomRestController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * GET /api/salas/{id}/solicitacoes-entrada
-     * Apenas MODERADOR ou ADMINISTRATOR pode ver solicitações pendentes.
-     */
     @GetMapping("/{id}/solicitacoes-entrada")
     public ResponseEntity<List<RoomParticipant>> findRequests(@PathVariable final int id,
                                                                HttpServletRequest request) {
         int userId = authHelper.getUserId(request);
-        requireRole(userId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(userId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         return ResponseEntity.ok(conferenceRoomService.findRequests(id));
     }
 
-    /**
-     * POST /api/salas/{id}/solicitacoes-entrada/{participanteId}/aprovar
-     */
     @PostMapping("/{id}/solicitacoes-entrada/{participanteId}/aprovar")
     public ResponseEntity<Void> approveEntry(@PathVariable final int id,
                                               @PathVariable final int participanteId,
                                               HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.approveEntry(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * POST /api/salas/{id}/solicitacoes-entrada/{participanteId}/rejeitar
-     */
     @PostMapping("/{id}/solicitacoes-entrada/{participanteId}/rejeitar")
     public ResponseEntity<Void> rejectEntry(@PathVariable final int id,
                                              @PathVariable final int participanteId,
                                              HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.rejectEntry(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
-
-    // --- Solicitações para falar ---
 
     @PostMapping("/{id}/solicitacoes-fala")
     public ResponseEntity<Void> requestToSpeak(@PathVariable final int id,
@@ -153,7 +119,7 @@ public class ConferenceRoomRestController {
     public ResponseEntity<List<RoomParticipant>> findSpeechRequests(@PathVariable final int id,
                                                                      HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         return ResponseEntity.ok(conferenceRoomService.findSpeechRequests(id));
     }
 
@@ -162,7 +128,7 @@ public class ConferenceRoomRestController {
                                                @PathVariable final int participanteId,
                                                HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.approveSpeech(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
@@ -172,106 +138,71 @@ public class ConferenceRoomRestController {
                                               @PathVariable final int participanteId,
                                               HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.rejectSpeech(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * POST /api/salas/{id}/solicitacoes-fala/{participanteId}/revogar
-     * Revoga uma fala já aprovada: encerra a aprovação (status volta para REJECTED),
-     * bloqueia microfone e câmera e propaga a mudança ao LiveKit imediatamente.
-     * O cidadão pode enviar um novo pedido de fala depois disso.
-     */
     @PostMapping("/{id}/solicitacoes-fala/{participanteId}/revogar")
     public ResponseEntity<Void> revokeSpeech(@PathVariable final int id,
                                              @PathVariable final int participanteId,
                                              HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.revokeSpeech(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
 
-    // --- Controle de microfone ---
-
-    /**
-     * POST /api/salas/{id}/participantes/{participanteId}/microfone/liberar
-     */
     @PostMapping("/{id}/participantes/{participanteId}/microfone/liberar")
     public ResponseEntity<Void> enableMicrophone(@PathVariable final int id,
                                                   @PathVariable final int participanteId,
                                                   HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.enableMicrophone(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * POST /api/salas/{id}/participantes/{participanteId}/microfone/bloquear
-     */
     @PostMapping("/{id}/participantes/{participanteId}/microfone/bloquear")
     public ResponseEntity<Void> disableMicrophone(@PathVariable final int id,
                                                    @PathVariable final int participanteId,
                                                    HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.disableMicrophone(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
 
-    // --- Controle de câmera ---
-
-    /**
-     * POST /api/salas/{id}/participantes/{participanteId}/camera/liberar
-     */
     @PostMapping("/{id}/participantes/{participanteId}/camera/liberar")
     public ResponseEntity<Void> enableCamera(@PathVariable final int id,
                                               @PathVariable final int participanteId,
                                               HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.enableCamera(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * POST /api/salas/{id}/participantes/{participanteId}/camera/bloquear
-     */
     @PostMapping("/{id}/participantes/{participanteId}/camera/bloquear")
     public ResponseEntity<Void> disableCamera(@PathVariable final int id,
                                                @PathVariable final int participanteId,
                                                HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.disableCamera(id, participanteId, moderatorId);
         return ResponseEntity.ok().build();
     }
 
-    // --- Expulsão ---
-
-    /**
-     * DELETE /api/salas/{id}/participantes/{participanteId}
-     */
     @DeleteMapping("/{id}/participantes/{participanteId}")
     public ResponseEntity<Void> removeParticipant(@PathVariable final int id,
                                                    @PathVariable final int participanteId,
                                                    HttpServletRequest request) {
         int moderatorId = authHelper.getUserId(request);
-        requireRole(moderatorId, UserModel.UserRole.MODERATOR, UserModel.UserRole.ADMINISTRATOR);
+        requireRole(moderatorId, UserRoleEnum.MODERATOR, UserRoleEnum.ADMINISTRATOR);
         conferenceRoomService.removeParticipant(id, participanteId, moderatorId);
         return ResponseEntity.noContent().build();
     }
 
-    // --- Token LiveKit ---
-
-    /**
-     * POST /api/salas/{id}/token
-     * Gera o token LiveKit para o usuário autenticado entrar na sala.
-     * Cidadão só recebe token se estiver aprovado.
-     * Moderador recebe token com permissões administrativas.
-     */
     @PostMapping("/{id}/token")
     public ResponseEntity<LiveKitTokenDto> generateToken(@PathVariable final int id,
                                                           HttpServletRequest request) {
@@ -280,14 +211,12 @@ public class ConferenceRoomRestController {
         return ResponseEntity.ok(new LiveKitTokenDto(token));
     }
 
-    // --- Helper de autorização por role ---
-
-    private void requireRole(int userId, UserModel.UserRole... allowedRoles) {
+    private void requireRole(int userId, UserRoleEnum... allowedRoles) {
         UserModel user = userService.findByid(userId);
         if (user == null) {
             throw new SecurityException("Usuário não encontrado");
         }
-        for (UserModel.UserRole role : allowedRoles) {
+        for (UserRoleEnum role : allowedRoles) {
             if (user.getRole() == role) {
                 return;
             }

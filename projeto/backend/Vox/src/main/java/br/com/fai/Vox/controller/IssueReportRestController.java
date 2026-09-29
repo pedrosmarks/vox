@@ -101,6 +101,20 @@ public class IssueReportRestController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/desassociar")
+    public ResponseEntity<Void> unassignFromCouncilor(@PathVariable final int id,
+                                                       HttpServletRequest request) {
+        if (!"COUNCILOR".equalsIgnoreCase(authHelper.getRole(request))) {
+            throw new SecurityException("Acesso negado: apenas vereadores podem se desassociar de denúncias");
+        }
+
+        issueReportService.unassignCouncilor(
+                id,
+                authHelper.getUserId(request),
+                authHelper.getMunicipalityId(request));
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> update(@PathVariable final int id,
                                         @ModelAttribute final IssueReport data,
@@ -116,14 +130,10 @@ public class IssueReportRestController {
         return ResponseEntity.noContent().build();
     }
 
-    // --- HISTÓRICO DE STATUS ---
-
     @GetMapping("/{id}/history")
     public ResponseEntity<List<IssueStatusHistory>> getHistory(@PathVariable final int id) {
         return ResponseEntity.ok(issueStatusHistoryService.findByIssueId(id));
     }
-
-    // --- IMAGENS ---
 
     @PostMapping(value = "/{id}/images", consumes = {"multipart/form-data"})
     public ResponseEntity<Void> addImage(@PathVariable final int id,

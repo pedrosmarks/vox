@@ -1,4 +1,5 @@
 package br.com.fai.Vox.port.service.issuereport;
+import br.com.fai.Vox.domain.enums.IssueStatusEnum;
 
 import br.com.fai.Vox.domain.IssueReport;
 import br.com.fai.Vox.domain.dto.CreateIssueReportDto;
@@ -18,5 +19,6 @@ public interface IssueReportService {
     PageResponse<IssueReport> findPendingByMunicipalityId(int municipalityId, int page, int size);
     void update(int id, IssueReport entity, int changedBy);
     void assignCouncilor(int issueId, int councilorId, int municipalityId);
-    void updateStatus(int id, IssueReport.IssueStatus status, int changedBy, String note);
+    void unassignCouncilor(int issueId, int councilorId, int municipalityId);
+    void updateStatus(int id, IssueStatusEnum status, int changedBy, String note);
 }

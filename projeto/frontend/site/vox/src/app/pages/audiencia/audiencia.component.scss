@@ -267,6 +267,62 @@ $live:       #dc2626;
   &:focus-visible { outline: 3px solid rgba(220, 38, 38, 0.45); outline-offset: 2px; }
 }
 
+.confirm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.confirm-modal {
+  width: min(440px, 100%);
+  padding: 1.5rem;
+  border: 1px solid $border;
+  border-radius: 12px;
+  background: $white;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.3);
+
+  h2 { margin: 0.75rem 0 0.5rem; color: $text; font-size: 1.15rem; }
+  p { margin: 0; color: $text-muted; line-height: 1.5; }
+}
+
+.confirm-modal-icon { color: $live; font-size: 28px; }
+
+.confirm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+
+  button {
+    min-height: 40px;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+}
+
+.btn-confirm-cancel { border: 1px solid $border; background: $white; color: $text; }
+.btn-confirm-danger { border: 1px solid $live; background: $live; color: $white; }
+
+:host-context(html[data-a11y='DARK']) .confirm-modal {
+  background: #121212;
+  border-color: #333;
+  h2 { color: #f3f4f6; }
+  p { color: #b8bec8; }
+}
+
+:host-context(html[data-a11y='DARK']) .btn-confirm-cancel {
+  background: #1a1a1a;
+  border-color: #444;
+  color: #f3f4f6;
+}
+
 :host ::ng-deep .form-actions .btn-submit[disabled] {
   opacity: 0.6;
   cursor: not-allowed;

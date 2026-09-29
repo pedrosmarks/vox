@@ -63,19 +63,14 @@ export class IssueService {
     return this.http.put<void>(`${this.API_URL}/api/issues/${id}`, formData);
   }
 
-  /** Atualiza a ocorrência enviando o objeto completo (JSON), conforme API.md. */
-  updateIssueJson(id: number, issue: IssueReport): Observable<void> {
-    return this.http.put<void>(`${this.API_URL}/api/issues/${id}`, issue);
-  }
-
   /** Vereador logado se associa à ocorrência (endpoint dedicado, deriva o vereador do token). */
   associate(id: number): Observable<void> {
     return this.http.post<void>(`${this.API_URL}/api/issues/${id}/associar`, null);
   }
 
-  /** Remove o vínculo do vereador com a ocorrência (via update JSON, pois não há endpoint dedicado). */
-  unassignCouncilor(issue: IssueReport): Observable<void> {
-    return this.updateIssueJson(issue.id, { ...issue, councilorId: null });
+  /** Vereador logado remove o próprio vínculo com a ocorrência. */
+  unassignCouncilor(id: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/api/issues/${id}/desassociar`, null);
   }
 
   /** Atualiza apenas o status via endpoint de moderação. */

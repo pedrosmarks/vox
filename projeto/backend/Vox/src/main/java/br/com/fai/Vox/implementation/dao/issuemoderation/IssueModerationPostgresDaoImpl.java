@@ -1,7 +1,7 @@
 package br.com.fai.Vox.implementation.dao.issuemoderation;
 
 import br.com.fai.Vox.domain.IssueModeration;
-import br.com.fai.Vox.domain.enuns.ModerationStatus;
+import br.com.fai.Vox.domain.enums.ModerationStatusEnum;
 import br.com.fai.Vox.port.dao.issuemoderation.IssueModerationDao;
 
 import java.sql.*;
@@ -60,7 +60,7 @@ public class IssueModerationPostgresDaoImpl implements IssueModerationDao {
         entity.setId(rs.getInt("id"));
         entity.setIssueId(rs.getInt("issue_id"));
         entity.setModeratorId(rs.getInt("moderator_id"));
-        entity.setAction(ModerationStatus.valueOf(rs.getString("action").toUpperCase()));
+        entity.setAction(ModerationStatusEnum.valueOf(rs.getString("action").toUpperCase()));
         entity.setFeedback(rs.getString("feedback"));
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) entity.setCreatedAt(createdAt.toLocalDateTime());

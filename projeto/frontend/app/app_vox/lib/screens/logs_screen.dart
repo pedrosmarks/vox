@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../models/user_profile.dart';
 import '../services/auth_service.dart';
 import '../theme/vox_app_bar.dart';
 import '../theme/vox_colors.dart';
@@ -20,6 +21,11 @@ class _LogsScreenState extends State<LogsScreen> {
   int _size = 20;
   int _totalElements = 0;
   List<Map<String, dynamic>> _logs = [];
+  List<UserProfile> _users = [];
+  int? _userId;
+  String? _method;
+  static const _pageSizes = [20, 50, 100, 200];
+  static const _methods = ['POST', 'PUT', 'PATCH', 'DELETE'];
   final Map<int, String> _actorNames = {};
   final Set<int> _resolvedActorIds = {};
   bool _isLoading = true;
@@ -58,6 +64,7 @@ class _LogsScreenState extends State<LogsScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUsers();
     _load();
   }
 
@@ -87,6 +94,8 @@ class _LogsScreenState extends State<LogsScreen> {
       final result = await _authService.getLogs(
         page: page,
         size: _size,
+        userId: _userId,
+        method: _method,
         from: from,
         to: to,
       );
@@ -128,7 +137,28 @@ class _LogsScreenState extends State<LogsScreen> {
   void _clearFilters() {
     _fromController.clear();
     _toController.clear();
+    setState(() {
+      _userId = null;
+      _method = null;
+    });
     _load();
+  }
+
+  void _changePageSize(int? size) {
+    if (size == null || size == _size) return;
+    setState(() => _size = size);
+    _load();
+  }
+
+  Future<void> _loadUsers() async {
+    try {
+      final users = await _authService.getAllUsers();
+      if (!mounted) return;
+      users.sort((first, second) => first.name.compareTo(second.name));
+      setState(() => _users = users);
+    } catch (_) {
+      if (mounted) setState(() => _users = []);
+    }
   }
 
   @override
@@ -207,18 +237,28 @@ class _LogsScreenState extends State<LogsScreen> {
             ],
           ),
           const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              SizedBox(width: 220, child: _userFilter()),
+              SizedBox(width: 150, child: _methodFilter()),
+              SizedBox(width: 130, child: _pageSizeFilter()),
+            ],
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               IconButton(
                 onPressed: _clearFilters,
-                tooltip: 'Limpar período',
+                tooltip: 'Limpar filtros',
                 icon: const Icon(Icons.restart_alt),
               ),
               const Spacer(),
               FilledButton.icon(
                 onPressed: _isLoading ? null : () => _load(),
                 icon: const Icon(Icons.filter_list, size: 18),
-                label: const Text('Aplicar período'),
+                label: const Text('Aplicar filtros'),
               ),
             ],
           ),
@@ -240,6 +280,58 @@ class _LogsScreenState extends State<LogsScreen> {
         style: const TextStyle(fontSize: 12),
       ),
     ),
+  );
+
+  Widget _userFilter() => DropdownButtonFormField<int?>(
+    initialValue: _userId,
+    isExpanded: true,
+    decoration: const InputDecoration(
+      labelText: 'Usuário',
+      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    ),
+    items: [
+      const DropdownMenuItem<int?>(value: null, child: Text('Todos')),
+      ..._users.map(
+        (user) => DropdownMenuItem<int?>(
+          value: user.id,
+          child: Text(
+            '${user.name} · #${user.id}',
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    ],
+    onChanged: (value) => setState(() => _userId = value),
+  );
+
+  Widget _methodFilter() => DropdownButtonFormField<String?>(
+    initialValue: _method,
+    isExpanded: true,
+    decoration: const InputDecoration(
+      labelText: 'Método HTTP',
+      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    ),
+    items: [
+      const DropdownMenuItem<String?>(value: null, child: Text('Todos')),
+      ..._methods.map(
+        (method) =>
+            DropdownMenuItem<String?>(value: method, child: Text(method)),
+      ),
+    ],
+    onChanged: (value) => setState(() => _method = value),
+  );
+
+  Widget _pageSizeFilter() => DropdownButtonFormField<int>(
+    initialValue: _size,
+    isExpanded: true,
+    decoration: const InputDecoration(
+      labelText: 'Por página',
+      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    ),
+    items: _pageSizes
+        .map((size) => DropdownMenuItem(value: size, child: Text('$size')))
+        .toList(),
+    onChanged: _changePageSize,
   );
 
   Widget _logCard(Map<String, dynamic> log) {
