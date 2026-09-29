@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// espelhando o comportamento do interceptor Angular (auth.interceptor.ts).
 class ApiClient {
   // Rodando via Chrome/web local: aponta para o backend em localhost.
-  static const String baseUrl = 'http://192.168.10.21:8080';
+  static const String baseUrl = 'http://10.208.212.94:8080';
   static const String _tokenKey = 'token';
 
   static String? resolveMediaUrl(Object? value) {
