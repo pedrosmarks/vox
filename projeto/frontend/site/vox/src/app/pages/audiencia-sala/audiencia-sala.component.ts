@@ -144,7 +144,7 @@ export class AudienciaSalaComponent implements OnInit, OnDestroy {
   private buildLiveKitUrl(): string {
     // Mesmo host do backend, porta 7880 (espelha o app Flutter).
     try {
-      const api = new URL('http://localhost:8080');
+      const api = new URL('http://192.168.101.3:8080');
       const proto = api.protocol === 'https:' ? 'wss' : 'ws';
       return `${proto}://${api.hostname}:7880`;
     } catch {

@@ -4,11 +4,21 @@ import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
-import { ProjectService, Project, OpinionStats } from '../../services/project.service';
+import { ProjectService, Project, OpinionStats, Category } from '../../services/project.service';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { projectStatusLabel, statusClass } from '../../utils/status-labels';
 
 type FilterKey = 'todos' | 'oficiais' | 'sugeridos' | 'apoiados';
+
+const FALLBACK_CATEGORIES: Category[] = [
+  { id: 1, name: 'Infraestrutura' },
+  { id: 2, name: 'Saúde' },
+  { id: 3, name: 'Educação' },
+  { id: 4, name: 'Transporte' },
+  { id: 5, name: 'Meio Ambiente' },
+  { id: 6, name: 'Cultura e Lazer' },
+  { id: 7, name: 'Segurança Pública' }
+];
 
 @Component({
   selector: 'app-projetos',
@@ -20,8 +30,10 @@ type FilterKey = 'todos' | 'oficiais' | 'sugeridos' | 'apoiados';
 export class ProjetosComponent implements OnInit {
   allProjects: Project[] = [];
   filteredProjects: Project[] = [];
+  categories: Category[] = [];
   authorNames: Map<number, string> = new Map();
   activeFilter: FilterKey = 'todos';
+  selectedCategoryId: number | null = null;
   isLoading = true;
   errorMessage = '';
   isModerator = false;
@@ -57,6 +69,9 @@ export class ProjetosComponent implements OnInit {
     const role = this.authService.getUserRole();
     this.isModerator = role === 'MODERATOR' || role === 'ADMINISTRATOR';
     this.isCitizen = role === 'CITIZEN';
+    this.projectService.getCategories()
+      .pipe(catchError(() => of(FALLBACK_CATEGORIES)))
+      .subscribe(categories => this.categories = categories);
     this.loadProjects();
   }
 
@@ -152,22 +167,30 @@ export class ProjetosComponent implements OnInit {
     this.applyFilter();
   }
 
+  setCategoryFilter(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedCategoryId = value ? Number(value) : null;
+    this.applyFilter();
+  }
+
   applyFilter(): void {
+    let projects = [...this.allProjects];
     switch (this.activeFilter) {
       case 'oficiais':
-        this.filteredProjects = this.allProjects.filter(p => p.isOfficial || p.type === 'OFFICIAL');
+        projects = projects.filter(p => p.isOfficial || p.type === 'OFFICIAL');
         break;
       case 'sugeridos':
-        this.filteredProjects = this.allProjects.filter(p => !p.isOfficial && p.type === 'CITIZEN');
+        projects = projects.filter(p => !p.isOfficial && p.type === 'CITIZEN');
         break;
       case 'apoiados':
-        this.filteredProjects = [...this.allProjects].sort(
+        projects.sort(
           (a, b) => this.getApprovals(b.id) - this.getApprovals(a.id)
         );
         break;
-      default:
-        this.filteredProjects = [...this.allProjects];
     }
+    this.filteredProjects = this.selectedCategoryId === null
+      ? projects
+      : projects.filter(p => p.categoryId === this.selectedCategoryId);
   }
 
   /** Nº de apoios de um projeto (0 se ainda não carregado). */

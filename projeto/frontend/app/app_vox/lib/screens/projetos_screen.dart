@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/project_service.dart';
 import '../theme/vox_app_bar.dart';
 import '../theme/vox_badges.dart';
+import '../utils/fallback_categories.dart';
 import '../utils/status_labels.dart';
 import 'login_screen.dart';
 import 'projeto_detalhe_screen.dart';
@@ -25,6 +26,8 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
 
   List<Project> _all = [];
   List<Project> _filtered = [];
+  List<Category> _categories = fallbackCategories;
+  int? _categoryId;
   final Map<int, String> _authorNames = {};
   final Map<int, int> _approvals = {};
   final Set<int> _supported = {};
@@ -136,6 +139,11 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
     });
     try {
       _isCitizen = (await _authService.getUserRole()) == 'CITIZEN';
+      try {
+        _categories = await _projectService.getCategories();
+      } catch (_) {
+        _categories = fallbackCategories;
+      }
       final projects = await _projectService.getProjects();
       _all = projects.where(_isVisible).toList();
       _applyFilter();
@@ -237,26 +245,29 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
   }
 
   void _applyFilter() {
+    var projects = List<Project>.of(_all);
     switch (_filter) {
       case _Filter.oficiais:
-        _filtered = _all
+        projects = projects
             .where((p) => p.isOfficial || p.type == 'OFFICIAL')
             .toList();
         break;
       case _Filter.sugeridos:
-        _filtered = _all
+        projects = projects
             .where((p) => !p.isOfficial && p.type == 'CITIZEN')
             .toList();
         break;
       case _Filter.apoiados:
-        _filtered = List.of(
-          _all,
-        )..sort((a, b) => _approvalCount(b.id).compareTo(_approvalCount(a.id)));
+        projects.sort(
+          (a, b) => _approvalCount(b.id).compareTo(_approvalCount(a.id)),
+        );
         break;
       case _Filter.todos:
-        _filtered = List.of(_all);
         break;
     }
+    _filtered = projects
+        .where((p) => _categoryId == null || p.categoryId == _categoryId)
+        .toList();
   }
 
   String _typeLabel(Project p) => p.isOfficial || p.type == 'OFFICIAL'
@@ -277,19 +288,49 @@ class _ProjetosScreenState extends State<ProjetosScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(12),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _filterChip('Todos', _Filter.todos),
-                          const SizedBox(width: 8),
-                          _filterChip('Oficiais', _Filter.oficiais),
-                          const SizedBox(width: 8),
-                          _filterChip('Sugeridos', _Filter.sugeridos),
-                          const SizedBox(width: 8),
-                          _filterChip('Mais apoiados', _Filter.apoiados),
-                        ],
-                      ),
+                    child: Column(
+                      children: [
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _filterChip('Todos', _Filter.todos),
+                              const SizedBox(width: 8),
+                              _filterChip('Oficiais', _Filter.oficiais),
+                              const SizedBox(width: 8),
+                              _filterChip('Sugeridos', _Filter.sugeridos),
+                              const SizedBox(width: 8),
+                              _filterChip('Mais apoiados', _Filter.apoiados),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<int?>(
+                          initialValue: _categoryId,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Categoria',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text('Todas as categorias'),
+                            ),
+                            ..._categories.map(
+                              (category) => DropdownMenuItem<int?>(
+                                value: category.id,
+                                child: Text(category.name),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) => setState(() {
+                            _categoryId = value;
+                            _applyFilter();
+                          }),
+                        ),
+                      ],
                     ),
                   ),
                   Expanded(

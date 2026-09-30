@@ -32,7 +32,7 @@ export interface EventFilters {
 
 @Injectable({ providedIn: 'root' })
 export class EventService {
-  private readonly apiUrl = 'http://localhost:8080/api';
+  private readonly apiUrl = 'http://192.168.101.3:8080/api';
   constructor(private http: HttpClient) {}
 
   getCategories(): Observable<EventCategory[]> {

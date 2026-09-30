@@ -33,13 +33,13 @@
         class="nav-link"
       >Usuários</a>
 
-      <!-- Não-admin: projetos em votação -->
+      <!-- Não-admin: projetos -->
       <a
         *ngIf="!isAdmin"
         routerLink="/projetos"
         routerLinkActive="active"
         class="nav-link"
-      >Projetos em votação</a>
+      >Projetos</a>
 
       <a *ngIf="isCitizen || isModerator" routerLink="/eventos" routerLinkActive="active" class="nav-link">Eventos</a>
 

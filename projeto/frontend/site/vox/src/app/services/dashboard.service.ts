@@ -35,7 +35,7 @@ export interface DashboardData {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly apiUrl = 'http://localhost:8080/api/admin/dashboard';
+  private readonly apiUrl = 'http://192.168.101.3:8080/api/admin/dashboard';
 
   constructor(private http: HttpClient) {}
 
